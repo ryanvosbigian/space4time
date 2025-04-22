@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{object}{A s4t_ageclass_cjs object}
+
+\item{...}{Not used}
 }
 \value{
 estimated parameters table and AIC

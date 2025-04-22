@@ -826,6 +826,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 #' @param iter an `integer` of the number of total (warmup + actual) iterations.
 #' @param fixed_age a `logical` object that determines whether the ageclass model will be run
 #'     as a separate model (TRUE) or whether it is estimated along with the CJS model (FALSE).
+#' @param ... further arguents to pass to `rstan::sampling`
 #'
 #' @returns a `s4t_cjs` object.
 #' @examples

@@ -2,6 +2,7 @@
 #' summary of s4t_cjs object
 #'
 #' @param object A s4t_cjs object
+#' @param ... Not used
 #' @returns estimated parameters table and AIC
 #' @export
 summary.s4t_cjs <- function(object, ...) {
@@ -14,6 +15,7 @@ summary.s4t_cjs <- function(object, ...) {
 #' summary of s4t_ageclass_cjs object
 #'
 #' @param object A s4t_ageclass_cjs object
+#' @param ... Not used
 #' @returns estimated parameters table and AIC
 #' @export
 summary.s4t_ageclass_model <- function(object, ...) {
@@ -23,6 +25,15 @@ summary.s4t_ageclass_model <- function(object, ...) {
 
 }
 
+#' ANOVA for mark-recapture model fits
+#'
+#' @description
+#' Compute analysis of variance table.
+#'
+#' @param object object of class `s4t_cjs`
+#' @param ... object of class `s4t_cjs`
+#' @returns An object of class `anova` inheriting form class `data.frame` ???
+#'
 #' @export
 anova.s4t_cjs <- function(object, ...) {
   diff_ll <- abs(mod1$nll - mod2$nll)
@@ -33,6 +44,15 @@ anova.s4t_cjs <- function(object, ...) {
   c(logLik = diff_ll, p_val = stats::pchisq(q = diff_ll,df = diff_k,lower.tail = FALSE))
 }
 
+#' ANOVA for ageclass model fits
+#'
+#' @description
+#' Compute analysis of variance table.
+#'
+#' @param object object of class `s4t_cjs`
+#' @param ... object of class `s4t_cjs`
+#' @returns An object of class `anova` inheriting form class `data.frame` ???
+#'
 #' @export
 anova.s4t_ageclass_model <- function(object, ...) {
   diff_ll <- abs(mod1$nll - mod2$nll)

@@ -42,6 +42,8 @@ fit_s4t_cjs_rstan(
 
 \item{fixed_age}{a \code{logical} object that determines whether the ageclass model will be run
 as a separate model (TRUE) or whether it is estimated along with the CJS model (FALSE).}
+
+\item{...}{further arguents to pass to \code{rstan::sampling}}
 }
 \value{
 a \code{s4t_cjs} object.

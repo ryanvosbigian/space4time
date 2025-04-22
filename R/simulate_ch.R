@@ -173,6 +173,12 @@ simulate_data <- function(N = 500,
 
   cohort_surv <- cohort_surv[!is.na(cohort_surv[,1]),]
 
+  obs_ch <- cbind(id = 1:nrow(obs_ch), obs_ch)
+  colnames(obs_ch) <- c("id", 1:3)
+
+  #
+  obs_lengthyear <- cbind(id = 1:nrow(obs_lengthyear), obs_lengthyear)
+  colnames(obs_lengthyear) <- c("id", "obs_time", "FL", "ageclass")
 
   ch_df <- obs_ch %>%
     as.data.frame() %>%

@@ -1050,7 +1050,8 @@ s4t_cjs_ch <- function(ch_df,
 # to fix the "no visible binding for global variable" note:
 site <- id <- time <- removed <- dups <- ord <- id_site <-
   last_obs <- first_obs <- diff_time_obs <- observations <-
-  removed_site <- ageclass <- obs_time <- obs_max_age <- time <- NULL
+  removed_site <- ageclass <- obs_time <- obs_max_age <- time <-
+  obs_age <- NULL
 
 
 marginalize_ch <- function(s4t_ch) {
