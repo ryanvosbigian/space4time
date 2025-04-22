@@ -1,5 +1,17 @@
 
-
+#' Simulate simple capture history
+#'
+#' @description
+#' Simulates a small capture history with 3 sites, where there can be holdovers
+#'     betweeen the first 1st and 2nd sites.
+#'
+#' @param N An `integer` of the number of individuals
+#' @param max_obs_year an `integer` of the number of total time intervals
+#' @param prop_missing_age a `numeric` value between `0` and `1` of the proportion of
+#'     individuals that do not have known ages.
+#' @returns a `list` containing capture history `data.frame`, `list` containing the
+#'     params.
+#'
 #' @export
 simulate_data <- function(N = 500,
                           max_obs_year = 2,
@@ -161,8 +173,17 @@ simulate_data <- function(N = 500,
 
   cohort_surv <- cohort_surv[!is.na(cohort_surv[,1]),]
 
-  return(list(obs_ch = obs_ch,true_ch = true_ch,
-              broodyear = broodyear,
+
+  ch_df <- obs_ch %>%
+    as.data.frame() %>%
+    tidyr::pivot_longer(cols = 2:4,
+                        names_to = "site",
+                        values_to = "time") %>%
+    dplyr::mutate(removed = FALSE) %>%
+    dplyr::filter(time != 0)
+
+  return(list(ch_df = ch_df,#true_ch = true_ch,
+              # broodyear = broodyear,
               obs_lengthyear = obs_lengthyear,
               params = list(Theta = Theta,
                             p_prob = p_prob,
@@ -172,10 +193,23 @@ simulate_data <- function(N = 500,
   )
 
 
+
 }
 
 
-
+#' Simulate simple capture history with 4 sites
+#'
+#' @description
+#' Simulates a small capture history with 4 sites, where there can be holdovers
+#'     betweeen the first 1st and 2nd sites and the 2nd and 3rd sites.
+#'
+#' @param N An `integer` of the number of individuals
+#' @param max_obs_year an `integer` of the number of total time intervals
+#' @param prop_missing_age a `numeric` value between `0` and `1` of the proportion of
+#'     individuals that do not have known ages.
+#' @returns a `list` containing capture history `data.frame`, `list` containing the
+#'     params.
+#'
 #' @export
 simulate_data_tworeleasesites <- function(N = 500,
                                           max_obs_year = 2,

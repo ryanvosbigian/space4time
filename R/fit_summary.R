@@ -24,7 +24,7 @@ summary.s4t_ageclass_model <- function(object, ...) {
 }
 
 #' @export
-anova.s4t_cjs <- function(mod1,mod2, ...) {
+anova.s4t_cjs <- function(object, ...) {
   diff_ll <- abs(mod1$nll - mod2$nll)
   diff_k <- abs(mod1$k - mod2$k)
 
@@ -34,7 +34,7 @@ anova.s4t_cjs <- function(mod1,mod2, ...) {
 }
 
 #' @export
-anova.s4t_ageclass_model <- function(mod1,mod2, ...) {
+anova.s4t_ageclass_model <- function(object, ...) {
   diff_ll <- abs(mod1$nll - mod2$nll)
   diff_k <- abs(mod1$k - mod2$k)
 

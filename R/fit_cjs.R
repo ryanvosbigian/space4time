@@ -1,4 +1,14 @@
 
+
+#' @importFrom rstan sampling
+#' @importFrom rstantools rstan_config
+#' @importFrom RcppParallel RcppParallelLibs
+#' @importFrom RcppParallel CxxFlags
+#' @import methods
+#' @import Rcpp
+
+
+
 format_s4t_cjs <- function(p_formula,
                            theta_formula,
                            ageclass_formula,
@@ -518,7 +528,7 @@ format_s4t_cjs <- function(p_formula,
 
 
 
-fit_s4t_cjs_marg <- function(p_formula,theta_formula,
+fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                              ageclass_formula,
                              cov_p = NULL, cov_theta = NULL,
                              groups = NULL,
@@ -795,15 +805,34 @@ fit_s4t_cjs_marg <- function(p_formula,theta_formula,
 }
 
 
-#' @importFrom rstan sampling
-#' @importFrom rstantools rstan_config
-#' @importFrom RcppParallel RcppParallelLibs
-#' @importFrom RcppParallel CxxFlags
-#' @import methods
-#' @import Rcpp
+
+
+
+
+#' Fit space-for-time mark-recapture model in Bayesian framework
+#'
+#' @description
+#' Uses Stan to fit the age-specific space-for-time model.
+#'
+#' @param p_formula an object of class "formula" for the formula for detection probabilities.
+#' @param theta_formula an object of class "formula" for the formula for transition probabilities.
+#' @param ageclass_formula an object of class "formula" for the ageclass sub-model
+#' @param cov_p a `data.frame` or `list` of `data.frame`'s containing the covariates for p. See details.
+#' @param cov_theta a `data.frame` or `list` of `data.frame`'s containing the covariates for theta. See details.
+#' @param groups a `character` vector containing the names of the covariates that comprise the groups.
+#' @param s4t_ch a `s4t_ch` object
+#' @param chains an `integer` of the number of chains to run.
+#' @param warmup an `integer` of the number of warmup iterations.
+#' @param iter an `integer` of the number of total (warmup + actual) iterations.
+#' @param fixed_age a `logical` object that determines whether the ageclass model will be run
+#'     as a separate model (TRUE) or whether it is estimated along with the CJS model (FALSE).
+#'
+#' @returns a `s4t_cjs` object.
+#' @examples
+#' # don't run
 #'
 #' @export
-fit_s4t_cjs_marg_rstan <- function(p_formula,
+fit_s4t_cjs_rstan <- function(p_formula,
                                    theta_formula,
                                    ageclass_formula,
                                    cov_p = NULL, cov_theta = NULL,groups = NULL,

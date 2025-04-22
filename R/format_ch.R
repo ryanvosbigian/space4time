@@ -540,12 +540,14 @@ s4t_cjs_ch <- function(ch_df,
 
   ## Consider changing some of these to messages that result in an error after the whole thing is run
 
+  ch_df <- as.data.frame(ch_df)
+  aux_age_df <- as.data.frame(aux_age_df)
 
-  if (!is(ch_df,"data.frame")) {
-    stop("ch_df must be a data.frame")
-  }
-
-  # if (!("data.frame" %in% class(aux_age_df))) {
+  # if (!is(ch_df,"data.frame")) {
+  #   stop("ch_df must be a data.frame")
+  # }
+  #
+  # if (!is(aux_age_df,"data.frame")) {
   #   stop("aux_age_df must be a data.frame")
   # }
 
@@ -697,7 +699,7 @@ s4t_cjs_ch <- function(ch_df,
 
   # change type of ch_df$id and ch_df$site to characters
   aux_age_df$id <- as.character(aux_age_df$id)
-  aux_age_df$obs_site <- as.character(aux_age_df$obs_site)
+  # aux_age_df$obs_site <- as.character(aux_age_df$obs_site)
 
   if (is(aux_age_df$obs_time,"character")) {
     stop("Convert aux_age_df$obs_time to an integer or date or datetime class")
@@ -927,34 +929,35 @@ s4t_cjs_ch <- function(ch_df,
 
   # is each individual recorded at each site once (not more than once)
 
-  repeatobservations <- ch_df %>%
-    dplyr::filter(id %in% ids_inboth) %>%
-    dplyr::group_by(id,site) %>%
-    dplyr::summarize(id_site = dplyr::n()) %>%
-    dplyr::filter(id_site > 1)
+  suppressMessages(repeatobservations <- ch_df %>%
+                     dplyr::filter(id %in% ids_inboth) %>%
+                     dplyr::group_by(id,site) %>%
+                     dplyr::summarize(id_site = dplyr::n()) %>%
+                     dplyr::filter(id_site > 1))
 
-  timedifferenceincaptures <- ch_df %>%
+  suppressMessages(timedifferenceincaptures <- ch_df %>%
+    dplyr::left_join(data.frame(site = sites_names,max_a = max_a)) %>%
     dplyr::filter(id %in% ids_inboth) %>%
     dplyr::group_by(id) %>%
-    dplyr::summarize(first_obs = min_not_zero(time),
+    dplyr::mutate(first_obs = min_not_zero(time),
               last_obs = max(time),
               diff_time_obs = last_obs - first_obs) %>%
-    dplyr::filter(diff_time_obs > max_a - min_obs_age)
+    dplyr::filter(diff_time_obs > max_a - min_obs_age))
 
 
-  tmp_summary_dat <- ch_df %>%
+  suppressMessages(tmp_summary_dat <- ch_df %>%
     dplyr::filter(id %in% ids_inboth) %>%
     dplyr::group_by(site,time) %>%
     dplyr::summarize(observations = dplyr::n()) %>%
-    dplyr::mutate(time = factor(time))
+    dplyr::mutate(time = factor(time)))
 
   fewcaptures_insitetime <- tmp_summary_dat %>%
     dplyr::filter(observations < 10)
 
-  nocaptures_insitetime <- expand.grid(site = unique(ch_df$site),
+  suppressMessages(nocaptures_insitetime <- expand.grid(site = unique(ch_df$site),
                                        time = unique(ch_df$site)) %>%
     dplyr::left_join(tmp_summary_dat) %>%
-    dplyr::filter(observations == 0)
+    dplyr::filter(observations == 0))
 
   # checking that no removed individuals are encountered again
 
@@ -965,7 +968,7 @@ s4t_cjs_ch <- function(ch_df,
   # zombie_obs <- tmp_removed_ind[zombies,]
 
 
-  zombie_individuals <- ch_df %>%
+  suppressWarnings(suppressMessages(zombie_individuals <- ch_df %>%
     dplyr::filter(id %in% ids_inboth) %>%
     dplyr::filter(site %in% site_order$site) %>%
     dplyr::left_join(site_order, by = "site") %>%
@@ -974,7 +977,7 @@ s4t_cjs_ch <- function(ch_df,
     dplyr::arrange(id,ord) %>%
     dplyr::mutate(removed_site = ifelse(removed,ord,NA)) %>%
     tidyr::fill(removed_site,.direction = "updown") %>%
-    dplyr::filter((any(min(removed_site) < ord,na.rm = TRUE)))
+    dplyr::filter((any(min(removed_site) < ord,na.rm = TRUE)))))
 
   ## time travelers
 
@@ -987,18 +990,19 @@ s4t_cjs_ch <- function(ch_df,
 
 
   ## NEED TO REDO
-  max_obs_age_knownagefish <- ch_df %>%
+  suppressMessages(max_obs_age_knownagefish <- ch_df %>%
     dplyr::left_join(aux_age_df, by = "id") %>%
+    dplyr::left_join(data.frame(site = sites_names,max_a = max_a)) %>%
     dplyr::group_by(id) %>%
     dplyr::filter(any(!is.na(ageclass))) %>%
     tidyr::fill(ageclass,obs_time) %>%
-    dplyr::summarize(first_obs = min_not_zero(time),
+    dplyr::mutate(first_obs = min_not_zero(time),
               last_obs = max(time),
               obs_age = dplyr::first(ageclass),
               obs_time = dplyr::first(obs_time),
               diff_time_obs = last_obs - obs_time,
               obs_max_age = obs_age + diff_time_obs) %>%
-    dplyr::filter(obs_max_age > max_a)
+    dplyr::filter(obs_max_age > max_a))
 
 
 
@@ -1042,6 +1046,12 @@ s4t_cjs_ch <- function(ch_df,
   # site name stuff
 
 }
+
+# to fix the "no visible binding for global variable" note:
+site <- id <- time <- removed <- dups <- ord <- id_site <-
+  last_obs <- first_obs <- diff_time_obs <- observations <-
+  removed_site <- ageclass <- obs_time <- obs_max_age <- time <- NULL
+
 
 marginalize_ch <- function(s4t_ch) {
   # s4t_ch_all$ch$m_matrix
