@@ -424,7 +424,7 @@ simulate_data_tworeleasesites <- function(N = 500,
   cohort_surv <- cohort_surv[!is.na(cohort_surv[,1]),]
 
   return(list(obs_ch = obs_ch,true_ch = true_ch,
-              broodyear = broodyear,
+              aux_age_df = broodyear,
               obs_lengthyear = obs_lengthyear,
               params = list(Theta = Theta,
                             p_prob = p_prob,
