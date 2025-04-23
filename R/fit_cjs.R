@@ -846,7 +846,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
   dots <- list(...)
 
-  fixed_age <- match.arg(fixed_age,choices = c(TRUE,FALSE))
+  # fixed_age <- match.arg(fixed_age,choices = c(TRUE,FALSE))
 
   call <- list(p_formula = p_formula,
                theta_formula = theta_formula,
