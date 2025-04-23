@@ -844,8 +844,21 @@ fit_s4t_cjs_rstan <- function(p_formula,
                                    fixed_age = TRUE,
                                    ...) {
 
+  dots <- list(...)
 
+  fixed_age <- match.arg(fixed_age,choices = c(TRUE,FALSE))
 
+  call <- list(p_formula = p_formula,
+               theta_formula = theta_formula,
+               cov_p = cov_p,
+               cov_theta = cov_theta,
+               groups =groups,
+               s4t_ch = s4t_ch,
+               chains = chains,
+               warmup = warmup,
+               iter = iter,
+               fixed_age = fixed_age,
+               dots = dots)
 
   format_cjs <- format_s4t_cjs(p_formula =p_formula, theta_formula = theta_formula,
                                ageclass_formula = ageclass_formula,
@@ -1276,7 +1289,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                         overall_surv = overall_surv,
                         cohort_surv = cohort_surv,
                         res = res,
-                        s4t_ch = s4t_ch,
+                        call = call,
                         fit = list(p_formula = p_formula,
                                    theta_formula = theta_formula,
                                    ageclass_formula = ageclass_formula,

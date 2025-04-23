@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_summary.R
 \name{anova.s4t_ageclass_model}
 \alias{anova.s4t_ageclass_model}
-\title{ANOVA for ageclass model fits}
+\title{AIC table for ageclass model fits}
 \usage{
 \method{anova}{s4t_ageclass_model}(object, ...)
 }

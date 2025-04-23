@@ -12,6 +12,27 @@ summary.s4t_cjs <- function(object, ...) {
          AIC = data.frame(AIC = round(object$AIC,2)))
 }
 
+
+#' summary of s4t_cjs_rstan object
+#'
+#' @description
+#' Calls `summary,stanfit-method`.
+#'
+#'
+#' @param object A s4t_cjs_rstan object.
+#' @param pars a character vector of parameter names.
+#' @param probs a numerical vector of quantiles of interest.
+#' @param ... Additional arguments to pass to `summary,stanfit-method`.
+#'
+#' @returns Returns a named list with ...
+#' @export
+summary.s4t_cjs_rstan <- function(object,
+                                  pars,
+                                  probs = c(0.025, 0.25, 0.50, 0.75, 0.975),
+                                  ...) {
+  rstan::summary(object$res,pars = pars, probs = probs, ...)
+}
+
 #' summary of s4t_ageclass_cjs object
 #'
 #' @param object A s4t_ageclass_cjs object
@@ -24,6 +45,7 @@ summary.s4t_ageclass_model <- function(object, ...) {
   print(data.frame(AIC = round(object$AIC,2)))
 
 }
+
 
 #' ANOVA table for mark-recapture model fits
 #'

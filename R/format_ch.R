@@ -98,7 +98,8 @@ new_s4t_cjs_ch <- function(obs_ch,
                            sites_config,
                            holdover_config,
                            observed_relative_min_max,
-                           potential_error_log) {
+                           potential_error_log,
+                           call) {
 
   mat_obs_ch <- as.matrix(obs_ch[,colnames(sites_config)])
   removed_sites <- (obs_ch[,ncol(obs_ch)])
@@ -418,6 +419,7 @@ new_s4t_cjs_ch <- function(obs_ch,
                            obs_aux = obs_aux),
                  obs_data = list(obs_ch = obs_ch,
                                  obs_aux = obs_aux),
+                 call = call,
                  user_defined = list(sites_config = sites_config,
                                      holdover_config = holdover_config,
                                      max_a = observed_relative_min_max$orig_max_a,
@@ -537,6 +539,15 @@ s4t_cjs_ch <- function(ch_df,
                        holdover_config,
                        sites_to_pool = NULL) {
 
+  call <- list(ch_df = ch_df,
+               aux_age_df = aux_age_df,
+               cov_df = cov_df,
+               min_a = min_a,
+               max_a = max_a,
+               sites_names = sites_names,
+               sites_config = sites_config,
+               holdover_config = holdover_config,
+               sites_to_pool = sites_to_pool)
 
   ## Consider changing some of these to messages that result in an error after the whole thing is run
 
@@ -1040,7 +1051,8 @@ s4t_cjs_ch <- function(ch_df,
                  sites_config = sites_config,
                  holdover_config = holdover_config,
                  observed_relative_min_max = observed_relative_min_max,
-                 potential_error_log = potential_error_log) # need to add stuff to relate age class and time to actual ages and years
+                 potential_error_log = potential_error_log,
+                 call = call) # need to add stuff to relate age class and time to actual ages and years
 
   # potential_error_log
   # site name stuff

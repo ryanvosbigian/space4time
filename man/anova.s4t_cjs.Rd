@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_summary.R
 \name{anova.s4t_cjs}
 \alias{anova.s4t_cjs}
-\title{ANOVA for mark-recapture model fits}
+\title{ANOVA table for mark-recapture model fits}
 \usage{
 \method{anova}{s4t_cjs}(object, ...)
 }
