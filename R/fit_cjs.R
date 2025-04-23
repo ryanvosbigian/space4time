@@ -1255,9 +1255,10 @@ fit_s4t_cjs_rstan <- function(p_formula,
   }
 
 
+  sum_res <- rstan::summary(res)
 
+  estimated_parameters <- sum_res$summary
 
-  estimated_parameters = summary(res)$summary
 
   overall_ests <- estimated_parameters[grepl("overall_surv",rownames(estimated_parameters)),]
 

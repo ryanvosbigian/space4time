@@ -25,7 +25,7 @@ summary.s4t_ageclass_model <- function(object, ...) {
 
 }
 
-#' ANOVA for mark-recapture model fits
+#' ANOVA table for mark-recapture model fits
 #'
 #' @description
 #' Compute analysis of variance table.
@@ -36,6 +36,18 @@ summary.s4t_ageclass_model <- function(object, ...) {
 #'
 #' @export
 anova.s4t_cjs <- function(object, ...) {
+  mCall <- match.call(expand.dots = TRUE)
+  dots <- list(...)
+  .sapply <- function(L, FUN, ...) unlist(lapply(L, FUN, ...))
+  modp <- (as.logical(vapply(dots, is, NA, "s4t_cjs")))
+
+  if (any(modp)) {
+    mods <- c(list(object),dots[modp])
+    # nobs.vec <- vapply(mods, nobs, 1L) #
+
+    stop("blah")
+  }
+  stop("blah")
   diff_ll <- abs(mod1$nll - mod2$nll)
   diff_k <- abs(mod1$k - mod2$k)
 
@@ -44,7 +56,7 @@ anova.s4t_cjs <- function(object, ...) {
   c(logLik = diff_ll, p_val = stats::pchisq(q = diff_ll,df = diff_k,lower.tail = FALSE))
 }
 
-#' ANOVA for ageclass model fits
+#' AIC table for ageclass model fits
 #'
 #' @description
 #' Compute analysis of variance table.

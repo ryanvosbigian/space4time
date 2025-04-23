@@ -188,9 +188,26 @@ simulate_data <- function(N = 500,
     dplyr::mutate(removed = FALSE) %>%
     dplyr::filter(time != 0)
 
+
+  sites_config <- matrix(c(0, 1, 0,
+                           0, 0, 1,
+                           0, 0, 0), nrow = 3, byrow = TRUE)
+  colnames(sites_config) <- rownames(sites_config) <- 1:3
+
+  holdover_config <- matrix(c(0, 1, 0,
+                              0, 0, 0,
+                              0, 0, 0), nrow = 3, byrow = TRUE)
+
+  colnames(holdover_config) <- rownames(holdover_config) <- 1:3
+
   return(list(ch_df = ch_df,#true_ch = true_ch,
               # broodyear = broodyear,
-              obs_lengthyear = obs_lengthyear,
+              aux_age_df = obs_lengthyear,
+              sites_config = sites_config,
+              holdover_config = holdover_config,
+              min_a = c(1,1,1),
+              max_a = c(3,3,3),
+              sites_names = as.character(1:3),
               params = list(Theta = Theta,
                             p_prob = p_prob,
                             overall_surv = overall_surv,
