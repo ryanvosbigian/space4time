@@ -45,11 +45,11 @@ fit_ageclass <- function(age_formula  = ~ 1,
 
   estimated_parameters <- data.frame(parameter = names(age_res$par),
                                      estimate = age_res$par,
-                                     se = sqrt(diag(solve(age_res$hessian))))
-  estimated_parameters$lcl95 <- estimated_parameters$estimate - 1.96 * estimated_parameters$se
-  estimated_parameters$ucl95 <- estimated_parameters$estimate + 1.96 * estimated_parameters$se
-  estimated_parameters$z_stat <- estimated_parameters$estimate / estimated_parameters$se
-  estimated_parameters$p_val <- stats::pnorm(abs(estimated_parameters$z_stat),lower.tail = FALSE)
+                                     std_error = sqrt(diag(solve(age_res$hessian))))
+  estimated_parameters$z_value <- estimated_parameters$estimate / estimated_parameters$std_error
+  estimated_parameters$lcl95 <- estimated_parameters$estimate - 1.96 * estimated_parameters$std_error
+  estimated_parameters$ucl95 <- estimated_parameters$estimate + 1.96 * estimated_parameters$std_error
+
 
   s4t_ageclass_model <- list(estimated_parameters = estimated_parameters,
                              res = age_res,

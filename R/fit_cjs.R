@@ -683,7 +683,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 
   names(lower) <- names(upper) <- names(inits)
 
-  mod_mat_theta; indices_theta
+  # mod_mat_theta; indices_theta
 
   res <- stats::optim(par = inits,fn = cdl_alg_marg,method = "L-BFGS-B",
                lower = lower,
@@ -699,6 +699,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                set_min_a = s4t_ch$ch_info$set_min_a,
                set_max_a = s4t_ch$ch_info$set_max_a,
                n_batches  = s4t_ch$ch_info$n_batches,
+               n_groups  = format_cjs$N_groups,
                batches_list = s4t_ch$ch_info$batches_list,
                mod_mat_theta = format_cjs$mod_mat_theta,
                indices_theta = format_cjs$indices_theta,
@@ -728,6 +729,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
     set_min_a = s4t_ch$ch_info$set_min_a
     set_max_a = s4t_ch$ch_info$set_max_a
     n_batches  = s4t_ch$ch_info$n_batches
+    n_groups  = format_cjs$N_groups
     batches_list = s4t_ch$ch_info$batches_list
     mod_mat_theta = mod_mat_theta
     indices_theta = indices_theta
@@ -770,10 +772,10 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 
   estimated_parameters <- data.frame(parameter = names(res$par),
                                      estimate = res$par,
-                                     se = sqrt(diag(vc)))
-  estimated_parameters$lcl95 <- estimated_parameters$estimate - 1.96 * estimated_parameters$se
-  estimated_parameters$ucl95 <- estimated_parameters$estimate + 1.96 * estimated_parameters$se
-  estimated_parameters$z_stat <- estimated_parameters$estimate / estimated_parameters$se
+                                     std_error = sqrt(diag(vc)))
+  estimated_parameters$z_value <- estimated_parameters$estimate / estimated_parameters$std_error
+  estimated_parameters$lcl95 <- estimated_parameters$estimate - 1.96 * estimated_parameters$std_error
+  estimated_parameters$ucl95 <- estimated_parameters$estimate + 1.96 * estimated_parameters$std_error
 
 
   s4t_cjs <- list(estimated_parameters = estimated_parameters,
@@ -781,13 +783,15 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                   AIC = res$value + 2 * length(res$par),
                   nll = res$value, k = length(res$par),
                   s4t_ch = s4t_ch,
+                  call = match.call(),
+                  vcov = vc,
                   fit = list(p_formula = p_formula,
                              theta_formula = theta_formula,
                              ageclass_formula = ageclass_formula,
-                             mod_mat_theta = mod_mat_theta,
-                             indices_theta = indices_theta,
-                             mod_mat_p = mod_mat_p,
-                             indices_p_obs = indices_p_obs,
+                             mod_mat_theta = format_cjs$mod_mat_theta,
+                             indices_theta = format_cjs$indices_theta,
+                             mod_mat_p = format_cjs$mod_mat_p,
+                             indices_p_obs = format_cjs$indices_p_obs,
                              ageclass_data = ageclass_data,
                              fixed_age = NULL
                   ))
@@ -1289,7 +1293,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                         overall_surv = overall_surv,
                         cohort_surv = cohort_surv,
                         res = res,
-                        call = call,
+                        call = match.call(),,
                         fit = list(p_formula = p_formula,
                                    theta_formula = theta_formula,
                                    ageclass_formula = ageclass_formula,
