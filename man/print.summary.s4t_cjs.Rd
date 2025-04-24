@@ -7,7 +7,11 @@
 \method{print}{summary.s4t_cjs}(x, digits = max(3L, getOption("digits") - 3L), ...)
 }
 \arguments{
-\item{x}{}
+\item{x}{summary.s4t_cjs object}
+
+\item{digits}{number of digits}
+
+\item{...}{passed to}
 }
 \description{
 print summary of s4t_cjs
