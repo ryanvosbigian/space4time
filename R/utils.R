@@ -35,3 +35,38 @@ min_not_zero <- function(x, na.rm = FALSE) {
 rep_crosses <- function(min_a,max_a) {
   rep(min_a:max_a,(max_a:min_a - min_a + 1))
 }
+
+printable_round <- function(x,digits = 0,...) {
+  y <- round(x=x,digits = digits, ...)
+  digs <- as.character(y - floor(y))
+  lens <- sapply(digs, FUN = function(z) nchar(z))
+
+  y_char <- as.character(y)
+
+  if (max(lens) == min(lens)) return(y_char)
+
+  contain_period <- grepl("[.]",y_char)
+
+  if (all(contain_period) |
+      all(!contain_period)) {
+    y_char <- y_char
+  } else {
+    y_char[!contain_period] <- paste0(y_char[!contain_period],".")
+  }
+
+
+
+  digits_past_period <- gsub("^.*[.]","",y_char)
+
+  lens2 <- sapply(digits_past_period, FUN = function(z) nchar(z))
+
+  add_zero <- max(lens2) != lens2
+
+  # zeroes <- paste0()
+  for (i in which(add_zero == TRUE)) {
+    y_char[i] <- paste0(y_char[i],rep("0",times = (max(lens2) - lens2[i])),collapse = "")
+
+  }
+
+  return(y_char)
+}

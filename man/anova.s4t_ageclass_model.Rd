@@ -7,12 +7,12 @@
 \method{anova}{s4t_ageclass_model}(object, ...)
 }
 \arguments{
-\item{object}{object of class \code{s4t_cjs}}
+\item{object}{object of class \code{s4t_ageclass_model}}
 
-\item{...}{object of class \code{s4t_cjs}}
+\item{...}{object of class \code{s4t_ageclass_model}}
 }
 \value{
-An object of class \code{anova} inheriting form class \code{data.frame} ???
+An object of class \code{anova} inheriting from class \code{data.frame} ???
 }
 \description{
 Compute analysis of variance table.

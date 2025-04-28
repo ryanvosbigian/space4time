@@ -1,56 +1,50 @@
 
-cohort_surv <- function(par,object) {
-
-  # par <- object$res$par
-
-  chobject <- object$s4t_ch
-
-  n_batches <- chobject$ch_info$n_batches
-  n_groups <- chobject$ch_info$n_groups # may cause issues
-
-  batches_list <- chobject$ch_info$batches_list
-  max_a <- chobject$ch_info$max_a
-  max_s_rel <- chobject$ch_info$max_s_rel
-  max_t_recap <- chobject$ch_info$max_t_recap
-  n_stations <- chobject$ch_info$n_stations
-  recap_sites <- chobject$ch_info$recap_sites
-  last_sites <- chobject$ch_info$last_sites
-  recap_sites_not_last <- chobject$ch_info$recap_sites_not_last
-  not_last_sites <- chobject$ch_info$not_last_sites
-  sites_config <- chobject$user_defined$sites_config
-  holdover_config <- chobject$user_defined$holdover_config
-  mod_mat_theta <- object$fit$mod_mat_theta
-  mod_mat_p <- object$fit$mod_mat_p
-
-  indices_theta <- object$fit$indices_theta
 
 
-  # mod_mat_theta <- object$fit$
+
+return_cohort_surv <- function(par,
+                               n_batches,
+                               batches_list,
+                               n_groups,
+                               set_min_a,
+                               set_max_a,
+                               max_s_rel,
+                               max_t_recap,
+                               n_stations,
+                               recap_sites,
+                               last_sites,
+                               recap_sites_not_last,
+                               not_last_sites,
+                               sites_config,
+                               holdover_config,
+                               mod_mat_theta,
+                               indices_theta,
+                               min_ageclass_mat,
+                               max_ageclass_mat) {
 
   max_t <- max(c(max_s_rel,max_t_recap))
-
-
-
-  Theta <- array(0,dim = c(a1 = max_a, a2 = max_a+1,
-                           s = max_t,
-                           j = n_stations,
-                           k = n_stations,
-                           b = n_batches,
-                           b = n_groups))
-
-  theta <- array(0,dim = c(a1 = max_a, a2 = max_a,
-                           s = max_t,
-                           j = n_stations,
-                           k = n_stations,
-                           b = n_batches,
-                           b = n_groups))
+  max_a <- max(set_max_a)
 
   not_last_sites <- c(1:n_stations)[-last_sites]
 
-  mod_mat_theta; indices_theta
+  Theta <- array(0,dim = c(a1 = max_a,
+                           a2 = max_a+1,
+                           s = max_t,
+                           j = n_stations,
+                           b = n_batches,
+                           g = n_groups))
+
+  theta <- array(0,dim = c(a1 = max_a,
+                           a2 = max_a,
+                           s = max_t,
+                           j = n_stations,
+                           b = n_batches,
+                           g = n_groups))
+
+
+  # mod_mat_theta; indices_theta
 
   theta_params <- par[grepl("theta",names(par))]
-  p_params <- par[grepl("p_",names(par))]
 
   mu_indices_theta <- stats::plogis(mod_mat_theta %*% theta_params)
 
@@ -67,36 +61,12 @@ cohort_surv <- function(par,object) {
 
   }
 
-  p_obs <- array(0,dim = c(a1 = max(set_max_a),
-                           a2 = max(set_max_a),
-                           t = max(indices_p_obs[,"t"]),
-                           k = n_stations,
-                           b = n_batches,
-                           g = n_groups))
-
-  mu_indices_p_obs <- stats::plogis(mod_mat_p %*% p_params)
-
-  for (i in 1:nrow(indices_p_obs)) {
-    a1 <- indices_p_obs[i,"a1"]
-    a2 <- indices_p_obs[i,"a2"]
-    t <- indices_p_obs[i,"t"]
-    k <- indices_p_obs[i,"k"]
-    b <- indices_p_obs[i,"b"]
-    g <- indices_p_obs[i,"g"]
-
-    p_obs[a1,a2,t,k,b,g] <- mu_indices_p_obs[i]
-
-  }
-
-  p_obs[,,,last_sites,,] <- 1
-
-
 
   theta_inv <- 1-theta
   ## reconsider these loops for j and k. Should determine k based on sites matrix
   for (g in 1:n_groups) {
     for (j in 1:n_stations) {
-      k <- which(sites[j,] == 1)
+      k <- which(sites_config[j,] == 1)
       # for (k in 2:(length(max_t_recap))) {
       for (a1 in 1:set_max_a[j]) {
         for (s in 1:max_s_rel[j]) {
@@ -125,42 +95,404 @@ cohort_surv <- function(par,object) {
 
   cohort_surv <- vector()
 
-  not_last_sites <- c(1:n_stations)[-last_sites]
-
-  for (j in not_last_sites) {
-    k <- which(sites_config[j,] == 1)
-    for (b in batches_list[[j]]) {
-      for (a1 in 1:max_a) {
-        for (s in 1:max_s_rel[j]) { # should this be "s"?
-          tmp_max_t <- min(c(max_t_recap[k],
-                             s + (max_a - a1)))
-
-          for (t in (s):(tmp_max_t)) {
-            a2 <- a1 + t - s
 
 
-            tmp_upperage <- min(c(t - s + a1, max_a)); tmp_upperage
 
-            cohort_surv[paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",b,"]")] <-
-              stats::qlogis(Theta[a1,a2,s,j,b])
+  for (g in 1:n_groups) {
+    for (j in not_last_sites) {
+      k <- which(sites_config[j,] == 1)
+      for (b in batches_list[[j]]) {
+        for (a1 in set_min_a[j]:set_max_a[j]) {
+          for (s in 1:max_s_rel[j]) { # should this be "s"?
+            tmp_max_t <- min(c(max_t_recap[k],
+                               s + (max_a - a1)))
 
-          } # t
-        } # s
-      } # a1
-    } #  b
-  } #j
+            tmp_min_a <- min_ageclass_mat[j,s]
+            tmp_max_a <- max_ageclass_mat[k,s]
+
+            if (is.na(tmp_min_a) | is.na(tmp_max_a)) {
+              next()
+              # if it is NA, then skip, because it is likely a
+              # site-time combination at a release site when no individuals were released
+            }
+            if (holdover_config[j,k] == 0) {
+              a2 <- a1
+              t <- s
+              cohort_surv[paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",b,",",g,"]")] <-
+                stats::qlogis(Theta[a1,a2,s,j,b,g])
+            } else { # holdover_config[j,k] == 1
+              for (t in (s):(tmp_max_t)) {
+                a2 <- a1 + t - s
+
+
+                # tmp_upperage <- min(c(t - s + a1, set_max_a[k])); tmp_upperage
+
+                cohort_surv[paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",b,",",g,"]")] <-
+                  stats::qlogis(Theta[a1,a2,s,j,b,g])
+
+              } # t
+            } # end elseif
+
+
+
+          } # s
+        } # a1
+      } #  b
+    } #j
+  } # g
+
 
   return(cohort_surv)
 }
 
-estimate_cohort_surv <- function(object) {
+return_overall_surv <- function(par,
+                               n_batches,
+                               batches_list,
+                               n_groups,
+                               set_min_a,
+                               set_max_a,
+                               max_s_rel,
+                               max_t_recap,
+                               n_stations,
+                               recap_sites,
+                               last_sites,
+                               recap_sites_not_last,
+                               not_last_sites,
+                               sites_config,
+                               holdover_config,
+                               mod_mat_theta,
+                               indices_theta,
+                               min_ageclass_mat,
+                               max_ageclass_mat) {
 
-  ja <- numDeriv::jacobian(cohort_surv,x = object$res$par,object = object)
-  vc <- solve(object$res$hessian)
+  max_t <- max(c(max_s_rel,max_t_recap))
+  max_a <- max(set_max_a)
+
+  not_last_sites <- c(1:n_stations)[-last_sites]
+
+  Theta <- array(0,dim = c(a1 = max_a, a2 = max_a+1,
+                           s = max_t,
+                           j = n_stations,
+                           b = n_batches,
+                           g = n_groups))
+
+  theta <- array(0,dim = c(a1 = max_a, a2 = max_a,
+                           s = max_t,
+                           j = n_stations,
+                           b = n_batches,
+                           g = n_groups))
+
+
+  # mod_mat_theta; indices_theta
+
+  theta_params <- par[grepl("theta",names(par))]
+
+  mu_indices_theta <- stats::plogis(mod_mat_theta %*% theta_params)
+
+  for (i in 1:nrow(indices_theta)) {
+    a1 <- indices_theta[i,"a1"]
+    a2 <- indices_theta[i,"a2"]
+    s <- indices_theta[i,"s"]
+    j <- indices_theta[i,"j"]
+    # k <- indices_theta[i,"k"]
+    b <- indices_theta[i,"b"]
+    g <- indices_theta[i,"g"]
+
+    theta[a1,a2,s,j,b,g] <- mu_indices_theta[i]
+
+  }
+
+
+  theta_inv <- 1-theta
+  ## reconsider these loops for j and k. Should determine k based on sites matrix
+  for (g in 1:n_groups) {
+    for (j in 1:n_stations) {
+      k <- which(sites_config[j,] == 1)
+      # for (k in 2:(length(max_t_recap))) {
+      for (a1 in 1:set_max_a[j]) {
+        for (s in 1:max_s_rel[j]) {
+          for (b in batches_list[[j]]) {
+
+
+            Theta[a1,a1,s,j,b,g] <- theta[a1,a1,s,j,b,g]
+
+            for (a2 in 2:max(set_max_a)) {
+
+              Theta[a1,a2,s,j,b,g] <- theta[a1,a2,s,j,b,g]*prod(theta_inv[a1,1:(a2-1),s,j,b,g])
+
+
+            }
+
+            Theta[a1,max(set_max_a)+1,s,j,b,g] <- prod(theta_inv[a1,1:max(set_max_a),s,j,b,g])
+
+          } # b
+
+        } #  t
+      } #  a1
+      # }
+    }
+  } # g
+
+
+  overall_surv <- vector()
+
+
+
+
+  for (g in 1:n_groups) {
+    for (j in not_last_sites) {
+      k <- which(sites_config[j,] == 1)
+      for (b in batches_list[[j]]) {
+        for (a1 in set_min_a[j]:set_max_a[j]) {
+          for (s in 1:max_s_rel[j]) { # should this be "s"?
+            tmp_max_t <- min(c(max_t_recap[k],
+                               s + (max_a - a1)))
+
+            tmp_min_a <- min_ageclass_mat[j,s]
+            tmp_max_a <- max_ageclass_mat[k,s]
+
+            if (is.na(tmp_min_a) | is.na(tmp_max_a)) {
+              next()
+              # if it is NA, then skip, because it is likely a
+              # site-time combination at a release site when no individuals were released
+            }
+
+
+            overall_surv[paste0("overall_surv[",a1,",",s,",",j,",",k,",",b,",",g,"]")] <-
+              stats::qlogis(1 - Theta[a1,max_a + 1,s,j,b,g])
+
+          } # s
+        } # a1
+      } #  b
+    } #j
+  } # g
+
+
+  return(overall_surv)
+}
+
+# cohort_surv <- function(par,
+#                         format_cjs,
+#                         s4t_ch) {
+#
+#   # par <- object$res$par
+#
+#   # chobject <- s4t_ch
+#
+#   n_batches <- format_cjs$n_batches
+#   n_groups <- format_cjs$N_groups # may cause issues
+#
+#   batches_list <- format_cjs$batches_list
+#   set_min_a <- format_cjs$set_min_a
+#   set_max_a <- format_cjs$set_max_a
+#
+#   max_s_rel <- format_cjs$max_s_rel
+#   max_t_recap <- format_cjs$max_t_recap
+#   n_stations <- format_cjs$n_stations
+#   recap_sites <- s4t_ch$ch_info$recap_sites
+#   last_sites <- s4t_ch$ch_info$last_sites
+#   recap_sites_not_last <- s4t_ch$ch_info$recap_sites_not_last
+#   not_last_sites <- s4t_ch$ch_info$not_last_sites
+#   sites_config <- s4t_ch$user_defined$sites_config
+#   holdover_config <- s4t_ch$user_defined$holdover_config
+#
+#   mod_mat_theta <- format_cjs$mod_mat_theta
+#   indices_theta <- format_cjs$indices_theta
+#
+#   min_ageclass_mat <- s4t_ch$ch_info$min_ageclass_mat
+#   max_ageclass_mat <- s4t_ch$ch_info$max_ageclass_mat
+#   # mod_mat_theta <- object$fit$
+#
+#   max_t <- max(c(max_s_rel,max_t_recap))
+#   max_a <- max(set_max_a)
+#
+#
+#   Theta <- array(0,dim = c(a1 = max_a, a2 = max_a+1,
+#                            s = max_t,
+#                            j = n_stations,
+#                            k = n_stations,
+#                            b = n_batches,
+#                            g = n_groups))
+#
+#   theta <- array(0,dim = c(a1 = max_a, a2 = max_a,
+#                            s = max_t,
+#                            j = n_stations,
+#                            k = n_stations,
+#                            b = n_batches,
+#                            g = n_groups))
+#
+#   not_last_sites <- c(1:n_stations)[-last_sites]
+#
+#   # mod_mat_theta; indices_theta
+#
+#   theta_params <- par[grepl("theta",names(par))]
+#   p_params <- par[grepl("p_",names(par))]
+#
+#   mu_indices_theta <- stats::plogis(mod_mat_theta %*% theta_params)
+#
+#   for (i in 1:nrow(indices_theta)) {
+#     a1 <- indices_theta[i,"a1"]
+#     a2 <- indices_theta[i,"a2"]
+#     s <- indices_theta[i,"s"]
+#     j <- indices_theta[i,"j"]
+#     # k <- indices_theta[i,"k"]
+#     b <- indices_theta[i,"b"]
+#     g <- indices_theta[i,"g"]
+#
+#     theta[a1,a2,s,j,b,g] <- mu_indices_theta[i]
+#
+#   }
+#
+#   # p_obs <- array(0,dim = c(a1 = max(set_max_a),
+#   #                          a2 = max(set_max_a),
+#   #                          t = max(indices_p_obs[,"t"]),
+#   #                          k = n_stations,
+#   #                          b = n_batches,
+#   #                          g = n_groups))
+#
+#
+#
+#   theta_inv <- 1-theta
+#   ## reconsider these loops for j and k. Should determine k based on sites matrix
+#   for (g in 1:n_groups) {
+#     for (j in 1:n_stations) {
+#       k <- which(sites[j,] == 1)
+#       # for (k in 2:(length(max_t_recap))) {
+#       for (a1 in 1:set_max_a[j]) {
+#         for (s in 1:max_s_rel[j]) {
+#           for (b in batches_list[[j]]) {
+#
+#
+#             Theta[a1,a1,s,j,b,g] <- theta[a1,a1,s,j,b,g]
+#
+#             for (a2 in 2:max(set_max_a)) {
+#
+#               Theta[a1,a2,s,j,b,g] <- theta[a1,a2,s,j,b,g]*prod(theta_inv[a1,1:(a2-1),s,j,b,g])
+#
+#
+#             }
+#
+#             Theta[a1,max(set_max_a)+1,s,j,b,g] <- prod(theta_inv[a1,1:max(set_max_a),s,j,b,g])
+#
+#           } # b
+#
+#         } #  t
+#       } #  a1
+#       # }
+#     }
+#   } # g
+#
+#
+#   cohort_surv <- vector()
+#
+#   not_last_sites <- c(1:n_stations)[-last_sites]
+#
+#
+#   for (g in 1:n_groups) {
+#     for (j in not_last_sites) {
+#       k <- which(sites_config[j,] == 1)
+#       for (b in batches_list[[j]]) {
+#         for (a1 in set_min_a[j]:set_max_a[j]) {
+#           for (s in 1:max_s_rel[j]) { # should this be "s"?
+#             tmp_max_t <- min(c(max_t_recap[k],
+#                                s + (max_a - a1)))
+#
+#             tmp_min_a <- min_ageclass_mat[j,s]
+#             tmp_max_a <- max_ageclass_mat[k,s]
+#
+#             if (is.na(tmp_min_a) | is.na(tmp_max_a)) {
+#               next()
+#               # if it is NA, then skip, because it is likely a
+#               # site-time combination at a release site when no individuals were released
+#             }
+#
+#             for (t in (s):(tmp_max_t)) {
+#               a2 <- a1 + t - s
+#
+#
+#               tmp_upperage <- min(c(t - s + a1, set_max_a[k])); tmp_upperage
+#
+#               cohort_surv[paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",b,",",g,"]")] <-
+#                 stats::qlogis(Theta[a1,a2,s,j,b,g])
+#
+#             } # t
+#           } # s
+#         } # a1
+#       } #  b
+#     } #j
+#   } # g
+#
+#
+#   return(cohort_surv)
+# }
+
+estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
+  n_batches <- format_cjs$n_batches
+  n_groups <- format_cjs$N_groups # may cause issues
+
+  batches_list <- format_cjs$batches_list
+  set_min_a <- format_cjs$set_min_a
+  set_max_a <- format_cjs$set_max_a
+
+  max_s_rel <- format_cjs$max_s_rel
+  max_t_recap <- format_cjs$max_t_recap
+  n_stations <- s4t_ch$ch_info$n_stations
+  recap_sites <- s4t_ch$ch_info$recap_sites
+  last_sites <- s4t_ch$ch_info$last_sites
+  recap_sites_not_last <- s4t_ch$ch_info$recap_sites_not_last
+  not_last_sites <- s4t_ch$ch_info$not_last_sites
+  sites_config <- s4t_ch$user_defined$sites_config
+  holdover_config <- s4t_ch$user_defined$holdover_config
+
+  mod_mat_theta <- format_cjs$mod_mat_theta
+  indices_theta <- format_cjs$indices_theta
+
+  min_ageclass_mat <- s4t_ch$ch_info$min_ageclass_mat
+  max_ageclass_mat <- s4t_ch$ch_info$max_ageclass_mat
+
+  ja <- numDeriv::jacobian(return_cohort_surv,x = res$par,
+                           n_batches = n_batches,
+                           batches_list = batches_list,
+                           n_groups = n_groups,
+                           set_min_a = set_min_a,
+                           set_max_a = set_max_a,
+                           max_s_rel = max_s_rel,
+                           max_t_recap = max_t_recap,
+                           n_stations = n_stations,
+                           recap_sites = recap_sites,
+                           last_sites = last_sites,
+                           recap_sites_not_last = recap_sites_not_last,
+                           not_last_sites = not_last_sites,
+                           sites_config = sites_config,
+                           holdover_config = holdover_config,
+                           mod_mat_theta = mod_mat_theta,
+                           indices_theta = indices_theta,
+                           min_ageclass_mat = min_ageclass_mat,
+                           max_ageclass_mat = max_ageclass_mat)
+
+  vc <- solve(res$hessian)
 
   der_vc <- ja %*% vc %*% t(ja)
 
-  ests <- cohort_surv(par = object$res$par,object=object)
+  ests <- return_cohort_surv(par = res$par,
+                              n_batches = n_batches,
+                              batches_list = batches_list,
+                              n_groups = n_groups,
+                              set_min_a = set_min_a,
+                              set_max_a = set_max_a,
+                              max_s_rel = max_s_rel,
+                              max_t_recap = max_t_recap,
+                              n_stations = n_stations,
+                              recap_sites = recap_sites,
+                              last_sites = last_sites,
+                              recap_sites_not_last = recap_sites_not_last,
+                              not_last_sites = not_last_sites,
+                              sites_config = sites_config,
+                              holdover_config = holdover_config,
+                              mod_mat_theta = mod_mat_theta,
+                              indices_theta = indices_theta,
+                              min_ageclass_mat = min_ageclass_mat,
+                              max_ageclass_mat = max_ageclass_mat)
 
   par_name = gsub("cohort_surv[[]|[]]","",names(ests))
 
@@ -173,20 +505,121 @@ estimate_cohort_surv <- function(object) {
   site_j <- stringr::str_split_i(par_name,",",5)
   site_k <- stringr::str_split_i(par_name,",",6)
   batch <- stringr::str_split_i(par_name,",",7)
+  group <- stringr::str_split_i(par_name,",",8)
 
-  data.frame(parameters = names(ests),
-             age1 = age1,
-             age2 = age2,
-             s_rel = time_s,
-             t_rec = time_t,
-             site_rel = site_j,
-             site_rec = site_k,
-             batch = batch,
-             estimates_tr = round(stats::plogis(ests),3),
-             lcl = round(stats::plogis(ests - 1.96*sqrt(diag(der_vc))),4),
-             ucl = round(stats::plogis(ests + 1.96*sqrt(diag(der_vc))),4),
-             estimates_logitscale = round(ests,3),
-             se = round(sqrt(diag(der_vc)),3))
+  data.frame(a1 = age1,
+             a2 = age2,
+             s = time_s,
+             t = time_t,
+             j = site_j,
+             k = site_k,
+             b = batch,
+             g = group,
+             estimates_tr = stats::plogis(ests),
+             lcl = stats::plogis(ests - 1.96*sqrt(diag(der_vc))),
+             ucl = stats::plogis(ests + 1.96*sqrt(diag(der_vc))),
+             estimates_logitscale = ests,3,
+             se_logitscale = sqrt(diag(der_vc)),
+             row.names = names(ests)
+             )
+
+}
+
+
+estimate_overall_surv <- function(res,format_cjs, s4t_ch) {
+  n_batches <- format_cjs$n_batches
+  n_groups <- format_cjs$N_groups # may cause issues
+
+  batches_list <- format_cjs$batches_list
+  set_min_a <- format_cjs$set_min_a
+  set_max_a <- format_cjs$set_max_a
+
+  max_s_rel <- format_cjs$max_s_rel
+  max_t_recap <- format_cjs$max_t_recap
+  n_stations <- s4t_ch$ch_info$n_stations
+  recap_sites <- s4t_ch$ch_info$recap_sites
+  last_sites <- s4t_ch$ch_info$last_sites
+  recap_sites_not_last <- s4t_ch$ch_info$recap_sites_not_last
+  not_last_sites <- s4t_ch$ch_info$not_last_sites
+  sites_config <- s4t_ch$user_defined$sites_config
+  holdover_config <- s4t_ch$user_defined$holdover_config
+
+  mod_mat_theta <- format_cjs$mod_mat_theta
+  indices_theta <- format_cjs$indices_theta
+
+  min_ageclass_mat <- s4t_ch$ch_info$min_ageclass_mat
+  max_ageclass_mat <- s4t_ch$ch_info$max_ageclass_mat
+
+  ja <- numDeriv::jacobian(return_overall_surv,x = res$par,
+                           n_batches = n_batches,
+                           batches_list = batches_list,
+                           n_groups = n_groups,
+                           set_min_a = set_min_a,
+                           set_max_a = set_max_a,
+                           max_s_rel = max_s_rel,
+                           max_t_recap = max_t_recap,
+                           n_stations = n_stations,
+                           recap_sites = recap_sites,
+                           last_sites = last_sites,
+                           recap_sites_not_last = recap_sites_not_last,
+                           not_last_sites = not_last_sites,
+                           sites_config = sites_config,
+                           holdover_config = holdover_config,
+                           mod_mat_theta = mod_mat_theta,
+                           indices_theta = indices_theta,
+                           min_ageclass_mat = min_ageclass_mat,
+                           max_ageclass_mat = max_ageclass_mat)
+
+  vc <- solve(res$hessian)
+
+  der_vc <- ja %*% vc %*% t(ja)
+
+  ests <- return_overall_surv(par = res$par,
+                              n_batches = n_batches,
+                              batches_list = batches_list,
+                              n_groups = n_groups,
+                              set_min_a = set_min_a,
+                              set_max_a = set_max_a,
+                              max_s_rel = max_s_rel,
+                              max_t_recap = max_t_recap,
+                              n_stations = n_stations,
+                              recap_sites = recap_sites,
+                              last_sites = last_sites,
+                              recap_sites_not_last = recap_sites_not_last,
+                              not_last_sites = not_last_sites,
+                              sites_config = sites_config,
+                              holdover_config = holdover_config,
+                              mod_mat_theta = mod_mat_theta,
+                              indices_theta = indices_theta,
+                              min_ageclass_mat = min_ageclass_mat,
+                              max_ageclass_mat = max_ageclass_mat)
+
+  par_name = gsub("overall_surv[[]|[]]","",names(ests))
+
+  # paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",b,"]")
+
+  age1 <- stringr::str_split_i(par_name,",",1)
+  # age2 <- stringr::str_split_i(par_name,",",2)
+  time_s <- stringr::str_split_i(par_name,",",2)
+  # time_t <- stringr::str_split_i(par_name,",",4)
+  site_j <- stringr::str_split_i(par_name,",",3)
+  site_k <- stringr::str_split_i(par_name,",",4)
+  batch <- stringr::str_split_i(par_name,",",5)
+  group <- stringr::str_split_i(par_name,",",6)
+
+  data.frame(a1 = age1,
+             s = time_s,
+             j = site_j,
+             k = site_k,
+             b = batch,
+             g = group,
+             estimates_tr = stats::plogis(ests),
+             lcl = stats::plogis(ests - 1.96*sqrt(diag(der_vc))),
+             ucl = stats::plogis(ests + 1.96*sqrt(diag(der_vc))),
+             estimates_logitscale = ests,3,
+             se_logitscale = sqrt(diag(der_vc)),
+             row.names = names(ests)
+  )
 
 }
 

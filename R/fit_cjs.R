@@ -527,7 +527,30 @@ format_s4t_cjs <- function(p_formula,
 
 
 
-
+#' Fit space-for-time mark-recapture model in likelihood framework
+#'
+#' @description
+#' Uses optim to fit the age-specific space-for-time model.
+#'
+#' @param p_formula an object of class "formula" for the formula for detection probabilities.
+#' @param theta_formula an object of class "formula" for the formula for transition probabilities.
+#' @param ageclass_formula an object of class "formula" for the ageclass sub-model
+#' @param cov_p a `data.frame` or `list` of `data.frame`'s containing the covariates for p. See details.
+#' @param cov_theta a `data.frame` or `list` of `data.frame`'s containing the covariates for theta. See details.
+#' @param groups a `character` vector containing the names of the covariates that comprise the groups.
+#' @param s4t_ch a `s4t_ch` object
+#' @param ndeps a `numeric` value .....
+#' @param lmm an `integer` of ....
+#' @param maxit an `integer` of the max....
+#' @param fixed_age a `logical` object that determines whether the ageclass model will be run
+#'     as a separate model (TRUE) or whether it is estimated along with the CJS model (FALSE).
+#' @param ... further arguments to pass to `optim`
+#'
+#' @returns a `s4t_cjs` object.
+#' @examples
+#' # don't run
+#'
+#' @export
 fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                              ageclass_formula,
                              cov_p = NULL, cov_theta = NULL,
@@ -778,7 +801,12 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
   estimated_parameters$ucl95 <- estimated_parameters$estimate + 1.96 * estimated_parameters$std_error
 
 
+
+
+
   s4t_cjs <- list(estimated_parameters = estimated_parameters,
+                  overall_surv = overall_surv,
+                  cohort_surv = cohort_surv,
                   res = res,
                   AIC = res$value + 2 * length(res$par),
                   nll = res$value, k = length(res$par),
@@ -832,7 +860,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 #'     as a separate model (TRUE) or whether it is estimated along with the CJS model (FALSE).
 #' @param ... further arguents to pass to `rstan::sampling`
 #'
-#' @returns a `s4t_cjs` object.
+#' @returns a `s4t_cjs_rstan` object.
 #' @examples
 #' # don't run
 #'
@@ -1113,14 +1141,9 @@ fit_s4t_cjs_rstan <- function(p_formula,
             tmp_max_t <- min(c(max_t_recap[k],
                                s + (set_max_a[k] - a1)))
 
-            for (t in (s):(tmp_max_t)) {
-              a2 <- a1 + t - s
-
-              tmp_upperage <- min(c(t - s + a1,tmp_max_a)); tmp_upperage
-
-              # cohort_surv[paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",b,"]")] <-
-              #   qlogis(Theta[a1,a2,s,j,k,b])
-              #
+            if (holdover_config[j,k] == 0) {
+              a2 <- a1
+              t <- s
               cohort_surv <- rbind(cohort_surv,c(a1=a1,
                                                  a2=a2,
                                                  s=s,
@@ -1130,7 +1153,25 @@ fit_s4t_cjs_rstan <- function(p_formula,
                                                  b=b,
                                                  g=g))
 
-            } # t
+            } else { # holdover_config[j,k] == 1
+              for (t in (s):(tmp_max_t)) {
+                a2 <- a1 + t - s
+
+
+                tmp_upperage <- min(c(t - s + a1, set_max_a[k])); tmp_upperage
+
+
+                cohort_surv <- rbind(cohort_surv,c(a1=a1,
+                                                   a2=a2,
+                                                   s=s,
+                                                   t=t,
+                                                   j=j,
+                                                   k=k,
+                                                   b=b,
+                                                   g=g))
+              } # t
+            } # end elseif
+
           } # s
         } # a1
       } #  b
@@ -1293,7 +1334,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                         overall_surv = overall_surv,
                         cohort_surv = cohort_surv,
                         res = res,
-                        call = match.call(),,
+                        call = match.call(),
                         fit = list(p_formula = p_formula,
                                    theta_formula = theta_formula,
                                    ageclass_formula = ageclass_formula,
