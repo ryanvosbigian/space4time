@@ -969,7 +969,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                                groups = groups,
                                s4t_ch = s4t_ch)
 
-
+  holdover_config <- format_cjs$holdover_config
   max_t_recap <- format_cjs$max_t_recap
   set_min_a <- format_cjs$set_min_a
   set_max_a <- format_cjs$set_max_a
