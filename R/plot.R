@@ -2,35 +2,70 @@
 
 
 
-#' Plot s4t_cjs_rstan object results
+#' Plot s4t_cjs or s4t_cjs_rstan object results
+#'
+#' add description
+#' @export
+#'
+#' @param x a `s4t_cjs` or `s4t_cjs_rstan` object
+#' @param ... not used
+#' @returns a ggplot2 type figure of the transition probabilities
 plotTheta <- function(x, ...) {
+  if (!is(x,"s4t_cjs") & !is(x,"s4t_cjs_rstan")) stop("x must be class s4t_cjs or s4t_cjs_rstan")
+
+  cohort_surv <- as.data.frame(x$cohort_surv)
+
+  # if ("mean" %in% colnames(cohort_surv)) {
+  #   cohort_surv$estimate <- cohort_surv$mean
+  # }
+
+  if (is(x,"s4t_cjs_rstan")) {
+    cohort_surv$estimate <- cohort_surv$mean
+  } else {
+    cohort_surv$estimate <- cohort_surv$estimate
+  }
 
   # suggest geomtextpath and then use geom_textsegment if available
-
-  x$cohort_surv %>%
+  p <- cohort_surv %>%
     as.data.frame() %>%
-    filter(!(mean == 0)) %>%
-    mutate(site_diff = k - j,
-           age_diff = a2 - a1,
-           j = factor(j),
-           k = factor(k),
-           a1 = factor(a1,levels = rev(unique(a1))),
-           a2 = factor(a2),
-           Theta = printable_round(mean,2)) %>%
-    ggplot2::ggplot(aes(x = j, y = (a1))) +
-    ggplot2::geom_segment(aes(x = j,xend = k,
-                              y = a1, yend = a2,
-                              color = mean)) +
-    ggplot2::geom_text(aes(label = Theta,
-                           hjust = -site_diff,
-                           vjust = -0.1 + 1.25*age_diff
+    dplyr::mutate(site_diff = as.integer(as.character(k)) - as.integer(as.character(j)),
+           age_diff = as.integer(as.character(a2)) - as.integer(as.character(a1)),
+           # j = factor(j),
+           # k = factor(k),
+           site_rel = factor(site_rel),
+           site_rec = factor(site_rec),
+           age_rel = factor(age_rel,levels = rev(unique(age_rel))),
+           age_rec = factor(age_rec,levels = rev(unique(age_rec))),
+           Theta = round(estimate,2),
+           time_rel_label = paste0("Release time: ",time_rel)) %>%
+    dplyr::filter(estimate > 0,
+                  ...) %>%
+    ggplot2::ggplot(aes(x = site_rel, y = age_rel)) +
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = "Sites",
+         y = "Age") +
+    geom_point(aes(x = site_rel, y = age_rel),color = "black") +
+    geom_point(aes(x = site_rec, y = age_rel),color = "black")
 
-                       )) +
-    facet_wrap(~s) +
-    theme_bw() +
-    labs(x = "Sites",
-         y = "Age")
+  if (requireNamespace("geomtextpath", quietly = TRUE)) {
+    p +
+      geomtextpath::geom_textsegment(aes(x = site_rel,xend = site_rec,
+                                         y = age_rel, yend = age_rec,
+                                         color = estimate,
+                                         label = Theta),hjust = 0.25) +
+      ggplot2::facet_wrap(~time_rel_label)
+  } else {
+    p +
+      ggplot2::geom_segment(aes(x = site_rel,xend = site_rec,
+                                y = age_rel, yend = age_rec,
+                                color = estimate)) +
+      ggplot2::geom_text(aes(label = Theta,
+                             hjust = -site_diff,
+                             vjust = -0.1 + 1.25*age_diff
 
+      )) +
+      ggplot2::facet_wrap(~time_rel_label)
+  }
 
 
 }
@@ -38,34 +73,169 @@ plotTheta <- function(x, ...) {
 
 
 
-#' Plot s4t_cjs_rstan object results
+#' Plot s4t_cjs or s4t_cjs_rstan object results
+#'
+#' add description
+#' @export
+#'
+#' @param x a `s4t_cjs` or `s4t_cjs_rstan` object
+#' @param ... not used
+#' @returns a ggplot2 type figure of the apparent survivals
 plotSurvival <- function(x, ...) {
 
+  if (!is(x,"s4t_cjs") & !is(x,"s4t_cjs_rstan")) stop("x must be class s4t_cjs or s4t_cjs_rstan")
+
+  overall_surv <- as.data.frame(x$overall_surv)
+
+  if (is(x,"s4t_cjs_rstan")) {
+    overall_surv$estimate <- overall_surv$mean
+  } else {
+    overall_surv$estimate <- overall_surv$estimate
+  }
+
   # suggest geomtextpath and then use geom_textsegment if available
-
-  x$overall_surv %>%
+  p <- overall_surv %>%
     as.data.frame() %>%
-    filter(!(mean == 0)) %>%
-    mutate(site_diff = k - j,
-           # age_diff = a1,
-           j = factor(j),
-           k = factor(k),
-           a1 = factor(a1,levels = rev(unique(a1))),
-           Theta = printable_round(mean,2)) %>%
-    ggplot2::ggplot(aes(x = j, y = (a1))) +
-    ggplot2::geom_segment(aes(x = j,xend = k,
-                              y = a1,
-                              color = mean)) +
-    ggplot2::geom_text(aes(label = Theta,
-                           hjust = -site_diff
-                           # vjust = -0.1 + 1.25*age_diff
+    dplyr::mutate(site_diff = as.integer(as.character(k)) - as.integer(as.character(j)),
+                  # age_diff = as.integer(as.character(a2)) - as.integer(as.character(a1)),
+                  j = factor(j),
+                  k = factor(k),
+                  site_rel = factor(site_rel),
+                  site_rec = factor(site_rec),
+                  age_rel = factor(age_rel,levels = rev(unique(age_rel))),
+                  # age_rec = factor(age_rec,levels = rev(unique(age_rec))),
+                  Theta = round(estimate,2),
+                  time_rel_label = paste0("Release time: ",time_rel)) %>%
+    # dplyr::mutate(site_diff = as.integer(as.character(k)) - as.integer(as.character(j)),
+    #        # age_diff = a1,
+    #        j = factor(j),
+    #        k = factor(k),
+    #        a1 = factor(a1,levels = rev(unique(a1))),
+    #        Theta = round(estimate,2)) %>%
+    dplyr::filter(estimate > 0,
+                  ...) %>%
+    ggplot2::ggplot(aes(x = site_rel, y = (age_rel))) +
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = "Sites",
+                 y = "Age") +
+    geom_point(aes(x = site_rel, y = age_rel),color = "black") +
+    geom_point(aes(x = site_rec, y = age_rel),color = "black")
 
-    )) +
-    facet_wrap(~t) +
-    theme_bw() +
-    labs(x = "Sites",
-         y = "Age")
+  if (requireNamespace("geomtextpath", quietly = TRUE)) {
+    p +
+      geomtextpath::geom_textsegment(aes(x = site_rel,xend = site_rec,
+                                         y = age_rel,yend = age_rel,
+                                         color = estimate,
+                                         label = Theta)) +
+      ggplot2::facet_wrap(~time_rel_label)
+  } else {
+    p +
+      ggplot2::geom_segment(aes(x = site_rel,xend = site_rec,
+                                y = age_rel,
+                                color = estimate)) +
+      ggplot2::geom_text(aes(label = Theta,
+                             hjust = -site_diff
+                             # vjust = -0.1 + 1.25*age_diff
 
+      )) +
+      ggplot2::facet_wrap(~time_rel_label)
+  }
 
 
 }
+
+
+
+
+#' Plot summary of s4t_cjs_ch object
+#'
+#' add description
+#' @export
+#'
+#' @param x a `s4t_cjs_ch` object
+#' @param ... not used
+#' @returns a ggplot2 type figure of the observed transition
+plotCH <- function(x, ...) {
+  if (!is(x,"s4t_cjs_ch")) stop("x must be class s4t_cjs_ch")
+
+  return(plot(1:5,2:6))
+
+
+  s4t_ch$obs_data$obs_ch %>%
+    as.data.frame() %>%
+    dplyr::mutate(ageclass = s4t_ch$obs_data$obs_aux$ageclass,
+                  obs_time = s4t_ch$obs_data$obs_aux$obs_time) %>%
+
+
+
+  cohort_surv <- as.data.frame(x$cohort_surv)
+
+  # if ("mean" %in% colnames(cohort_surv)) {
+  #   cohort_surv$estimate <- cohort_surv$mean
+  # }
+
+  if (is(x,"s4t_cjs_rstan")) {
+    cohort_surv$estimate <- cohort_surv$mean
+  } else {
+    cohort_surv$estimate <- cohort_surv$estimate
+  }
+
+  # suggest geomtextpath and then use geom_textsegment if available
+  p <- cohort_surv %>%
+    as.data.frame() %>%
+    dplyr::mutate(site_diff = as.integer(as.character(k)) - as.integer(as.character(j)),
+                  age_diff = as.integer(as.character(a2)) - as.integer(as.character(a1)),
+                  # j = factor(j),
+                  # k = factor(k),
+                  site_rel = factor(site_rel),
+                  site_rec = factor(site_rec),
+                  age_rel = factor(age_rel,levels = rev(unique(age_rel))),
+                  age_rec = factor(age_rec,levels = rev(unique(age_rec))),
+                  Theta = round(estimate,2),
+                  time_rel_label = paste0("Release time: ",time_rel)) %>%
+    dplyr::filter(estimate > 0,
+                  ...) %>%
+    ggplot2::ggplot(aes(x = site_rel, y = age_rel)) +
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = "Sites",
+                  y = "Age") +
+    geom_point(aes(x = site_rel, y = age_rel),color = "black") +
+    geom_point(aes(x = site_rec, y = age_rel),color = "black")
+
+  if (requireNamespace("geomtextpath", quietly = TRUE)) {
+    p +
+      geomtextpath::geom_textsegment(aes(x = site_rel,xend = site_rec,
+                                         y = age_rel, yend = age_rec,
+                                         color = estimate,
+                                         label = Theta),hjust = 0.25) +
+      ggplot2::facet_wrap(~time_rel_label)
+  } else {
+    p +
+      ggplot2::geom_segment(aes(x = site_rel,xend = site_rec,
+                                y = age_rel, yend = age_rec,
+                                color = estimate)) +
+      ggplot2::geom_text(aes(label = Theta,
+                             hjust = -site_diff,
+                             vjust = -0.1 + 1.25*age_diff
+
+      )) +
+      ggplot2::facet_wrap(~time_rel_label)
+  }
+
+
+}
+
+
+traceplot <- function(object,
+                      pars,
+                      ...) {
+  stopifnot(is(object,"s4t_cjs_rstan"))
+
+  object$res@sim$fnames_oi
+
+  rstan::traceplot(object = object,
+                  pars = pars,
+                  ...) +
+  ggplot2::labs()
+}
+

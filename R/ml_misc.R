@@ -515,7 +515,7 @@ estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
              k = site_k,
              b = batch,
              g = group,
-             estimates_tr = stats::plogis(ests),
+             estimate = stats::plogis(ests),
              lcl = stats::plogis(ests - 1.96*sqrt(diag(der_vc))),
              ucl = stats::plogis(ests + 1.96*sqrt(diag(der_vc))),
              estimates_logitscale = ests,3,
@@ -613,10 +613,10 @@ estimate_overall_surv <- function(res,format_cjs, s4t_ch) {
              k = site_k,
              b = batch,
              g = group,
-             estimates_tr = stats::plogis(ests),
+             estimate = stats::plogis(ests),
              lcl = stats::plogis(ests - 1.96*sqrt(diag(der_vc))),
              ucl = stats::plogis(ests + 1.96*sqrt(diag(der_vc))),
-             estimates_logitscale = ests,3,
+             estimate_logitscale = ests,3,
              se_logitscale = sqrt(diag(der_vc)),
              row.names = names(ests)
   )

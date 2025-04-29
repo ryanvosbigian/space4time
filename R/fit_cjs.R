@@ -73,10 +73,11 @@ format_s4t_cjs <- function(p_formula,
 
     s4t_ch$ch$m_matrix[,"g"] <- tmp_groups$g
 
+    group_names <- apply(distinct_groups_df[,groups],MARGIN = 1,FUN = function(x) paste0(x, collapse = "_"))
   } else {
     N_groups <- 1
     group_id <- as.factor(rep(1,nrow(s4t_ch$ch$obs_aux)))
-
+    group_names <- 1
   } # end if statement for groups
 
 
@@ -512,6 +513,7 @@ format_s4t_cjs <- function(p_formula,
               set_max_a = s4t_ch$ch_info$set_max_a,
               n_batches  = s4t_ch$ch_info$n_batches,
               N_groups=N_groups,
+              group_names = group_names,
               batches_list = s4t_ch$ch_info$batches_list,
               mod_mat_theta = mod_mat_theta,
               indices_theta = indices_theta,
@@ -801,7 +803,74 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
   estimated_parameters$ucl95 <- estimated_parameters$estimate + 1.96 * estimated_parameters$std_error
 
 
+  overall_surv <- estimate_overall_surv(res = res,format_cjs = format_cjs, s4t_ch = s4t_ch)
 
+  cohort_surv <- estimate_cohort_surv(res = res,format_cjs = format_cjs, s4t_ch = s4t_ch)
+
+  # put into user_defined?
+  sites_names <- colnames(s4t_ch$user_defined$sites_config)
+  j_site_df <- data.frame(j = 1:s4t_ch$ch_info$n_stations,site_rel = sites_names)
+  k_site_df <- data.frame(k = 1:s4t_ch$ch_info$n_stations,site_rec = sites_names)
+
+  # will rename to release group later
+  batch_df <- data.frame(b = 1:s4t_ch$ch_info$n_stations,batch_site = sites_names)
+
+  group_df <- data.frame(g = 1:format_cjs$N_groups,group_name = format_cjs$group_names)
+
+  time_diff <- s4t_ch$ch_info$observed_relative_min_max$min_obs_time - 1
+  age_diff <- s4t_ch$ch_info$observed_relative_min_max$min_obs_age - 1
+
+  tmp_cohort_ests1 <- cohort_ests[,1:7]
+  tmp_cohort_ests2 <- cohort_ests[,8:ncol(cohort_ests)]
+
+  cohort_ests <- tmp_cohort_ests1 %>%
+    as.data.frame() %>%
+    dplyr::left_join(j_site_df, by = "j") %>%
+    dplyr::left_join(k_site_df, by = "k") %>%
+    dplyr::mutate(time_rel = s + time_diff,
+                  time_rec = t + time_diff,
+                  age_rel = a1 + age_diff,
+                  age_rel = a2 + age_diff) %>%
+    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(group_df, by = "g") %>%
+    cbind(tmp_cohort_ests2)
+
+  tmp_overall_ests1 <- overall_ests[,1:6]
+  tmp_overall_ests2 <- overall_ests[,7:ncol(overall_ests)]
+
+  overall_surv <- tmp_overall_ests1 %>%
+    as.data.frame() %>%
+    dplyr::left_join(j_site_df, by = "j") %>%
+    dplyr::left_join(k_site_df, by = "k") %>%
+    dplyr::mutate(time_rel = s + time_diff,
+                  time_rec = t + time_diff,
+                  age_rel = a1 + age_diff) %>%
+    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(group_df, by = "g") %>%
+    cbind(tmp_overall_ests2)
+
+  indices_theta_original <- format_cjs$indices_theta %>%
+    as.data.frame() %>%
+    dplyr::left_join(j_site_df, by = "j") %>%
+    dplyr::left_join(k_site_df, by = "k") %>%
+    dplyr::mutate(time_rel = s + time_diff,
+                  time_rec = t + time_diff,
+                  age_rel = a1 + age_diff,
+                  age_rec = a2 + age_diff) %>%
+    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(group_df, by = "g")
+
+
+  indices_p_obs_original <- format_cjs$indices_p_obs %>%
+    as.data.frame() %>%
+    dplyr::left_join(j_site_df, by = "j") %>%
+    dplyr::left_join(k_site_df, by = "k") %>%
+    dplyr::mutate(time_rel = s + time_diff,
+                  time_rec = t + time_diff,
+                  age_rel = a1 + age_diff,
+                  age_rec = a2 + age_diff) %>%
+    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(group_df, by = "g")
 
 
   s4t_cjs <- list(estimated_parameters = estimated_parameters,
@@ -822,7 +891,9 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                              indices_p_obs = format_cjs$indices_p_obs,
                              ageclass_data = ageclass_data,
                              fixed_age = NULL
-                  ))
+                  ),
+                  original_units = list(indices_theta_original = indices_theta_original,
+                                        indicies_p_obs_original = indicies_p_obs_original))
 
   if (fixed_age) {
     s4t_cjs$fit$fixed_age <- list(ageclass_fit=ageclass_fit,
@@ -894,7 +965,9 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
   format_cjs <- format_s4t_cjs(p_formula =p_formula, theta_formula = theta_formula,
                                ageclass_formula = ageclass_formula,
-                               cov_p = cov_p,cov_theta = cov_theta,s4t_ch = s4t_ch)
+                               cov_p = cov_p,cov_theta = cov_theta,
+                               groups = groups,
+                               s4t_ch = s4t_ch)
 
 
   max_t_recap <- format_cjs$max_t_recap
@@ -1320,7 +1393,30 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
   overall_ests <- estimated_parameters[grepl("overall_surv",rownames(estimated_parameters)),]
 
-  colnames(overall_surv) <- c("j","k","a1","t","b","g")
+  colnames(overall_surv) <- c("j","k","a1","s","b","g")
+
+  # put into user_defined?
+  sites_names <- colnames(s4t_ch$user_defined$sites_config)
+  j_site_df <- data.frame(j = 1:s4t_ch$ch_info$n_stations,site_rel = sites_names)
+  k_site_df <- data.frame(k = 1:s4t_ch$ch_info$n_stations,site_rec = sites_names)
+
+  # will rename to release group later
+  batch_df <- data.frame(b = 1:s4t_ch$ch_info$n_stations,batch_site = sites_names)
+
+  group_df <- data.frame(g = 1:format_cjs$N_groups,group_name = format_cjs$group_names)
+
+  time_diff <- s4t_ch$ch_info$observed_relative_min_max$min_obs_time - 1
+  age_diff <- s4t_ch$ch_info$observed_relative_min_max$min_obs_age - 1
+
+  overall_surv <- overall_surv %>%
+    as.data.frame() %>%
+    dplyr::left_join(j_site_df, by = "j") %>%
+    dplyr::left_join(k_site_df, by = "k") %>%
+    dplyr::mutate(time_rel = s + time_diff,
+                  time_rec = t + time_diff,
+                  age_rel = a1 + age_diff) %>%
+    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(group_df, by = "g")
 
   overall_surv <- cbind(overall_surv,overall_ests)
 
@@ -1328,7 +1424,41 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
   colnames(cohort_surv) <- c("a1","a2","s","t","j","k","b","g")
 
+  cohort_surv <- cohort_surv %>%
+    as.data.frame() %>%
+    dplyr::left_join(j_site_df, by = "j") %>%
+    dplyr::left_join(k_site_df, by = "k") %>%
+    dplyr::mutate(time_rel = s + time_diff,
+                  time_rec = t + time_diff,
+                  age_rel = a1 + age_diff,
+                  age_rec = a2 + age_diff) %>%
+    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(group_df, by = "g")
+
   cohort_surv <- cbind(cohort_surv,cohort_ests)
+
+
+  indices_theta_original <- format_cjs$indices_theta %>%
+    as.data.frame() %>%
+    dplyr::left_join(j_site_df, by = "j") %>%
+    dplyr::left_join(k_site_df, by = "k") %>%
+    dplyr::mutate(time_rel = s + time_diff,
+                  time_rec = t + time_diff,
+                  age_rel = a1 + age_diff) %>%
+    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(group_df, by = "g")
+
+
+  indices_p_obs_original <- format_cjs$indices_p_obs %>%
+    as.data.frame() %>%
+    dplyr::left_join(j_site_df, by = "j") %>%
+    dplyr::left_join(k_site_df, by = "k") %>%
+    dplyr::mutate(time_rel = s + time_diff,
+                  time_rec = t + time_diff,
+                  age_rel = a1 + age_diff,
+                  age_rec = a2 + age_diff) %>%
+    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(group_df, by = "g")
 
   s4t_cjs_rstan <- list(estimated_parameters = estimated_parameters,
                         overall_surv = overall_surv,
@@ -1340,7 +1470,9 @@ fit_s4t_cjs_rstan <- function(p_formula,
                                    ageclass_formula = ageclass_formula,
                                    input_data = input_data,
                                    fixed_age = NULL
-                        ))
+                        ),
+                        original_units = list(indices_theta_original = indices_theta_original,
+                                              indices_p_obs_original = indices_p_obs_original))
 
   if (fixed_age) {
     s4t_cjs_rstan$fit$fixed_age <- list(ageclass_fit,fixed_ageclass_l,fixed_ageclass_m)

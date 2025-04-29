@@ -2,10 +2,18 @@
 % Please edit documentation in R/plot.R
 \name{plotTheta}
 \alias{plotTheta}
-\title{Plot s4t_cjs_rstan object results}
+\title{Plot s4t_cjs or s4t_cjs_rstan object results}
 \usage{
 plotTheta(x, ...)
 }
+\arguments{
+\item{x}{a \code{s4t_cjs} or \code{s4t_cjs_rstan} object}
+
+\item{...}{not used}
+}
+\value{
+a ggplot2 type figure of the transition probabilities
+}
 \description{
-Plot s4t_cjs_rstan object results
+add description
 }

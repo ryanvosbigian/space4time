@@ -20,7 +20,7 @@ ageclass_call <- function(age_formula = ~ 1,
 
   obs_aux_df <- as.data.frame(obs_aux)
 
-  # obs_aux_df$obs_time <- as.factor(obs_aux_df$obs_time)
+  obs_aux_df$obs_time <- as.factor(obs_aux_df$obs_time)
 
   mf_reg <- stats::model.frame(age_formula,data = as.data.frame(obs_aux))
   mt_reg <- attr(mf_reg,"terms")

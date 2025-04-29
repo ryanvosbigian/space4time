@@ -23,10 +23,10 @@ but if \code{include == FALSE}, then the specified parameters are excluded.}
 
 \item{digits_summary}{the number of significant digits to use when printing the summary}
 
-\item{...}{passed to \code{summary} method for s4t_cjs_rstan object.}
-
-\item{incldue}{logical scalar indicating whether to include the parameters named by the
+\item{include}{logical scalar indicating whether to include the parameters named by the
 pars argument.}
+
+\item{...}{passed to \code{summary} method for s4t_cjs_rstan object.}
 }
 \description{
 print summary of s4t_cjs_rstan

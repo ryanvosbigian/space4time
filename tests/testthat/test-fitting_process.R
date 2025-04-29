@@ -12,14 +12,13 @@ test_that("models can fit stanml ", {
                                     sites_config = sim.dat$sites_config,
                                     holdover_config = sim.dat$holdover_config))
 
-  expect_no_error(suppressMessages(m1 <- fit_s4t_cjs_ml(p_formula = ~ t,
+  expect_no_error(suppressMessages(summary(fit_s4t_cjs_ml(p_formula = ~ t,
                                                            theta_formula = ~ a1*a2*s*j,
                                                            ageclass_formula = ~ FL,
                                                            fixed_age = TRUE,
-                                                           s4t_ch = ch)))
+                                                           s4t_ch = ch))))
 
 
-  expect_no_error(suppressMessages(summary(m1)))
 })
 
 
@@ -37,11 +36,10 @@ test_that("models can fit rstan", {
                    sites_config = sim.dat$sites_config,
                    holdover_config = sim.dat$holdover_config))
 
-  expect_no_error(suppressMessages(m1.s <- fit_s4t_cjs_rstan(p_formula = ~ t,
+  expect_no_error(suppressMessages(summary(fit_s4t_cjs_rstan(p_formula = ~ t,
                                     theta_formula = ~ a1*a2*s*j,
                                     ageclass_formula = ~ FL,
                                     fixed_age = TRUE,
-                                    s4t_ch = ch,chains = 2,warmup = 200,iter = 400)))
+                                    s4t_ch = ch,chains = 2,warmup = 200,iter = 400))))
 
-  expect_no_error(suppressMessages(summary(m1.s)))
 })

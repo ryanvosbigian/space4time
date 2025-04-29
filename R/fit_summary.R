@@ -56,6 +56,8 @@ summary.s4t_cjs_rstan <- function(object,
   # I would like to rename all the parameters in the rstan summary...
 
   rstan::summary(object$res,pars = pars, probs = probs, ...)
+
+  # return(invisible(s))
 }
 
 #' summary of s4t_ageclass_cjs object
@@ -214,3 +216,33 @@ anova.s4t_ageclass_model <- function(object, ...) {
   structure(anova_summary, class = c(paste("anova", class(object), sep = "."), "data.frame"))
 }
 
+
+
+#' Compute and return AIC of fitted model objects
+#'
+#' @description
+#' Compute AIC of one or more fitted `s4t_cjs` model objects
+#'
+#' @param object A `s4t_cjs` model object
+#' @param ... Optionally more fitted model objects
+#' @param k, The penalty parameter, taken to be 2. Not used but needed for
+#' generic consistency
+#' @return If one object is provided, just returns a numeric value with the
+#'     corresponding AIC. If more than one is provided, it returns a `data.frame`
+#'     with rows corresponding to the objects and columns representing
+#'     the number of parameters estimated (`df`), and the AIC
+#'
+#' @export
+AIC.s4t_cjs <- function(object, ..., k = 2) {
+  object_list <- list(object, ...)
+  if (length(object_list) == 1) {
+    object$AIC
+  } else {
+
+    object_list_names <- as.character(c(substitute(object), (as.list(substitute(list(...)))[-1])))
+
+    dfs <- sapply(object_list,FUN = function(x) x$k)
+    AICs <- sapply(object_list,FUN = function(x) x$AIC)
+    data.frame(df = dfs, AIC = AICs,row.names = object_list_names)
+  }
+}
