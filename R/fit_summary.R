@@ -188,9 +188,9 @@ anova.s4t_ageclass_model <- function(object, ...) {
                                 k = ks)
     anova_summary <- anova_summary %>%
       dplyr::arrange(k) %>%
-      dplyr::mutate(diff_k = k - first(k),
-                    diff_logLik = logLik - first(logLik),
-                    Chi2_stat =  abs(-2 * (logLik - first(logLik))),
+      dplyr::mutate(diff_k = k - dplyr::first(k),
+                    diff_logLik = logLik - dplyr::first(logLik),
+                    Chi2_stat =  abs(-2 * (logLik - dplyr::first(logLik))),
                     p_value = stats::pchisq(Chi2_stat, diff_k, lower.tail = FALSE)) %>%
       dplyr::select(Df = diff_k,
                     Chi2 = Chi2_stat,
@@ -246,3 +246,7 @@ AIC.s4t_cjs <- function(object, ..., k = 2) {
     data.frame(df = dfs, AIC = AICs,row.names = object_list_names)
   }
 }
+
+
+# fix no visible binding note
+k <- Chi2_stat <-logLik <- logLik <- diff_k <- p_value <- NULL

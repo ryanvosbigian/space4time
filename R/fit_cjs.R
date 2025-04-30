@@ -1498,3 +1498,6 @@ fit_s4t_cjs_rstan <- function(p_formula,
 }
 
 
+
+# fix no visible binding note
+j <- k <- a1 <- a2 <- s <- b <- g <- NULL

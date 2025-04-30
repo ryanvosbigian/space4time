@@ -20,7 +20,7 @@ confint.s4t_cjs <- function(object, parm, level = 0.95, ...) {
 
   alpha <- 1 - level
   # tstar <- qt(1 - alpha / 2, df = object$n - object$p)
-  tstar <- qnorm(1 - alpha / 2)
+  tstar <- stats::qnorm(1 - alpha / 2)
   estimates <- object$estimated_parameters$estimate
   se <- object$estimated_parameters$std_error
   lower <- estimates - tstar * se
@@ -34,3 +34,4 @@ confint.s4t_cjs <- function(object, parm, level = 0.95, ...) {
     return(confints[row.names(confints) %in% parm, , drop = FALSE])
   }
 }
+
