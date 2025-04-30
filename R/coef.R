@@ -12,7 +12,6 @@
 #' @return A named vector of coefficients
 #' @export
 #' @method coef s4t_cjs
-#' @order 1
 #'
 #' @examples
 #' # not run
@@ -25,8 +24,4 @@ coef.s4t_cjs <- function(object, ...) {
   return(ests)
 }
 
-#' @rdname coef.s4t_cjs
-#' @method coefficients s4t_cjs
-#' @order 2
-#' @export
-coefficients.s4t_cjs <- coef.s4t_cjs
+

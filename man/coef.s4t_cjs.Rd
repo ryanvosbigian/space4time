@@ -2,12 +2,9 @@
 % Please edit documentation in R/coef.R
 \name{coef.s4t_cjs}
 \alias{coef.s4t_cjs}
-\alias{coefficients.s4t_cjs}
 \title{Extract fitted model coefficients}
 \usage{
 \method{coef}{s4t_cjs}(object, ...)
-
-\method{coefficients}{s4t_cjs}(object, ...)
 }
 \arguments{
 \item{object}{a fitted model object from \code{s4t_cjs_ml()}}
