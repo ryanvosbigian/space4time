@@ -12,14 +12,14 @@
 \arguments{
 \item{object}{a fitted model object from \code{s4t_cjs_ml()}}
 
-\item{...}{Other arguements. Not used (needed for generic consistency)}
+\item{...}{Other arguments. Not used (needed for generic consistency)}
 }
 \value{
 A named vector of coefficients
 }
 \description{
-coef extracts fitted model coefficients from
-fitted model objects. \code{coefficients} is an alias for it
+\code{coef} extracts fitted model coefficients from
+fitted model objects. \code{coefficients.s4t_cjs} is an alias for it
 }
 \examples{
 # not run

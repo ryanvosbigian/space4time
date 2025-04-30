@@ -546,7 +546,6 @@ format_s4t_cjs <- function(p_formula,
 #' @param maxit an `integer` of the max....
 #' @param fixed_age a `logical` object that determines whether the ageclass model will be run
 #'     as a separate model (TRUE) or whether it is estimated along with the CJS model (FALSE).
-#' @param ... further arguments to pass to `optim`
 #'
 #' @returns a `s4t_cjs` object.
 #' @examples
@@ -809,22 +808,30 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 
   # put into user_defined?
   sites_names <- colnames(s4t_ch$user_defined$sites_config)
-  j_site_df <- data.frame(j = 1:s4t_ch$ch_info$n_stations,site_rel = sites_names)
-  k_site_df <- data.frame(k = 1:s4t_ch$ch_info$n_stations,site_rec = sites_names)
+  j_site_df <- data.frame(j = (1:s4t_ch$ch_info$n_stations),site_rel = sites_names)
+  k_site_df <- data.frame(k = (1:s4t_ch$ch_info$n_stations),site_rec = sites_names)
 
   # will rename to release group later
-  batch_df <- data.frame(b = 1:s4t_ch$ch_info$n_stations,batch_site = sites_names)
+  batch_df <- data.frame(b = (1:s4t_ch$ch_info$n_stations),batch_site = sites_names)
 
-  group_df <- data.frame(g = 1:format_cjs$N_groups,group_name = format_cjs$group_names)
+  group_df <- data.frame(g = (1:format_cjs$N_groups),group_name = format_cjs$group_names)
 
   time_diff <- s4t_ch$ch_info$observed_relative_min_max$min_obs_time - 1
   age_diff <- s4t_ch$ch_info$observed_relative_min_max$min_obs_age - 1
 
-  tmp_cohort_ests1 <- cohort_ests[,1:7]
-  tmp_cohort_ests2 <- cohort_ests[,8:ncol(cohort_ests)]
+  tmp_cohort_surv1 <- cohort_surv[,1:8]
+  tmp_cohort_surv2 <- cohort_surv[,9:ncol(cohort_surv)]
 
-  cohort_ests <- tmp_cohort_ests1 %>%
+  cohort_surv <- tmp_cohort_surv1 %>%
     as.data.frame() %>%
+    dplyr::mutate(j = as.integer(j),
+           k = as.integer(k),
+           a1 = as.integer(a1),
+           a2 = as.integer(a2),
+           t = as.integer(t),
+           s = as.integer(s),
+           b = as.integer(b),
+           g = as.integer(g)) %>%
     dplyr::left_join(j_site_df, by = "j") %>%
     dplyr::left_join(k_site_df, by = "k") %>%
     dplyr::mutate(time_rel = s + time_diff,
@@ -833,21 +840,27 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                   age_rel = a2 + age_diff) %>%
     dplyr::left_join(batch_df, by = "b") %>%
     dplyr::left_join(group_df, by = "g") %>%
-    cbind(tmp_cohort_ests2)
+    cbind(tmp_cohort_surv2)
 
-  tmp_overall_ests1 <- overall_ests[,1:6]
-  tmp_overall_ests2 <- overall_ests[,7:ncol(overall_ests)]
+  tmp_overall_surv1 <- overall_surv[,1:6]
+  tmp_overall_surv2 <- overall_surv[,7:ncol(overall_surv)]
 
-  overall_surv <- tmp_overall_ests1 %>%
+  overall_surv <- tmp_overall_surv1 %>%
     as.data.frame() %>%
+    dplyr::mutate(j = as.integer(j),
+                  k = as.integer(k),
+                  s = as.integer(s),
+                  a1 = as.integer(a1),
+                  b = as.integer(b),
+                  g = as.integer(g)) %>%
     dplyr::left_join(j_site_df, by = "j") %>%
     dplyr::left_join(k_site_df, by = "k") %>%
     dplyr::mutate(time_rel = s + time_diff,
-                  time_rec = t + time_diff,
+                  # time_rec = t + time_diff,
                   age_rel = a1 + age_diff) %>%
     dplyr::left_join(batch_df, by = "b") %>%
     dplyr::left_join(group_df, by = "g") %>%
-    cbind(tmp_overall_ests2)
+    cbind(tmp_overall_surv2)
 
   indices_theta_original <- format_cjs$indices_theta %>%
     as.data.frame() %>%
@@ -893,7 +906,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                              fixed_age = NULL
                   ),
                   original_units = list(indices_theta_original = indices_theta_original,
-                                        indicies_p_obs_original = indicies_p_obs_original))
+                                        indices_p_obs_original = indices_p_obs_original))
 
   if (fixed_age) {
     s4t_cjs$fit$fixed_age <- list(ageclass_fit=ageclass_fit,
@@ -1413,7 +1426,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
     dplyr::left_join(j_site_df, by = "j") %>%
     dplyr::left_join(k_site_df, by = "k") %>%
     dplyr::mutate(time_rel = s + time_diff,
-                  time_rec = t + time_diff,
+                  # time_rec = t + time_diff,
                   age_rel = a1 + age_diff) %>%
     dplyr::left_join(batch_df, by = "b") %>%
     dplyr::left_join(group_df, by = "g")

@@ -598,21 +598,21 @@ estimate_overall_surv <- function(res,format_cjs, s4t_ch) {
 
   # paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",b,"]")
 
-  age1 <- stringr::str_split_i(par_name,",",1)
+  age1 <- as.integer(stringr::str_split_i(par_name,",",1))
   # age2 <- stringr::str_split_i(par_name,",",2)
-  time_s <- stringr::str_split_i(par_name,",",2)
+  time_s <- as.integer(stringr::str_split_i(par_name,",",2))
   # time_t <- stringr::str_split_i(par_name,",",4)
-  site_j <- stringr::str_split_i(par_name,",",3)
-  site_k <- stringr::str_split_i(par_name,",",4)
-  batch <- stringr::str_split_i(par_name,",",5)
-  group <- stringr::str_split_i(par_name,",",6)
+  site_j <- as.integer(stringr::str_split_i(par_name,",",3))
+  site_k <- as.integer(stringr::str_split_i(par_name,",",4))
+  b <- as.integer(stringr::str_split_i(par_name,",",5))
+  g <- as.integer(stringr::str_split_i(par_name,",",6))
 
   data.frame(a1 = age1,
              s = time_s,
              j = site_j,
              k = site_k,
-             b = batch,
-             g = group,
+             b = b,
+             g = g,
              estimate = stats::plogis(ests),
              lcl = stats::plogis(ests - 1.96*sqrt(diag(der_vc))),
              ucl = stats::plogis(ests + 1.96*sqrt(diag(der_vc))),

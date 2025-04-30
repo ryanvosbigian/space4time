@@ -129,6 +129,7 @@ plotSurvival <- function(x, ...) {
                                          label = Theta)) +
       ggplot2::facet_wrap(~time_rel_label)
   } else {
+    message("Install package geomtextpath for better figures")
     p +
       ggplot2::geom_segment(aes(x = site_rel,xend = site_rec,
                                 y = age_rel,
@@ -210,6 +211,8 @@ plotCH <- function(x, ...) {
                                          label = Theta),hjust = 0.25) +
       ggplot2::facet_wrap(~time_rel_label)
   } else {
+    message("Install package geomtextpath for better figures")
+
     p +
       ggplot2::geom_segment(aes(x = site_rel,xend = site_rec,
                                 y = age_rel, yend = age_rec,

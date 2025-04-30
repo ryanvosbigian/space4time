@@ -46,42 +46,42 @@ print.summary.s4t_cjs <- function(x,
 }
 
 
-print.summary.s4t_cjs_rstan <- function(x,
-                                        digits = max(3L, getOption("digits") - 3L),
-                                        ...) {
-  # pasting the formula call
-  cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
-
-  # pasting the residual summary
-  cat("\nAIC:\n")
-  resAIC <- x$AIC
-  names(resAIC) <- NULL
-  print(resAIC)
-
-  if (length(x$coefficients) == 1) {
-    cat("\nCoefficients (all):\n")
-    coefs_all <- as.matrix(x$coefficients$all[,2:ncol(x$coefficients$all)])
-    # colnames(coefs_fixed) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
-    colnames(coefs_all)[1:3] <- c("Estimate", "Std. Error", "z value")
-    stats::printCoefmat(coefs_all, digits = digits, na.print = "NA",P.values = FALSE,has.Pvalue = FALSE, ...)
-
-  } else {
-    cat("\nCoefficients (age class):\n")
-    coefs_age <- as.matrix(x$coefficients$age[,2:ncol(x$coefficients$age)])
-    # colnames(coefs_fixed) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
-    colnames(coefs_age)[1:3] <- c("Estimate", "Std. Error", "z value")
-    stats::printCoefmat(coefs_age, digits = digits, na.print = "NA",P.values = FALSE,has.Pvalue = FALSE, ...)
-
-    cat("\nCoefficients (mark-recapture):\n")
-    coefs_cjs <- as.matrix(x$coefficients$cjs[,2:ncol(x$coefficients$cjs)])
-    # colnames(coefs_fixed) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
-    colnames(coefs_cjs)[1:3] <- c("Estimate", "Std. Error", "z value")
-    stats::printCoefmat(coefs_cjs, digits = digits, na.print = "NA",P.values = FALSE,has.Pvalue = FALSE, ...)
-  }
-
-
-  invisible(x)
-}
+# print.summary.s4t_cjs_rstan <- function(x,
+#                                         digits = max(3L, getOption("digits") - 3L),
+#                                         ...) {
+#   # pasting the formula call
+#   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
+#
+#   # pasting the residual summary
+#   cat("\nAIC:\n")
+#   resAIC <- x$AIC
+#   names(resAIC) <- NULL
+#   print(resAIC)
+#
+#   if (length(x$coefficients) == 1) {
+#     cat("\nCoefficients (all):\n")
+#     coefs_all <- as.matrix(x$coefficients$all[,2:ncol(x$coefficients$all)])
+#     # colnames(coefs_fixed) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+#     colnames(coefs_all)[1:3] <- c("Estimate", "Std. Error", "z value")
+#     stats::printCoefmat(coefs_all, digits = digits, na.print = "NA",P.values = FALSE,has.Pvalue = FALSE, ...)
+#
+#   } else {
+#     cat("\nCoefficients (age class):\n")
+#     coefs_age <- as.matrix(x$coefficients$age[,2:ncol(x$coefficients$age)])
+#     # colnames(coefs_fixed) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+#     colnames(coefs_age)[1:3] <- c("Estimate", "Std. Error", "z value")
+#     stats::printCoefmat(coefs_age, digits = digits, na.print = "NA",P.values = FALSE,has.Pvalue = FALSE, ...)
+#
+#     cat("\nCoefficients (mark-recapture):\n")
+#     coefs_cjs <- as.matrix(x$coefficients$cjs[,2:ncol(x$coefficients$cjs)])
+#     # colnames(coefs_fixed) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+#     colnames(coefs_cjs)[1:3] <- c("Estimate", "Std. Error", "z value")
+#     stats::printCoefmat(coefs_cjs, digits = digits, na.print = "NA",P.values = FALSE,has.Pvalue = FALSE, ...)
+#   }
+#
+#
+#   invisible(x)
+# }
 
 
 #' print summary of s4t_cjs_rstan

@@ -1,5 +1,8 @@
 
 #' @importFrom magrittr %>%
+
+
+
 process_ch <- function(obs_ch,obs_aux,removed_sites,sites = NULL,batches_list = NULL) {
   obs_ch <- as.matrix(obs_ch)
   # obs_aux <- as.matrix(obs_aux)

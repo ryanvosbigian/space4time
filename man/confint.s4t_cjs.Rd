@@ -9,10 +9,12 @@
 \arguments{
 \item{object}{A fitted model object of class \code{s4t_cjs}}
 
-\item{parm}{A specification of what paramters are to be
+\item{parm}{A specification of what parameters are to be
 given confidence intervals. A character vector or names.}
 
 \item{level}{The confidence level. Default is \code{0.95}}
+
+\item{...}{additional args. Not used}
 }
 \value{
 Gaussian-based confidence intervals for the fixed

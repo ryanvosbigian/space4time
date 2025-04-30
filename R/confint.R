@@ -6,9 +6,10 @@
 #'     model object
 #'
 #' @param object A fitted model object of class `s4t_cjs`
-#' @param parm A specification of what paramters are to be
+#' @param parm A specification of what parameters are to be
 #'    given confidence intervals. A character vector or names.
 #' @param level The confidence level. Default is `0.95`
+#' @param ... additional args. Not used
 #' @return Gaussian-based confidence intervals for the fixed
 #'      effect coffiecients based on the confidence level
 #'      specified by `level`. Confidence intervals are on the
