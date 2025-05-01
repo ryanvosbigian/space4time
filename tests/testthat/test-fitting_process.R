@@ -2,6 +2,7 @@
 test_that("models can fit ml ", {
   skip_on_cran()
 
+  set.seed(1)
   sim.dat <- simulate_data(N = 2000)
 
   suppressMessages(
@@ -34,6 +35,7 @@ test_that("models can fit ml ", {
 test_that("models can fit rstan", {
   skip_on_cran()
 
+  set.seed(1)
   sim.dat <- simulate_data(N = 800)
 
   suppressMessages(

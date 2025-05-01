@@ -423,6 +423,20 @@ simulate_data_tworeleasesites <- function(N = 500,
 
   cohort_surv <- cohort_surv[!is.na(cohort_surv[,1]),]
 
+
+  sites_config <- matrix(c(0, 1, 0, 0,
+                           0, 0, 1, 0,
+                           0, 0, 0, 1,
+                           0, 0, 0, 0), nrow = 4, byrow = TRUE)
+  colnames(sites_config) <- rownames(sites_config) <- 1:4
+
+  holdover_config <- matrix(c(0, 1, 0, 0,
+                              0, 0, 1, 0,
+                              0, 0, 0, 0,
+                              0, 0, 0, 0), nrow = 4, byrow = TRUE)
+
+  colnames(holdover_config) <- rownames(holdover_config) <- 1:4
+
   return(list(obs_ch = obs_ch,true_ch = true_ch,
               aux_age_df = broodyear,
               obs_lengthyear = obs_lengthyear,

@@ -44,8 +44,8 @@ plotTheta <- function(x, ...) {
     ggplot2::theme_bw() +
     ggplot2::labs(x = "Sites",
          y = "Age") +
-    ggplot2::geom_point(aes(x = site_rel, y = age_rel),color = "black") +
-    ggplot2::geom_point(aes(x = site_rec, y = age_rel),color = "black")
+    ggplot2::geom_point(ggplot2::aes(x = site_rel, y = age_rel),color = "black") +
+    ggplot2::geom_point(ggplot2::aes(x = site_rec, y = age_rel),color = "black")
 
   if (requireNamespace("geomtextpath", quietly = TRUE)) {
     p +
@@ -244,4 +244,4 @@ traceplot <- function(object,
 
 # fix no visible binding note
 k <- j <- site_rel <- site_rec <- age_rel <- estimate <- time_rel <-
-  Theta <- site_diff <- NULL
+  Theta <- site_diff <- age_rec <- age_diff <- NULL
