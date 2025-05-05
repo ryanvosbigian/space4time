@@ -1034,7 +1034,7 @@ s4t_cjs_ch <- function(ch_df,
 
   message(paste0("Number of individuals encountered more than once at a site: ",nrow(repeatobservations)))
 
-  message(paste0("Number of individuals with a gap in observation times that exceed difference in minimum and maximum ages: ",nrow(timedifferenceincaptures)))
+  message(paste0("Number of individuals with a gap in observation times that exceed difference \nin minimum and maximum ages: ",nrow(timedifferenceincaptures)))
 
   message(paste0("Number of site/time combinations with less than 10 observations: ",nrow(fewcaptures_insitetime)))
 

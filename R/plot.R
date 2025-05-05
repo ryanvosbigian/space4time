@@ -43,7 +43,8 @@ plotTheta <- function(x, ...) {
     ggplot2::ggplot(ggplot2::aes(x = site_rel, y = age_rel)) +
     ggplot2::theme_bw() +
     ggplot2::labs(x = "Sites",
-         y = "Age") +
+         y = "Age",
+         color = "Theta") +
     ggplot2::geom_point(ggplot2::aes(x = site_rel, y = age_rel),color = "black") +
     ggplot2::geom_point(ggplot2::aes(x = site_rec, y = age_rel),color = "black")
 
@@ -117,7 +118,8 @@ plotSurvival <- function(x, ...) {
     ggplot2::ggplot(ggplot2::aes(x = site_rel, y = (age_rel))) +
     ggplot2::theme_bw() +
     ggplot2::labs(x = "Sites",
-                 y = "Age") +
+                 y = "Age",
+                 color = "Survival") +
     ggplot2::geom_point(ggplot2::aes(x = site_rel, y = age_rel),color = "black") +
     ggplot2::geom_point(ggplot2::aes(x = site_rec, y = age_rel),color = "black")
 

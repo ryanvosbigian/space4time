@@ -45,6 +45,7 @@ head(sim.dat$ch_df)
 #> 4     2 2         1 FALSE  
 #> 5     3 1         1 FALSE  
 #> 6     3 2         2 FALSE
+
 # id is the individual ID. Converted to a character type.
 # site is the name of the site the individual was observed at
 # time is the time stratum (i.e. year). Can be a Date format or integer.
@@ -121,7 +122,8 @@ ch <- s4t_cjs_ch(
     )
 #> Potential error log:
 #> Number of individuals encountered more than once at a site: 0
-#> Number of individuals with a gap in observation times that exceed difference in minimum and maximum ages: 0
+#> Number of individuals with a gap in observation times that exceed difference 
+#> in minimum and maximum ages: 0
 #> Number of site/time combinations with less than 10 observations: 1
 #> Number of site/time combinations with no observations: 0
 #> Number of 'zombies' (individuals observed after being removed): 0
@@ -161,8 +163,8 @@ m1 <- fit_s4t_cjs_rstan(
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft6d' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.001472 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 14.72 seconds.
+#> Chain 1: Gradient evaluation took 0.001426 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 14.26 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -179,15 +181,15 @@ m1 <- fit_s4t_cjs_rstan(
 #> Chain 1: Iteration: 560 / 600 [ 93%]  (Sampling)
 #> Chain 1: Iteration: 600 / 600 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 33.982 seconds (Warm-up)
-#> Chain 1:                45.839 seconds (Sampling)
-#> Chain 1:                79.821 seconds (Total)
+#> Chain 1:  Elapsed Time: 23.408 seconds (Warm-up)
+#> Chain 1:                52.029 seconds (Sampling)
+#> Chain 1:                75.437 seconds (Total)
 #> Chain 1: 
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft6d' NOW (CHAIN 2).
 #> Chain 2: 
-#> Chain 2: Gradient evaluation took 0.000987 seconds
-#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 9.87 seconds.
+#> Chain 2: Gradient evaluation took 0.004928 seconds
+#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 49.28 seconds.
 #> Chain 2: Adjust your expectations accordingly!
 #> Chain 2: 
 #> Chain 2: 
@@ -204,9 +206,9 @@ m1 <- fit_s4t_cjs_rstan(
 #> Chain 2: Iteration: 560 / 600 [ 93%]  (Sampling)
 #> Chain 2: Iteration: 600 / 600 [100%]  (Sampling)
 #> Chain 2: 
-#> Chain 2:  Elapsed Time: 25.2 seconds (Warm-up)
-#> Chain 2:                41.502 seconds (Sampling)
-#> Chain 2:                66.702 seconds (Total)
+#> Chain 2:  Elapsed Time: 29.696 seconds (Warm-up)
+#> Chain 2:                57.351 seconds (Sampling)
+#> Chain 2:                87.047 seconds (Total)
 #> Chain 2:
 
 

@@ -8,6 +8,60 @@
 #' @import Rcpp
 
 
+model_mat_info <- function(form,
+                           df) {
+  mf <- stats::model.frame(form,data = df,
+                             drop.unused.levels = TRUE)
+  mt <- attr(mf,"terms")
+  mod_mat <- stats::model.matrix(mt, mf)
+  params <- rep(0,length = length(colnames(mod_mat))); names(params) <- colnames(mod_mat)
+
+
+  ## dropping columns that are all zero
+
+
+  if (any(colSums(mod_mat) == 0)) {
+    keep_cols <- which(colSums(mod_mat) != 0)
+
+    mod_mat <- mod_mat[,keep_cols]
+    params <- params[keep_cols]
+
+  }
+
+  ## dropping duplicate columns
+  if (ncol(mod_mat) > 1) {
+    combos <- utils::combn(x = 1:ncol(mod_mat),m = 2)
+    aliasedcols <- apply(combos,MARGIN = 2,FUN = function(x) all(mod_mat[,x[1]] == mod_mat[,x[2]])
+    )
+
+    if (sum(aliasedcols) > 0) {
+      drop_cols <- combos[2,aliasedcols]
+
+      keep_cols <- c(1:ncol(mod_mat))[-drop_cols]
+
+      mod_mat <- mod_mat[,keep_cols]
+      params <- params[keep_cols]
+    }
+  }
+
+  # remove linear dependent columns to make a full rank design matrix
+  # following method from WeightIt package (make.full.rank fn)
+
+  keep <- rep.int(TRUE, ncol(mod_mat))
+  mat_qr <- qr(mod_mat)
+  keep[mat_qr$pivot[-seq(mat_qr$rank)]] <- FALSE
+
+  mod_mat <- mod_mat[,keep, drop = FALSE]
+  params <- params[keep]
+
+  if (qr(mod_mat)$rank != ncol(mod_mat)) message("Model matrix is rank deficient")
+
+  return(list(mod_mat = mod_mat,
+              params = params,
+              parnames = names(params)))
+
+}
+
 
 format_s4t_cjs <- function(p_formula,
                            theta_formula,
@@ -521,7 +575,9 @@ format_s4t_cjs <- function(p_formula,
               indices_p_obs = indices_p_obs,
               ageclass_data = ageclass_data,
               ageclassdat_L = ageclassdat_L,
-              ageclassdat_M = ageclassdat_M
+              ageclassdat_M = ageclassdat_M,
+              data_p_obs = tmp_indices_p_obs,
+              data_theta = tmp_indices_theta
               # min_ageclass_mat = min_ageclass_mat,
               # max_ageclass_mat = max_ageclass_mat
   ))
@@ -886,6 +942,38 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
     dplyr::left_join(group_df, by = "g")
 
 
+  data_theta_rename <- format_cjs$data_theta
+
+  data_theta_rename[,c("a1","a2",
+                       "s","t",
+                       "j","k",
+                       "b","g")] <- indices_theta_original[,c("age_rel",
+                                                              "age_rec",
+                                                              "time_rel",
+                                                              "time_rec",
+                                                              "site_rel",
+                                                              "site_rec",
+                                                              "batch_site",
+                                                              "group_name")]
+
+  theta_parnames_original_units <- model_mat_info(form = theta_formula,df = data_theta_rename)$parnames
+
+  data_p_obs_rename <- format_cjs$data_p_obs
+
+  data_p_obs_rename[,c("a1","a2",
+                       "s","t",
+                       "j","k",
+                       "b","g")] <- indices_p_obs_original[,c("age_rel",
+                                                              "age_rec",
+                                                              "time_rel",
+                                                              "time_rec",
+                                                              "site_rel",
+                                                              "site_rec",
+                                                              "batch_site",
+                                                              "group_name")]
+
+  p_obs_parnames_original_units <- model_mat_info(form = p_formula,df = data_p_obs_rename)$parnames
+
   s4t_cjs <- list(estimated_parameters = estimated_parameters,
                   overall_surv = overall_surv,
                   cohort_surv = cohort_surv,
@@ -906,7 +994,9 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                              fixed_age = NULL
                   ),
                   original_units = list(indices_theta_original = indices_theta_original,
-                                        indices_p_obs_original = indices_p_obs_original))
+                                        indices_p_obs_original = indices_p_obs_original,
+                                        p_obs_parnames_original_units = p_obs_parnames_original_units,
+                                        theta_parnames_original_units = theta_parnames_original_units))
 
   if (fixed_age) {
     s4t_cjs$fit$fixed_age <- list(ageclass_fit=ageclass_fit,
@@ -1377,10 +1467,8 @@ fit_s4t_cjs_rstan <- function(p_formula,
     # RUN RES
     input_data[["fixed_ageclass_l"]] <- fixed_ageclass_l
     input_data[["fixed_ageclass_m"]] <- fixed_ageclass_m
-    # res <- rstan::stan(file='stan_version/stan_model_s4t_cjs_marg_fixedage_draft6d_04_16_2025.stan', data=input_data,chains = chains,
-    #             warmup = warmup,
-    #             iter = iter,
-    #             ...)
+
+
     res <- rstan::sampling(stanmodels$s4t_cjs_fixedage_draft6d,
                            data=input_data,chains = chains,
                            warmup = warmup,
@@ -1457,7 +1545,8 @@ fit_s4t_cjs_rstan <- function(p_formula,
     dplyr::left_join(k_site_df, by = "k") %>%
     dplyr::mutate(time_rel = s + time_diff,
                   time_rec = t + time_diff,
-                  age_rel = a1 + age_diff) %>%
+                  age_rel = a1 + age_diff,
+                  age_rec = a2 + age_diff) %>%
     dplyr::left_join(batch_df, by = "b") %>%
     dplyr::left_join(group_df, by = "g")
 
@@ -1473,6 +1562,40 @@ fit_s4t_cjs_rstan <- function(p_formula,
     dplyr::left_join(batch_df, by = "b") %>%
     dplyr::left_join(group_df, by = "g")
 
+
+  data_theta_rename <- format_cjs$data_theta
+
+  data_theta_rename[,c("a1","a2",
+                       "s","t",
+                       "j","k",
+                       "b","g")] <- indices_theta_original[,c("age_rel",
+                                                              "age_rec",
+                                                              "time_rel",
+                                                              "time_rec",
+                                                              "site_rel",
+                                                              "site_rec",
+                                                              "batch_site",
+                                                              "group_name")]
+
+  theta_parnames_original_units <- model_mat_info(form = theta_formula,df = data_theta_rename)$parnames
+
+  data_p_obs_rename <- format_cjs$data_p_obs
+
+  data_p_obs_rename[,c("a1","a2",
+                       "s","t",
+                       "j","k",
+                       "b","g")] <- indices_p_obs_original[,c("age_rel",
+                                                              "age_rec",
+                                                              "time_rel",
+                                                              "time_rec",
+                                                              "site_rel",
+                                                              "site_rec",
+                                                              "batch_site",
+                                                              "group_name")]
+
+  p_obs_parnames_original_units <- model_mat_info(form = p_formula,df = data_p_obs_rename)$parnames
+
+
   s4t_cjs_rstan <- list(estimated_parameters = estimated_parameters,
                         overall_surv = overall_surv,
                         cohort_surv = cohort_surv,
@@ -1485,7 +1608,9 @@ fit_s4t_cjs_rstan <- function(p_formula,
                                    fixed_age = NULL
                         ),
                         original_units = list(indices_theta_original = indices_theta_original,
-                                              indices_p_obs_original = indices_p_obs_original))
+                                              indices_p_obs_original = indices_p_obs_original,
+                                              p_obs_parnames_original_units = p_obs_parnames_original_units,
+                                              theta_parnames_original_units = theta_parnames_original_units))
 
   if (fixed_age) {
     s4t_cjs_rstan$fit$fixed_age <- list(ageclass_fit,fixed_ageclass_l,fixed_ageclass_m)

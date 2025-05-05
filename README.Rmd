@@ -46,6 +46,7 @@ sim.dat <- simulate_data(N = 800)
 # the observations of individuals need to be in a data.frame, with
 # the columns "id", "site", "time", and "removed" (no other columns are used)
 head(sim.dat$ch_df)
+
 # id is the individual ID. Converted to a character type.
 # site is the name of the site the individual was observed at
 # time is the time stratum (i.e. year). Can be a Date format or integer.
