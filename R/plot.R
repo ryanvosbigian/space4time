@@ -235,11 +235,11 @@ plotCH <- function(x, ...) {
 #' add description
 #' @export
 #'
-#' @param x a `s4t_cjs_rstan` object
+#' @param object a `s4t_cjs_rstan` object
 #' @param pars a `character` object that parses parameters using regular
 #'      expressions
 #' @param ... not used
-#' @returns a ggplot2 type figure of the observed transition
+#' @returns a ggplot2 object of traceplots
 traceplot <- function(object,
                       pars = NULL,
                       ...) {
