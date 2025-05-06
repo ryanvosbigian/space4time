@@ -88,8 +88,7 @@ print.summary.s4t_cjs <- function(x,
 #'
 #' @export
 #' @param x s4t_cjs_rstan object
-#' @param pars a character vector of parameter names. Default is the parameters to save,
-#'     but if `include == FALSE`, then the specified parameters are excluded.
+#' @param pars regular expressions ... NVM go back to rstan
 #' @param probs number of digits.
 #' @param digits_summary the number of significant digits to use when printing the summary
 #' @param include logical scalar indicating whether to include the parameters named by the
@@ -97,7 +96,7 @@ print.summary.s4t_cjs <- function(x,
 #' @param ... passed to `summary` method for s4t_cjs_rstan object.
 #'
 print.s4t_cjs_rstan <- function(x,
-                                pars = x$res@sim$pars_oi,
+                                pars = NULL,
                                 probs = c(0.025, 0.25, 0.5, 0.75, 0.975),
                                 digits_summary = 2,
                                 include = TRUE,
@@ -118,7 +117,7 @@ print.s4t_cjs_rstan <- function(x,
 
   if (!include) pars <- setdiff(obj@sim$pars_oi, pars)
 
-  s <- rstan::summary(obj, pars, probs, ...)
+  s <- summary(x, pars, probs, ...)
 
 
   if (is.null(s)) return(invisible(NULL))

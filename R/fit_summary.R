@@ -43,20 +43,35 @@ summary.s4t_cjs <- function(object, ...) {
 #'
 #'
 #' @param object A s4t_cjs_rstan object.
-#' @param pars a character vector of parameter names.
+#' @param pars regular expressions
 #' @param probs a numerical vector of quantiles of interest.
 #' @param ... Additional arguments to pass to `summary,stanfit-method`.
 #'
 #' @returns Returns a named list with ...
 #' @export
 summary.s4t_cjs_rstan <- function(object,
-                                  pars,
+                                  pars = NULL,
                                   probs = c(0.025, 0.25, 0.50, 0.75, 0.975),
                                   ...) {
   # I would like to rename all the parameters in the rstan summary...
 
-  rstan::summary(object$res,pars = pars, probs = probs, ...)
+  if (is.null(pars)) {
+    selected_pars <- rep(TRUE,length(object$original_units$compare_parnames[,"interp_parnames"]))
+  } else {
+    stopifnot(length(pars) == 1)
+    stopifnot(is(pars,"character"))
 
+    selected_pars <- grepl(pars,object$original_units$compare_parnames[,"interp_parnames"])
+  }
+
+  s <- rstan::summary(object$res,
+                      pars = object$original_units$compare_parnames[,"parnames"],
+                      probs = probs, ...)
+
+  rownames(s$summary) <- object$original_units$compare_parnames[,"interp_parnames"]
+  dimnames(s$c_summary)$parameter <- object$original_units$compare_parnames[,"interp_parnames"]
+  # rownames(s$summary)
+  return(s)
   # return(invisible(s))
 }
 

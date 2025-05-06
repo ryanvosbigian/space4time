@@ -957,6 +957,8 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                                                               "group_name")]
 
   theta_parnames_original_units <- model_mat_info(form = theta_formula,df = data_theta_rename)$parnames
+  theta_parnames_original_units <- paste0("theta_",theta_parnames_original_units)
+
 
   data_p_obs_rename <- format_cjs$data_p_obs
 
@@ -973,6 +975,40 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                                                               "group_name")]
 
   p_obs_parnames_original_units <- model_mat_info(form = p_formula,df = data_p_obs_rename)$parnames
+  p_obs_parnames_original_units <- paste0("p_",p_obs_parnames_original_units)
+
+
+  # can use either M or L
+  data_ageclass_rename <- format_cjs$m_aux_df %>%
+    as.data.frame() %>%
+    dplyr::mutate(obs_time = as.factor(time_diff + as.numeric(as.character(obs_time))))
+
+  ageclass_beta_parnames_original_units <- model_mat_info(form = ageclass_formula,df = data_ageclass_rename)$parnames[-1] # drop intercept
+  ageclass_beta_parnames_original_units <- paste0("a_beta_",ageclass_beta_parnames_original_units)
+
+  interp_parnames <- parnames <- rownames(estimated_parameters)
+  interp_parnames[grepl("theta_params",interp_parnames)] <- theta_parnames_original_units
+  interp_parnames[grepl("p_params",interp_parnames)] <- p_obs_parnames_original_units
+
+  max_a_overall <- max(s4t_ch$ch_info$set_max_a)
+
+  if (fixed_age == FALSE) {
+    warning("need to add scripts to add ageclass param names")
+    interp_parnames[grepl("alk_par_eta",interp_parnames)] <- paste0("a_alpha_",1:(max_a_overall - 1) + age_diff)
+    interp_parnames[grepl("alk_par_beta",interp_parnames)] <- ageclass_beta_parnames_original_units # HERE
+  } else {
+    ageclass_interp_parnames <- c(paste0("a_alpha_",1:(max_a_overall - 1) + age_diff),
+                                  ageclass_beta_parnames_original_units)
+
+    compare_parnames_ageclass <- cbind(parnames = rownames(ageclass_fit$estimated_parameters),
+                                       interp_parnames = ageclass_interp_parnames)
+
+  }
+
+  compare_parnames <- cbind(parnames = parnames,
+                            interp_parnames = interp_parnames)
+
+
 
   s4t_cjs <- list(estimated_parameters = estimated_parameters,
                   overall_surv = overall_surv,
@@ -996,13 +1032,16 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                   original_units = list(indices_theta_original = indices_theta_original,
                                         indices_p_obs_original = indices_p_obs_original,
                                         p_obs_parnames_original_units = p_obs_parnames_original_units,
-                                        theta_parnames_original_units = theta_parnames_original_units))
+                                        theta_parnames_original_units = theta_parnames_original_units,
+                                        compare_parnames = compare_parnames))
 
   if (fixed_age) {
     s4t_cjs$fit$fixed_age <- list(ageclass_fit=ageclass_fit,
                                   fixed_ageclass_l = fixed_ageclass_l,
                                   fixed_ageclass_m = fixed_ageclass_m)
 
+    s4t_cjs$original_units$ageclass_interp_parnames <- ageclass_interp_parnames
+    s4t_cjs$original_units$compare_parnames_ageclass <- compare_parnames_ageclass
   }
 
   class(s4t_cjs) <- "s4t_cjs"
@@ -1577,7 +1616,18 @@ fit_s4t_cjs_rstan <- function(p_formula,
                                                               "batch_site",
                                                               "group_name")]
 
+  data_theta_rename <- data_theta_rename %>%
+    dplyr::mutate(a1 = factor(a1),
+           a2 = factor(a2),
+           s = factor(s),
+           t = factor(t),
+           j = factor(j),
+           k = factor(k),
+           b = factor(b),
+           g = factor(g))
+
   theta_parnames_original_units <- model_mat_info(form = theta_formula,df = data_theta_rename)$parnames
+  theta_parnames_original_units <- paste0("theta_",theta_parnames_original_units)
 
   data_p_obs_rename <- format_cjs$data_p_obs
 
@@ -1593,8 +1643,49 @@ fit_s4t_cjs_rstan <- function(p_formula,
                                                               "batch_site",
                                                               "group_name")]
 
-  p_obs_parnames_original_units <- model_mat_info(form = p_formula,df = data_p_obs_rename)$parnames
+  data_p_obs_rename <- data_p_obs_rename %>%
+    dplyr::mutate(a1 = factor(a1),
+                  a2 = factor(a2),
+                  s = factor(s),
+                  t = factor(t),
+                  j = factor(j),
+                  k = factor(k),
+                  b = factor(b),
+                  g = factor(g))
 
+  p_obs_parnames_original_units <- model_mat_info(form = p_formula,df = data_p_obs_rename)$parnames
+  p_obs_parnames_original_units <- paste0("p_",p_obs_parnames_original_units)
+
+
+  # can use either M or L
+  data_ageclass_rename <- format_cjs$m_aux_df %>%
+    as.data.frame() %>%
+    dplyr::mutate(obs_time = as.factor(time_diff + as.numeric(as.character(obs_time))))
+
+  ageclass_beta_parnames_original_units <- model_mat_info(form = ageclass_formula,df = data_ageclass_rename)$parnames[-1] # drop intercept
+  ageclass_beta_parnames_original_units <- paste0("a_beta_",ageclass_beta_parnames_original_units)
+
+
+  interp_parnames <- parnames <- rownames(estimated_parameters)
+  interp_parnames[grepl("theta_params",interp_parnames)] <- theta_parnames_original_units
+  interp_parnames[grepl("p_params",interp_parnames)] <- p_obs_parnames_original_units
+
+
+  if (fixed_age == FALSE) {
+    warning("need to add scripts to add ageclass param names")
+    interp_parnames[grepl("alk_par_eta",interp_parnames)] <- paste0("a_alpha_",1:(max_a_overall - 1) + age_diff)
+    interp_parnames[grepl("alk_par_beta",interp_parnames)] <- ageclass_beta_parnames_original_units # HERE
+  } else {
+    ageclass_interp_parnames <- c(paste0("a_alpha_",1:(max_a_overall - 1) + age_diff),
+                                  ageclass_beta_parnames_original_units)
+
+    compare_parnames_ageclass <- cbind(parnames = rownames(ageclass_fit$estimated_parameters),
+                                       interp_parnames = ageclass_interp_parnames)
+
+  }
+
+  compare_parnames <- cbind(parnames = parnames,
+                            interp_parnames = interp_parnames)
 
   s4t_cjs_rstan <- list(estimated_parameters = estimated_parameters,
                         overall_surv = overall_surv,
@@ -1609,11 +1700,15 @@ fit_s4t_cjs_rstan <- function(p_formula,
                         ),
                         original_units = list(indices_theta_original = indices_theta_original,
                                               indices_p_obs_original = indices_p_obs_original,
-                                              p_obs_parnames_original_units = p_obs_parnames_original_units,
-                                              theta_parnames_original_units = theta_parnames_original_units))
+                                              compare_parnames = compare_parnames))
 
   if (fixed_age) {
-    s4t_cjs_rstan$fit$fixed_age <- list(ageclass_fit,fixed_ageclass_l,fixed_ageclass_m)
+    s4t_cjs_rstan$fit$fixed_age <- list(ageclass_fit = ageclass_fit,
+                                        fixed_ageclass_l = fixed_ageclass_l,
+                                        fixed_ageclass_m = fixed_ageclass_m)
+
+    s4t_cjs_rstan$original_units$ageclass_interp_parnames <- ageclass_interp_parnames
+    s4t_cjs_rstan$original_units$compare_parnames_ageclass <- compare_parnames_ageclass
   }
 
   class(s4t_cjs_rstan) <- "s4t_cjs_rstan"
@@ -1625,4 +1720,4 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
 
 # fix no visible binding note
-j <- k <- a1 <- a2 <- s <- b <- g <- NULL
+j <- k <- a1 <- a2 <- s <- b <- g <- max_a_overall <- NULL

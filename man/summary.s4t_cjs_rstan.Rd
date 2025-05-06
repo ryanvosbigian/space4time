@@ -4,12 +4,12 @@
 \alias{summary.s4t_cjs_rstan}
 \title{summary of s4t_cjs_rstan object}
 \usage{
-\method{summary}{s4t_cjs_rstan}(object, pars, probs = c(0.025, 0.25, 0.5, 0.75, 0.975), ...)
+\method{summary}{s4t_cjs_rstan}(object, pars = NULL, probs = c(0.025, 0.25, 0.5, 0.75, 0.975), ...)
 }
 \arguments{
 \item{object}{A s4t_cjs_rstan object.}
 
-\item{pars}{a character vector of parameter names.}
+\item{pars}{regular expressions}
 
 \item{probs}{a numerical vector of quantiles of interest.}
 

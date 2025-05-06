@@ -230,18 +230,49 @@ plotCH <- function(x, ...) {
 
 }
 
-
+#' @export
 traceplot <- function(object,
-                      pars,
+                      pars = NULL,
                       ...) {
   stopifnot(is(object,"s4t_cjs_rstan"))
 
   object$res@sim$fnames_oi
 
-  rstan::traceplot(object = object,
-                  pars = pars,
-                  ...) +
-  ggplot2::labs()
+  compare_parnames <- object$original_units$compare_parnames
+
+  if (is.null(pars)) {
+    keep <- rep(FALSE, nrow(compare_parnames))
+    if (length(keep) < 10) {
+      keep[1:length(keep)] <- TRUE
+    } else {
+      keep[1:10] <- TRUE
+    }
+
+
+  } else {
+    stopifnot(is(pars,"character"))
+    stopifnot(length(pars) == 1)
+
+
+
+    keep <- grepl(pars,compare_parnames[,"interp_parnames"])
+
+
+
+
+  }
+  kept_parnames <- as.character(compare_parnames[keep,2])
+  names(kept_parnames) <- compare_parnames[keep,1]
+
+
+  p <- rstan::traceplot(object = object$res,
+                   pars = compare_parnames[keep,"parnames"],
+                   ...)
+
+  p$facet$params$labeller <- ggplot2::as_labeller(kept_parnames)
+
+  p
+
 }
 
 # fix no visible binding note

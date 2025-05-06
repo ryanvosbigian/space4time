@@ -6,7 +6,7 @@
 \usage{
 \method{print}{s4t_cjs_rstan}(
   x,
-  pars = x$res@sim$pars_oi,
+  pars = NULL,
   probs = c(0.025, 0.25, 0.5, 0.75, 0.975),
   digits_summary = 2,
   include = TRUE,
@@ -16,8 +16,7 @@
 \arguments{
 \item{x}{s4t_cjs_rstan object}
 
-\item{pars}{a character vector of parameter names. Default is the parameters to save,
-but if \code{include == FALSE}, then the specified parameters are excluded.}
+\item{pars}{regular expressions ... NVM go back to rstan}
 
 \item{probs}{number of digits.}
 
