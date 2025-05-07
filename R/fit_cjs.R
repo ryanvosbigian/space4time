@@ -1138,8 +1138,12 @@ fit_s4t_cjs_rstan <- function(p_formula,
   init_rel_times <- s4t_ch$ch_info$init_rel_times
 
   ## Marginalize l_matrix
+
+  tmp <- s4t_ch$ch$l_matrix[,1:6]
+  colnames(tmp) <-  paste0("L_",colnames(tmp))
+
   unique_identifier_l <- cbind(ageclassdat_L$mod_mat_a_beta,
-                               s4t_ch$ch$l_matrix[,1:6])
+                               tmp)
 
 
   unique_l <- !duplicated(unique_identifier_l)
@@ -1164,6 +1168,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
   l_matrix_marg <- marg_unique_id_l[,c(1:7) + ncol(ageclassdat_L$mod_mat_a_beta)] # s4t_ch$ch$l_matrix[unique_l,1:5]
 
   l_matrix_marg <- as.matrix(l_matrix_marg)
+  colnames(l_matrix_marg) <- c("j","s","b","g","obs_time","ageclass","n")
   # l_matrix_marg <- cbind(l_matrix_marg,n = n_L)
 
 
@@ -1175,9 +1180,11 @@ fit_s4t_cjs_rstan <- function(p_formula,
   ageclassdat_L$obsageclass <- l_matrix_marg[,6]
 
   # marginalize m_matrix
+  tmp <- s4t_ch$ch$m_matrix[,1:8]
+  colnames(tmp) <-  paste0("M_",colnames(tmp))
 
   unique_identifier_m <- cbind(ageclassdat_M$mod_mat_a_beta,
-                               s4t_ch$ch$m_matrix[,1:8])
+                               tmp)
 
   suppressMessages(marg_unique_id_m <- unique_identifier_m %>% as.data.frame() %>%
                      dplyr::group_by_all() %>%
@@ -1188,6 +1195,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
   m_matrix_marg <- marg_unique_id_m[,c(1:9) + ncol(ageclassdat_M$mod_mat_a_beta)] # s4t_ch$ch$m_matrix[unique_m,1:7]
 
   m_matrix_marg <- as.matrix(m_matrix_marg)
+  colnames(m_matrix_marg) <- c("j","k","s","t","b","g","obs_time","ageclass","n")
 
 
   ageclassdat_M$mod_mat_a_beta <- as.matrix(marg_unique_id_m[,1:ncol(ageclassdat_M$mod_mat_a_beta)])
@@ -1676,8 +1684,15 @@ fit_s4t_cjs_rstan <- function(p_formula,
     interp_parnames[grepl("alk_par_eta",interp_parnames)] <- paste0("a_alpha_",1:(max_a_overall - 1) + age_diff)
     interp_parnames[grepl("alk_par_beta",interp_parnames)] <- ageclass_beta_parnames_original_units # HERE
   } else {
-    ageclass_interp_parnames <- c(paste0("a_alpha_",1:(max_a_overall - 1) + age_diff),
-                                  ageclass_beta_parnames_original_units)
+    ageclass_interp_parnames <- rownames(ageclass_fit$estimated_parameters)
+
+    tmp = ageclass_interp_parnames[grepl("a_alpha_",ageclass_interp_parnames)]
+    ageclass_interp_parnames[grepl("a_alpha_",ageclass_interp_parnames)] <- paste0("a_alpha_",1:(length(tmp) - 1) + age_diff)
+
+    ageclass_interp_parnames[grepl("b_beta",ageclass_interp_parnames)] <- ageclass_beta_parnames_original_units
+
+    # ageclass_interp_parnames <- c(paste0("a_alpha_",1:(max_a_overall - 1) + age_diff),
+    #                               ageclass_beta_parnames_original_units)
 
     compare_parnames_ageclass <- cbind(parnames = rownames(ageclass_fit$estimated_parameters),
                                        interp_parnames = ageclass_interp_parnames)

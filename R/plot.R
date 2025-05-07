@@ -153,7 +153,7 @@ plotSurvival <- function(x, ...) {
 #' Plot summary of s4t_cjs_ch object
 #'
 #' add description
-#' @export
+#'
 #'
 #' @param x a `s4t_cjs_ch` object
 #' @param ... not used

@@ -53,6 +53,7 @@ fit_ageclass <- function(age_formula  = ~ 1,
 
   s4t_ageclass_model <- list(estimated_parameters = estimated_parameters,
                              res = age_res,
+                             call = match.call(),
                              AIC = age_res$value + 2 * length(age_res$par),
                              nll = age_res$value, k = length(age_res$par),
                              s4t_ch = s4t_ch)

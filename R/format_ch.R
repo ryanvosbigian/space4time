@@ -542,16 +542,16 @@ s4t_cjs_ch <- function(ch_df,
                        sites_config,
                        holdover_config,
                        sites_to_pool = NULL) {
-
-  call <- list(ch_df = ch_df,
-               aux_age_df = aux_age_df,
-               cov_df = cov_df,
-               min_a = min_a,
-               max_a = max_a,
-               sites_names = sites_names,
-               sites_config = sites_config,
-               holdover_config = holdover_config,
-               sites_to_pool = sites_to_pool)
+#
+#   call <- list(ch_df = ch_df,
+#                aux_age_df = aux_age_df,
+#                cov_df = cov_df,
+#                min_a = min_a,
+#                max_a = max_a,
+#                sites_names = sites_names,
+#                sites_config = sites_config,
+#                holdover_config = holdover_config,
+#                sites_to_pool = sites_to_pool)
 
   ## Consider changing some of these to messages that result in an error after the whole thing is run
 
@@ -799,14 +799,14 @@ s4t_cjs_ch <- function(ch_df,
 
 
       ## ADD THE CHECK RIGHT HERE
-      tmp_sconfig <- sites_config[which(sites_names == sites_to_pool[[i]] | sites_names == tmp_sitename),]
-      tmp_seqal <- apply(tmp_sconfig,MARGIN = 1,FUN = function(x) length(unique(x)))
+      # tmp_sconfig <- sites_config[which(sites_names %in% sites_to_pool[[i]] | sites_names == tmp_sitename),]
+      # tmp_seqal <- apply(tmp_sconfig,MARGIN = 1,FUN = function(x) length(unique(x)))
 
-      tmp_hconfig <- holdover_config[which(sites_names == sites_to_pool[[i]] | sites_names == tmp_sitename),]
+      tmp_hconfig <- holdover_config[which(sites_names %in% sites_to_pool[[i]] | sites_names == tmp_sitename),]
       tmp_heqal <- apply(tmp_hconfig,MARGIN = 1,FUN = function(x) length(unique(x)))
 
-      if (any(tmp_seqal != 1) | any(tmp_heqal != 1)) {
-        stop(paste0("Cannot pool sites with different site arrangements or holdovers: ",tmp_sitename," with: ",
+      if (any(tmp_heqal != 1)) {
+        stop(paste0("Cannot pool sites with different holdovers: ",tmp_sitename," with: ",
                     paste0(sites_to_pool[[i]],collapse = ", ")))
       }
 
@@ -814,12 +814,14 @@ s4t_cjs_ch <- function(ch_df,
       using_sites <- setdiff(using_sites,sites_to_pool[[i]])
 
       using_sites <- ifelse(using_sites == tmp_sitename,paste0(tmp_sitename,"_plus"),using_sites)
-      sites_names <- using_sites
+      # sites_names <- using_sites
 
       # sites_config and holdovers config to drop:
       keepthesesites <- !(sites_names %in% sites_to_pool[[i]])
       sites_config <- sites_config[keepthesesites,keepthesesites]
       holdover_config <- holdover_config[keepthesesites,keepthesesites]
+
+      sites_names <- using_sites
 
       # dropping min_a and max_a values
       min_a <- min_a[keepthesesites]
