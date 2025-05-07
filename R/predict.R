@@ -179,9 +179,11 @@ predictTheta.s4t_cjs_rstan <- function(object,newdata = NULL,lcl = 0.025,
 #' @param newdata add description.
 #' @param type a `character` of one of the three option `prob`, `class`,
 #'    or `cum.prob`
+#' @param ... not used
 #' @returns depends on the type.
 predict.s4t_ageclass_model <- function(object, newdata,
-                                 type = c("prob","class","cum.prob")) {
+                                 type = c("prob","class","cum.prob"),
+                                 ...) {
 
 
   type <- match.arg(type)

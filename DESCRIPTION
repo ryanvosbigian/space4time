@@ -17,6 +17,7 @@ Imports:
     numDeriv,
     Rcpp,
     RcppParallel (>= 5.0.1),
+    readr,
     rstan (>= 2.18.1),
     rstantools (>= 2.4.0),
     stats,

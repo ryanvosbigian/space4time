@@ -4,7 +4,7 @@
 \alias{predict.s4t_ageclass_model}
 \title{Predict method for fit_ageclass fits}
 \usage{
-\method{predict}{s4t_ageclass_model}(object, newdata, type = c("prob", "class", "cum.prob"))
+\method{predict}{s4t_ageclass_model}(object, newdata, type = c("prob", "class", "cum.prob"), ...)
 }
 \arguments{
 \item{object}{a \code{s4t_ageclass_model} object}
@@ -13,6 +13,8 @@
 
 \item{type}{a \code{character} of one of the three option \code{prob}, \code{class},
 or \code{cum.prob}}
+
+\item{...}{not used}
 }
 \value{
 depends on the type.
