@@ -1,6 +1,13 @@
 
 
-
+#' Fit ageclass model using ordinal regression
+#'
+#' add description
+#'
+#' @export
+#' @param age_formula a `formula` object
+#' @param s4t_ch a `s4t_ch` object
+#' @returns a fitted `s4t_ageclass_model` object
 fit_ageclass <- function(age_formula  = ~ 1,
                          s4t_ch) {
 

@@ -1,0 +1,86 @@
+---
+title: "Introduction to fitting age-specific space-for-time mark-recapture models"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Fitting the age-specific space-for-time mark-recapture models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+# 1. Introduction
+
+The `space4time` package is used to fit an age-specific space-for-time mark-recapture model. This vignette provides the basic details on formatting data for the models and fitting the models. Load the `space4time` package by running
+
+```{r setup}
+library(space4time)
+```
+
+To briefly describe the purpose of these models and when then would be useful, space-for-time substitutions are frequently used in mark-recapture models for animals that migrate along a fixed path. Instead of repeated observations over time, there are observations of individuals as they pass fixed stations or sites. This is not a perfect substitution, because the amount of time it takes individuals to move between sites can vary. This model incorporates time and individual ageclass into the space-for-time framework. Here, ageclasses are with respect to time (ages rather than stages like "juvenile" or "adult"). 
+
+The development of this model was motivated by migrating juvenile steelhead, which can be tagged as they exit rearing habitat. They can wait up to a few years before migrating out to the ocean, passing by observation stations (i.e. antennae that detect individuals with passive integrated transponder tags). Their survival and movement depends on age, so we made this model age-specific.
+
+# 2. Data
+
+To demonstrate the format that data need to be in to be read, we will simulate data using a built-in function
+
+```{r simulate data}
+sim.dat <- simulate_data(N = 800)
+```
+
+
+This returns a list. The key pieces of data of interest are
+
+The capture history data:
+
+```{r echo= FALSE}
+knitr::kable(head(sim.dat$ch_df))
+```
+
+
+Individual auxiliary data:
+
+```{r echo= FALSE}
+knitr::kable(head(sim.dat$aux_age_df))
+```
+
+
+`sites_config`:
+
+```{r echo= FALSE}
+knitr::kable(sim.dat$sites_config)
+```
+
+`holdover_config`:
+
+```{r echo= FALSE}
+knitr::kable(sim.dat$holdover_config)
+```
+
+`sites_names`:
+
+```{r echo= FALSE}
+knitr::kable(sim.dat$sites_names)
+```
+
+
+`min_a`:
+
+```{r echo= FALSE}
+knitr::kable(sim.dat$min_a)
+```
+
+
+`max_a`:
+
+```{r echo= FALSE}
+knitr::kable(sim.dat$max_a)
+```
+
