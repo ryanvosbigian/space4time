@@ -167,7 +167,7 @@ anova.s4t_cjs <- function(object, ...) {
 #'
 #' @param object object of class `s4t_ageclass_model`
 #' @param ... object of class `s4t_ageclass_model`
-#' @returns An object of class `anova` inheriting from class `data.frame` ???
+#' @returns An object of class `anova` inheriting from class `data.frame` ??
 #'
 #' @export
 anova.s4t_ageclass_model <- function(object, ...) {
