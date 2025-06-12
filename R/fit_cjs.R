@@ -514,8 +514,18 @@ format_s4t_cjs <- function(p_formula,
 
   ### age length stuff:
 
+
+
+
+
+  # dropping the last sites from the observed release (but no recapture) data
+  drop_last_sites <- !(s4t_ch$ch$l_matrix[,"j"] %in% last_sites)
+
+  l_matrix_red <- s4t_ch$ch$l_matrix[drop_last_sites,]
+  l_aux_df_red <- s4t_ch$ch$l_aux_df[drop_last_sites,]
+
   ageclassdat_L <- ageclass_call(age_formula=ageclass_formula,
-                                 obs_aux = s4t_ch$ch$l_aux_df
+                                 obs_aux = l_aux_df_red
                                  # max_a = s4t_ch$ch_info$max_a
   )
 
@@ -554,9 +564,9 @@ format_s4t_cjs <- function(p_formula,
               theta_par = theta_par,
               age_par = ageclass_data$age_par,
               m_matrix = s4t_ch$ch$m_matrix,
-              l_matrix = s4t_ch$ch$l_matrix,
+              l_matrix = l_matrix_red,
               m_aux_df = s4t_ch$ch$m_aux_df,
-              l_aux_df = s4t_ch$ch$l_aux_df,
+              l_aux_df = l_aux_df_red,
               obs_aux = s4t_ch$ch$obs_aux,
               max_t_recap = s4t_ch$ch_info$max_t_recap,
               max_s_rel = s4t_ch$ch_info$max_s_rel,
@@ -1139,7 +1149,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
   ## Marginalize l_matrix
 
-  tmp <- s4t_ch$ch$l_matrix[,1:6]
+  tmp <- format_cjs$l_matrix[,1:6]
   colnames(tmp) <-  paste0("L_",colnames(tmp))
 
   unique_identifier_l <- cbind(ageclassdat_L$mod_mat_a_beta,
@@ -1516,7 +1526,8 @@ fit_s4t_cjs_rstan <- function(p_formula,
     input_data[["fixed_ageclass_m"]] <- fixed_ageclass_m
 
 
-    res <- rstan::sampling(stanmodels$s4t_cjs_fixedage_draft6d,
+    res <- rstan::sampling(stanmodels$s4t_cjs_fixedage_draft7,
+                           # pars = c("theta_params","p_params","overall_surv","cohort_surv","log_lik"), # ,"log_lik"
                            data=input_data,chains = chains,
                            warmup = warmup,
                            iter = iter,
@@ -1527,6 +1538,8 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
     res <- rstan::sampling(stanmodels$s4t_cjs_draft6d,
                            data=input_data,chains = chains,
+                           # pars = c("theta_params","p_params","overall_surv","cohort_surv",
+                           # "alk_par_beta","alk_par_eta","log_lik"),
                            warmup = warmup,
                            iter = iter,
                            ...)

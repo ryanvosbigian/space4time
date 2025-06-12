@@ -12,7 +12,7 @@
 \item{...}{object of class \code{s4t_ageclass_model}}
 }
 \value{
-An object of class \code{anova} inheriting from class \code{data.frame} ???
+An object of class \code{anova} inheriting from class \code{data.frame} ??
 }
 \description{
 Compute analysis of variance table.

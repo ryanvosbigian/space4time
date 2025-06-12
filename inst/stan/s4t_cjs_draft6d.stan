@@ -224,12 +224,13 @@ model {
   }
 
 
-  obsageclass ~ ordered_logistic(mod_mat_a_beta * alk_par_beta,alk_par_eta);
+  // obsageclass ~ ordered_logistic(mod_mat_a_beta * alk_par_beta,alk_par_eta);
   target += ordered_logistic_lpmf(obsageclass | mod_mat_a_beta * alk_par_beta,alk_par_eta);
+
 
    // WAS: theta[a1,a2,s,j,k,b,g] -> theta[g,j,s,b,a1, VECTOR: a2]
 
- array[N_groups,N_stations,max_t,
+  array[N_groups,N_stations,max_t,
        N_batches,max_a_overall] vector[max_a_overall] theta;
 
 
@@ -341,7 +342,7 @@ model {
       int k = next_site[j];
       for (s in 1:max_s_rel[j]) {
         for (b in batches_list[j,1:batches_list_len[j]]) {
-          # can start at 1 (bc the theta and thus Theta is already populated with zeros throughout)
+          // can start at 1 (bc the theta and thus Theta is already populated with zeros throughout)
           for (a1 in 1:set_max_a[j]) {
             array[2] int tmp_t_opts = {max_t_recap[k],s + (set_max_a[k] - a1)};
             int tmp_max_t = min(tmp_t_opts);
@@ -408,7 +409,7 @@ model {
       int k = next_site[j];
       for (s in 1:max_s_rel[j]) {
         for (b in batches_list[j,1:batches_list_len[j]]) {
-          # can start at 1 (bc probs are already populated with zeros throughout)
+          // can start at 1 (bc probs are already populated with zeros throughout)
            for (a1 in 1:set_max_a[j]) {
             array[2] int tmp_ts = {max_t_recap[k],s + (set_max_a[k] - a1)};
             int tmp_max_t = min(tmp_ts);
@@ -609,8 +610,18 @@ model {
 generated quantities {
   vector[N_overall_surv] overall_surv;
   vector[N_cohort_surv] cohort_surv;
+  vector[N_obsageclass + N_m + N_l] log_lik;
+
+
 
   {
+
+  // log_lik[1:N_obsageclass] = ordered_logistic_lpmf(obsageclass | mod_mat_a_beta * alk_par_beta,alk_par_eta);
+  for (i in 1:N_obsageclass) {
+    log_lik[i] = ordered_logistic_lpmf(obsageclass[i] | mod_mat_a_beta[i,] * alk_par_beta,alk_par_eta);
+  }
+
+
   array[N_groups,N_stations,max_t,
        N_batches,max_a_overall] vector[max_a_overall] theta;
 
@@ -739,6 +750,331 @@ generated quantities {
 
   }
 
+  array[N_groups,N_stations,N_batches,max_t]
+      matrix[max_a_overall,max_a_overall] p_obs;
+
+  p_obs = inits_p_obs;
+
+  vector[N_p_indices_r] mu_indices_p_obs = inv_logit(mod_mat_p * p_params');
+
+  for (i in 1:N_p_indices_r) {
+
+    int a1 = indices_p_obs[i,1];
+    int a2 = indices_p_obs[i,2];
+    int t = indices_p_obs[i,4];
+    int k = indices_p_obs[i,6];
+    int b = indices_p_obs[i,7];
+    int g = indices_p_obs[i,8];
+
+    p_obs[g,k,b,t,a1,a2] = mu_indices_p_obs[i];
+
+  }
+
+
+
+
+  for (g in 1:N_groups) {
+    for (j in not_last_sites) {
+      int k = next_site[j];
+
+      for (s in 1:max_s_rel[j]) {
+
+        for (a1 in 1:set_max_a[j]) {
+          for (b in batches_list[j,1:batches_list_len[j]]) {
+            Theta[g,j,s,b,a1,1] = theta[g,j,s,b,a1,1];
+
+            for (a2 in 2:max_a_overall) {
+
+              vector[a2-1] tmp_1s = rep_vector(1.0,a2-1);
+
+              vector[a2-1] theta_inv_tmp = tmp_1s - theta[g,j,s,b,a1,1:(a2-1)];
+
+
+              Theta[g,j,s,b,a1,a2] = theta[g,j,s,b,a1,a2]*prod(theta_inv_tmp);
+
+
+            }
+            vector[max_a_overall] tmp_1s = rep_vector(1.0,max_a_overall);
+
+            vector[max_a_overall] theta_inv_tmp = tmp_1s - theta[g,j,s,b,a1,1:(max_a_overall)];
+
+            Theta[g,j,s,b,a1,max_a_overall + 1] = prod(theta_inv_tmp);
+
+
+          }
+
+        }
+      }
+    }
+  }
+
+
+
+
+  // lambda_array[g,j,k,t,b, MATRIX: s, a1]
+  array[N_groups,N_stations,N_stations,
+        max_t,N_batches] matrix[max_t,max_a_overall] lambda_array;
+
+  lambda_array = inits_lambda_array;
+
+
+  for (g in 1:N_groups) {
+    for (j in not_last_sites) {
+      int k = next_site[j];
+      for (s in 1:max_s_rel[j]) {
+        for (b in batches_list[j,1:batches_list_len[j]]) {
+          // can start at 1 (bc the theta and thus Theta is already populated with zeros throughout)
+          for (a1 in 1:set_max_a[j]) {
+            array[2] int tmp_t_opts = {max_t_recap[k],s + (set_max_a[k] - a1)};
+            int tmp_max_t = min(tmp_t_opts);
+            for (t in s:tmp_max_t) {
+              int a2 = a1 + t - s;
+
+              lambda_array[g,j,k,t,b,s,a1] = Theta[g,j,s,b,a1,a2];
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  for (g in 1:N_groups) {
+    for (j in site_path_length3[1:N_site_path_length3,1]) {
+      array[site_path_len[j]] int tmp_ks = site_path[j,1:site_path_len[j]];
+      for (n_k in 3:site_path_len[j]) {
+        int k = tmp_ks[n_k];
+        int k_min1 =tmp_ks[n_k - 1];
+
+        for (b in batches_list[j,1:batches_list_len[j]]) {
+          for (s in 1:max_s_rel[j]) {
+            for (a1 in 1:set_max_a[j]) {
+              array[2] int tmp_vec = {max_t_recap[k],s + (set_max_a[k] - a1)};
+
+              int tmp_max_t = min(tmp_vec);
+              for (t in (s):(tmp_max_t)) {
+                int a2 = a1 + t - s;
+                array[2] int tmp_vec2 = {t - s + a1, set_max_a[k]};
+                int tmp_upperage = min(tmp_vec2);
+
+                vector[t - s + 1] tmp_lambda1 = to_vector(lambda_array[g,j,k_min1,s:t,b,s,a1]);
+
+
+                matrix[1+tmp_upperage-a1,1 + t - s] tmp_p_obs = to_matrix(p_obs[g,k_min1,b,s:t,a1,a1:tmp_upperage]);
+
+
+                matrix[1+tmp_upperage-a1,1 + t - s] tmp_lambda2 = lambda_array[g,k_min1,k,t,b,s:t,a1:tmp_upperage];
+
+
+                real tmp_lambda3 = sum(tmp_lambda1 .*
+                  ((1 - diagonal(tmp_p_obs)) .* diagonal(tmp_lambda2)));
+
+                lambda_array[g,j,k,t,b,s,a1] = tmp_lambda3;
+
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  array[N_groups,N_stations,N_batches] matrix[max_t,max_a_overall] chi_array;
+
+  chi_array = inits_chi_array;
+
+
+  for (g in 1:N_groups) {
+    for (j in not_last_sites_rev) {
+      int k = next_site[j];
+      for (s in 1:max_s_rel[j]) {
+        for (b in batches_list[j,1:batches_list_len[j]]) {
+          // can start at 1 (bc probs are already populated with zeros throughout)
+           for (a1 in 1:set_max_a[j]) {
+            array[2] int tmp_ts = {max_t_recap[k],s + (set_max_a[k] - a1)};
+            int tmp_max_t = min(tmp_ts);
+
+            array[2] int tmp_ages = {set_max_a[k],tmp_max_t - s + a1};
+            int tmp_maxage = min(tmp_ages);
+
+
+            vector[tmp_maxage - a1 + 1] tmp_A = Theta[g,j,s,b,a1,a1:(tmp_maxage)];
+
+
+            matrix[tmp_maxage - a1 + 1,tmp_max_t - s + 1] tmp_p_obs = to_matrix(p_obs[g,k,b,s:tmp_max_t,a1,a1:tmp_maxage]);
+
+
+            matrix[tmp_maxage - a1 + 1,tmp_max_t - s + 1] tmp_chi = chi_array[g,k,b,s:tmp_max_t,a1:(tmp_maxage)];
+
+
+            chi_array[g,j,b,s,a1] = Theta[g,j,s,b,a1,max_a_overall+1] + sum(tmp_A .* (1 - diagonal(tmp_p_obs)) .* diagonal(tmp_chi));
+
+
+          }
+        }
+      }
+    }
+  }
+
+
+
+
+
+ matrix[rows(mod_mat_a_L),num_elements(alk_par_eta)+1] pi_L = predict_ordered_logistic(alk_par_beta,
+                                                                                       alk_par_eta,
+                                                                                       mod_mat_a_L,
+                                                                                       max_a_overall);
+
+ matrix[rows(mod_mat_a_M),num_elements(alk_par_eta)+1] pi_M = predict_ordered_logistic(alk_par_beta,
+                                                                                       alk_par_eta,
+                                                                                       mod_mat_a_M,
+                                                                                       max_a_overall);
+
+
+  for (i in knownage_l) {
+    int diff_age = l_matrix[i,2] - l_matrix[i,5];
+    int k_age = diff_age + obsageclass_L[i]; //obsageclass_L[i]
+
+     log_lik[N_obsageclass + i] = log(chi_array[l_matrix[i,4],l_matrix[i,1],l_matrix[i,3],l_matrix[i,2],k_age]) * l_matrix[i,6];
+
+    // summand_l[i] = log(chi_array[l_matrix[i,1],l_matrix[i,2],l_matrix[i,3],l_matrix[i,4],k_age]) * l_matrix[i,6];
+  }
+
+  // print("NLL 2: ",sum(summand_l[knownage_l]));
+
+  for (i in unknownage_l) {
+    int diff_age = l_matrix[i,2] - l_matrix[i,5];
+
+    // vector[max_a_overall - diff_age] pi_age1 = fixed_ageclass_l[i,(diff_age+1):max_a_overall]';
+    vector[max_a_overall - diff_age] pi_age1 = pi_L[i,(1):(max_a_overall - diff_age)]';
+    vector[max_a_overall] pi_age2 = append_row(rep_vector(0.0,diff_age),pi_age1)  ./ sum(pi_age1);
+    // vector[max_a_overall] pi_age3 = pi_age2 ./ sum(pi_age2);
+
+
+
+    // vector[max_a_overall] lik1 = to_vector(chi_array[l_matrix[i,1],l_matrix[i,2],l_matrix[i,3],l_matrix[i,4],1:max_a_overall]);
+    // was chi_array[j,s,b,g,a1] -> chi_array[g,j,b, MATRIX: s, a1]
+    row_vector[max_a_overall] lik1 = chi_array[l_matrix[i,4],l_matrix[i,1],l_matrix[i,3],l_matrix[i,2],1:max_a_overall];
+
+
+    // use dot_product
+    real lik2 = dot_product(lik1, pi_age2);
+
+    // print("pi: ",pi_age3, "; lik1: ",lik1);
+
+    log_lik[N_obsageclass + i] = log(lik2) * l_matrix[i,6];
+
+  }
+
+
+  // print("NLL 3: ",target());
+
+  // print("Chi array: ", chi_array);
+
+  // print("lambda_array: ",lambda_array);
+
+
+
+  for (i in knownage_m) {
+    // diff_age <- (m_matrix[i,"s"] - m_matrix[i,"obs_time"]); diff_age
+    // diff_age_t <- (m_matrix[i,"t"] - m_matrix[i,"obs_time"]); diff_age_t
+    int diff_age = (m_matrix[i,3] - m_matrix[i,7]);
+    int diff_age_t = (m_matrix[i,4] - m_matrix[i,7]);
+
+    // print(max_a-diff_age_t - 1 + 1);
+    // print(to_matrix(concat_2d_array(p_obs[1:(max_a-diff_age_t),(1+diff_age_t):max_a,m_matrix[i,4],m_matrix[i,2],m_matrix[i,5]])));
+
+    int k = m_matrix[i,2];
+    int s = m_matrix[i,3];
+    int t = m_matrix[i,4];
+
+    // vector[max_a_overall-(t - s) - 1 + 1] tmp_p_obs1 = diagonal(to_matrix(
+    //     concat_2d_array(p_obs[1:(max_a_overall-(t - s)),(1+ t - s):max_a_overall,m_matrix[i,4],m_matrix[i,2],m_matrix[i,5],m_matrix[i,6]]),
+    //     max_a_overall-(t - s) - 1 + 1,max_a_overall-(t - s) - 1 + 1
+    //     ));
+    // vector[set_max_a[k]-diff_age_t - 1 + 1] tmp_p_obs1 = diagonal(
+    //     p_obs[m_matrix[i,6],m_matrix[i,2],m_matrix[i,5],m_matrix[i,4],1:(set_max_a[k]-diff_age_t),(1+diff_age_t):set_max_a[k]]);
+    //
+    //
+    // vector[max_a_overall] tmp_p_obs2 = append_row(tmp_p_obs1,
+    //           rep_vector(0.0,max_a_overall - (set_max_a[k]-diff_age_t)));
+
+    int j_age = diff_age + obsageclass_M[i];
+
+    real tmp_p_obs2 = p_obs[m_matrix[i,6],m_matrix[i,2],m_matrix[i,5],m_matrix[i,4],j_age,obsageclass_M[i] + diff_age_t];
+
+    // this may cause some errors. may need to put this in an ifelse statement
+    // vector[max_a_overall] tmp_p_obs2 = append_row(rep_vector(0.0,diff_age),
+    //           append_row(tmp_p_obs1,rep_vector(0.0,diff_age_t-diff_age)));
+
+
+
+
+
+    // was lambda_array[j,k,s,t,b,g,a1] -> lambda_array[g,j,k,t,b, MATRIX: s, a1]
+    real lik1 =  tmp_p_obs2 * //tmp_p_obs2[k_age + t - s]*
+      lambda_array[m_matrix[i,6],m_matrix[i,1],m_matrix[i,2],m_matrix[i,4],m_matrix[i,5],m_matrix[i,3],j_age];
+    // real lik1 = tmp_p_obs2[k_age]*
+    //   lambda_array[m_matrix[i,1],m_matrix[i,2],m_matrix[i,3],m_matrix[i,4],m_matrix[i,5],m_matrix[i,6],k_age];
+
+    log_lik[N_obsageclass + i + N_l] = log(lik1) * m_matrix[i,8];
+
+    // print("lik1: ",- log(lik1));
+    // if (lik1 == 0) {
+    //   print("lik == 0");
+    //   print(m_matrix[i,]);
+    //   print("p = ",tmp_p_obs2);
+    //   print("lambda = ",lambda_array[m_matrix[i,6],m_matrix[i,1],m_matrix[i,2],m_matrix[i,4],m_matrix[i,5],m_matrix[i,3],k_age]);
+    // }
+
+  }
+ // print("NLL 4: ",sum(summand_m[knownage_m]));
+
+ for (i in unknownage_m) {
+    int diff_age = (m_matrix[i,3] - m_matrix[i,7]);
+    int diff_age_t = (m_matrix[i,4] - m_matrix[i,7]);
+
+
+
+    int k = m_matrix[i,2];
+    int s = m_matrix[i,3];
+    int t = m_matrix[i,4];
+
+
+    int diff_s_t = t - s;
+
+    vector[max_a_overall-diff_s_t] tmp_p_obs1 = diagonal(
+        p_obs[m_matrix[i,6],m_matrix[i,2],m_matrix[i,5],m_matrix[i,4],1:(max_a_overall-diff_s_t),(1+diff_s_t):max_a_overall]);
+
+    vector[max_a_overall] tmp_p_obs2 = append_row(tmp_p_obs1,
+              rep_vector(0.0,diff_s_t));
+
+    vector[max_a_overall - diff_age] pi_age1 = pi_M[i,(1):(max_a_overall - diff_age)]';
+    vector[max_a_overall] pi_age2 = append_row(rep_vector(0.0,diff_age),pi_age1) ./ sum(pi_age1);
+    // vector[max_a_overall] pi_age3 = pi_age2  ./ sum(pi_age2);
+
+    // this may cause some errors. may need to put this in an ifelse statement
+    // vector[max_a_overall] tmp_p_obs2 = append_row(rep_vector(0.0,diff_age),
+    //           append_row(tmp_p_obs1,rep_vector(0.0,diff_age_t-diff_age)));
+
+
+    row_vector[max_a_overall] lik1 = tmp_p_obs2' .* lambda_array[m_matrix[i,6],m_matrix[i,1],m_matrix[i,2],m_matrix[i,4],
+                                                                      m_matrix[i,5],m_matrix[i,3],1:max_a_overall];
+
+
+    real lik2 = dot_product(lik1, pi_age2);
+
+    log_lik[N_obsageclass + i + N_l] = log(lik2) * m_matrix[i,8];
+
+    // if (lik2 == 0) {
+    //   print("i:", i,"; lik1:", lik1,"; lik2:",lik2,"; tmp_p_obs2:",tmp_p_obs2);
+    //   print("pi_age2:",pi_age2);
+    //   print("lambda: ",lambda_array[m_matrix[i,1],m_matrix[i,2],m_matrix[i,3],m_matrix[i,4],
+    //                                                                   m_matrix[i,5],m_matrix[i,6],1:max_a_overall]);
+    // }
+
+ }
 
   } // end thing
 }

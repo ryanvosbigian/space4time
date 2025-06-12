@@ -10,7 +10,7 @@
 #' @param x a `s4t_cjs` or `s4t_cjs_rstan` object
 #' @param ... not used
 #' @returns a ggplot2 type figure of the transition probabilities
-plotTheta <- function(x, ...) {
+plotTheta <- function(x,textsize = NULL, ...) {
   if (!is(x,"s4t_cjs") & !is(x,"s4t_cjs_rstan")) stop("x must be class s4t_cjs or s4t_cjs_rstan")
 
   cohort_surv <- as.data.frame(x$cohort_surv)
@@ -53,7 +53,8 @@ plotTheta <- function(x, ...) {
       geomtextpath::geom_textsegment(ggplot2::aes(x = site_rel,xend = site_rec,
                                          y = age_rel, yend = age_rec,
                                          color = estimate,
-                                         label = Theta),hjust = 0.25) +
+                                         label = Theta,
+                                         size = textsize),hjust = 0.25) +
       ggplot2::facet_wrap(~time_rel_label)
   } else {
     p +
@@ -240,7 +241,7 @@ plotCH <- function(x, ...) {
 #'      expressions
 #' @param ... not used
 #' @returns a ggplot2 object of traceplots
-traceplot <- function(object,
+traceplot2 <- function(object,
                       pars = NULL,
                       ...) {
   stopifnot(is(object,"s4t_cjs_rstan"))
