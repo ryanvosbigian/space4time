@@ -660,7 +660,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 
   ## Marginalize l_matrix
   unique_identifier_l <- cbind(ageclassdat_L$mod_mat_a_beta,
-                               s4t_ch$ch$l_matrix[,1:6])
+                               format_cjs$l_matrix[,1:6])
 
 
   unique_l <- !duplicated(unique_identifier_l)
