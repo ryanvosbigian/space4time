@@ -67,7 +67,7 @@ query_ptagis_obs <- function(pit_codes) {
 
   req_events <- httr2::request(url_ptagis_events) %>%
     httr2::req_url_query(tagCode = pit_codes,
-                         apiKey = "73a302a1-e150-4747-be97-d34329bc00a9",
+                         apiKey = "",
                          .multi = "explode") %>%
     httr2::req_progress()
   # httr2::req_perform()
