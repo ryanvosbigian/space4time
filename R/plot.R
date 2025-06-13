@@ -8,9 +8,10 @@
 #' @export
 #'
 #' @param x a `s4t_cjs` or `s4t_cjs_rstan` object
+#' @param textsize an integer for the font size to pass to `geomtextpath::geom_textsegment()`
 #' @param ... not used
 #' @returns a ggplot2 type figure of the transition probabilities
-plotTheta <- function(x,textsize = NULL, ...) {
+plotTheta <- function(x,textsize = 3, ...) {
   if (!is(x,"s4t_cjs") & !is(x,"s4t_cjs_rstan")) stop("x must be class s4t_cjs or s4t_cjs_rstan")
 
   cohort_surv <- as.data.frame(x$cohort_surv)
@@ -53,8 +54,8 @@ plotTheta <- function(x,textsize = NULL, ...) {
       geomtextpath::geom_textsegment(ggplot2::aes(x = site_rel,xend = site_rec,
                                          y = age_rel, yend = age_rec,
                                          color = estimate,
-                                         label = Theta,
-                                         size = textsize),hjust = 0.25) +
+                                         label = Theta),hjust = 0.25,
+                                     size = textsize) +
       ggplot2::facet_wrap(~time_rel_label)
   } else {
     p +
@@ -81,9 +82,10 @@ plotTheta <- function(x,textsize = NULL, ...) {
 #' @export
 #'
 #' @param x a `s4t_cjs` or `s4t_cjs_rstan` object
+#' @param textsize an integer for the font size to pass to `geomtextpath::geom_textsegment()`
 #' @param ... not used
 #' @returns a ggplot2 type figure of the apparent survivals
-plotSurvival <- function(x, ...) {
+plotSurvival <- function(x,textsize = 3, ...) {
 
   if (!is(x,"s4t_cjs") & !is(x,"s4t_cjs_rstan")) stop("x must be class s4t_cjs or s4t_cjs_rstan")
 
@@ -129,7 +131,8 @@ plotSurvival <- function(x, ...) {
       geomtextpath::geom_textsegment(ggplot2::aes(x = site_rel,xend = site_rec,
                                          y = age_rel,yend = age_rel,
                                          color = estimate,
-                                         label = Theta)) +
+                                         label = Theta),
+                                     size = textsize) +
       ggplot2::facet_wrap(~time_rel_label)
   } else {
     message("Install package geomtextpath for better figures")
