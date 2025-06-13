@@ -189,25 +189,15 @@ simulate_data <- function(N = 500,
     dplyr::filter(time != 0)
 
 
-  sites_config <- matrix(c(0, 1, 0,
-                           0, 0, 1,
-                           0, 0, 0), nrow = 3, byrow = TRUE)
-  colnames(sites_config) <- rownames(sites_config) <- 1:3
-
-  holdover_config <- matrix(c(0, 1, 0,
-                              0, 0, 0,
-                              0, 0, 0), nrow = 3, byrow = TRUE)
-
-  colnames(holdover_config) <- rownames(holdover_config) <- 1:3
+  s4t_config <- linear_s4t_config(sites_names = 1:3,
+                                holdover_sites = 1,
+                                min_a =c(1,1,1),
+                                max_a = c(3,3,3))
 
   return(list(ch_df = ch_df,#true_ch = true_ch,
               # broodyear = broodyear,
               aux_age_df = obs_lengthyear,
-              sites_config = sites_config,
-              holdover_config = holdover_config,
-              min_a = c(1,1,1),
-              max_a = c(3,3,3),
-              sites_names = as.character(1:3),
+              s4t_config = s4t_config,
               params = list(Theta = Theta,
                             p_prob = p_prob,
                             overall_surv = overall_surv,
@@ -423,28 +413,29 @@ simulate_data_tworeleasesites <- function(N = 500,
 
   cohort_surv <- cohort_surv[!is.na(cohort_surv[,1]),]
 
+#
+#   sites_config <- matrix(c(0, 1, 0, 0,
+#                            0, 0, 1, 0,
+#                            0, 0, 0, 1,
+#                            0, 0, 0, 0), nrow = 4, byrow = TRUE)
+#   colnames(sites_config) <- rownames(sites_config) <- 1:4
+#
+#   holdover_config <- matrix(c(0, 1, 0, 0,
+#                               0, 0, 1, 0,
+#                               0, 0, 0, 0,
+#                               0, 0, 0, 0), nrow = 4, byrow = TRUE)
+#
+#   colnames(holdover_config) <- rownames(holdover_config) <- 1:4
 
-  sites_config <- matrix(c(0, 1, 0, 0,
-                           0, 0, 1, 0,
-                           0, 0, 0, 1,
-                           0, 0, 0, 0), nrow = 4, byrow = TRUE)
-  colnames(sites_config) <- rownames(sites_config) <- 1:4
-
-  holdover_config <- matrix(c(0, 1, 0, 0,
-                              0, 0, 1, 0,
-                              0, 0, 0, 0,
-                              0, 0, 0, 0), nrow = 4, byrow = TRUE)
-
-  colnames(holdover_config) <- rownames(holdover_config) <- 1:4
+  s4t_config <- linear_s4t_config(sites_names = 1:4,
+                                  holdover_sites = c(1,2),
+                                  min_a =c(1,1,1,1),
+                                  max_a = c(3,3,3,3))
 
   return(list(obs_ch = obs_ch,true_ch = true_ch,
               aux_age_df = broodyear,
               obs_lengthyear = obs_lengthyear,
-              sites_config = sites_config,
-              holdover_config = holdover_config,
-              min_a = c(1,1,1,1),
-              max_a = c(3,3,3,3),
-              sites_names = as.character(1:4),
+              s4t_config = s4t_config,
               params = list(Theta = Theta,
                             p_prob = p_prob,
                             overall_surv = overall_surv,

@@ -32,56 +32,34 @@ test_that("s4t_ch is made", {
                            obs_time = c(1,2,1,2,1,1),
                            Covariate1 = c(3,1,2,1,2,1))
 
+  site_arr <- linear_s4t_config(sites_names = 1:3,
+                                holdover_sites = 1,
+                                min_a =c(1,1,1),
+                                max_a = c(3,3,3))
 
-  expect_no_error( suppressMessages(s4t_cjs_ch(ch_df,
+  expect_no_error( suppressMessages(s4t_ch(ch_df,
                                aux_age_df,
-                               min_a = c(1,1,1),
-                               max_a = c(3,3,3),
-                               sites_names = 1:3,
-                               sites_config = matrix(c(0,1,0,
-                                                       0,0,1,
-                                                       0,0,0),
-                                                     nrow = 3,
-                                                     ncol = 3,
-                                                     byrow = TRUE,
-                                                     dimnames = list(1:3,1:3)),
-                               holdover_config = matrix(c(0,1,0,
-                                                          0,0,0,
-                                                          0,0,0),
-                                                        nrow = 3,
-                                                        ncol = 3,
-                                                        byrow = TRUE,
-                                                        dimnames =  list(1:3,1:3)))
+                               site_arr)
   ))
 
 })
 
 
 test_that("s4t_ch can be made from simulated data", {
-  sites_config <- matrix(c(0, 1, 0,
-                           0, 0, 1,
-                           0, 0, 0), nrow = 3, byrow = TRUE)
-  colnames(sites_config) <- rownames(sites_config) <- 1:3
+  site_arr <- linear_s4t_config(sites_names = 1:3,
+                                holdover_sites = 1,
+                                min_a =c(1,1,1),
+                                max_a = c(3,3,3))
 
-  holdover_config <- matrix(c(0, 1, 0,
-                              0, 0, 0,
-                              0, 0, 0), nrow = 3, byrow = TRUE)
-
-  colnames(holdover_config) <- rownames(holdover_config) <- 1:3
-
-  sim.dat <- simulate_data(N = 1000,
+  sim.dat <- simulate_data(N = 2000,
                            max_obs_year = 2
   )
 
 
-  expect_no_error(suppressMessages(s4t_cjs_ch(
+  expect_no_error(suppressMessages(s4t_ch(
     ch_df = sim.dat$ch_df,
     aux_age_df = sim.dat$aux_age_df,
-    max_a = c(3,3,3),
-    min_a = c(1,1,1),
-    sites_names = sim.dat$sites_names,
-    sites_config = sim.dat$sites_config,
-    holdover_config = sim.dat$holdover_config
+    site_arr
   )))
 
 })
@@ -121,26 +99,16 @@ test_that("error is thrown by bad capture history - reverse movement", {
                            obs_time = c(1,2,1,2,1,1),
                            Covariate1 = c(3,1,2,1,2,1))
 
- suppressMessages(ch <- s4t_cjs_ch(ch_df,
+  site_arr <- linear_s4t_config(sites_names = 1:3,
+                                holdover_sites = 1,
+                                min_a =c(1,1,1),
+                                max_a = c(3,3,3))
+
+
+ suppressMessages(ch <- s4t_ch(ch_df,
                    aux_age_df,
-                   min_a = c(1,1,1),
-                   max_a = c(3,3,3),
-                   sites_names = 1:3,
-                   sites_config = matrix(c(0,1,0,
-                                           0,0,1,
-                                           0,0,0),
-                                         nrow = 3,
-                                         ncol = 3,
-                                         byrow = TRUE,
-                                         dimnames = list(1:3,1:3)),
-                   holdover_config = matrix(c(0,1,0,
-                                              0,0,0,
-                                              0,0,0),
-                                            nrow = 3,
-                                            ncol = 3,
-                                            byrow = TRUE,
-                                            dimnames =  list(1:3,1:3))))
-  expect_equal(nrow(ch$ch_info$potential_error_log$reversemovement),3)
+                   site_arr))
+  expect_equal(nrow(ch$potential_error_log$reversemovement),3)
 
 
 })
@@ -180,27 +148,17 @@ test_that("error is thrown by bad capture history - exceed gap in obs time", {
                            obs_time = c(1,2,1,2,1,1),
                            Covariate1 = c(3,1,2,1,2,1))
 
-  suppressMessages(ch <- s4t_cjs_ch(ch_df,
+  site_arr <- linear_s4t_config(sites_names = 1:3,
+                                holdover_sites = 1,
+                                min_a =c(1,1,1),
+                                max_a = c(3,3,3))
+
+
+  suppressMessages(ch <- s4t_ch(ch_df,
                    aux_age_df,
-                   min_a = c(1,1,1),
-                   max_a = c(3,3,3),
-                   sites_names = 1:3,
-                   sites_config = matrix(c(0,1,0,
-                                           0,0,1,
-                                           0,0,0),
-                                         nrow = 3,
-                                         ncol = 3,
-                                         byrow = TRUE,
-                                         dimnames = list(1:3,1:3)),
-                   holdover_config = matrix(c(0,1,0,
-                                              0,0,0,
-                                              0,0,0),
-                                            nrow = 3,
-                                            ncol = 3,
-                                            byrow = TRUE,
-                                            dimnames =  list(1:3,1:3)))
+                   site_arr)
   )
-  expect_equal(nrow(ch$ch_info$potential_error_log$timedifferenceincaptures),3)
+  expect_equal(nrow(ch$potential_error_log$timedifferenceincaptures),3)
 
 
 })
@@ -240,26 +198,16 @@ test_that("error is thrown by bad capture history - exceed max age", {
                            obs_time = c(1,2,1,2,1,1),
                            Covariate1 = c(3,1,2,1,2,1))
 
-  suppressMessages(ch <- s4t_cjs_ch(ch_df,
+  site_arr <- linear_s4t_config(sites_names = 1:3,
+                                holdover_sites = 1,
+                                min_a =c(1,1,1),
+                                max_a = c(3,3,3))
+
+
+  suppressMessages(ch <- s4t_ch(ch_df,
                    aux_age_df,
-                   min_a = c(1,1,1),
-                   max_a = c(3,3,3),
-                   sites_names = 1:3,
-                   sites_config = matrix(c(0,1,0,
-                                           0,0,1,
-                                           0,0,0),
-                                         nrow = 3,
-                                         ncol = 3,
-                                         byrow = TRUE,
-                                         dimnames = list(1:3,1:3)),
-                   holdover_config = matrix(c(0,1,0,
-                                              0,0,0,
-                                              0,0,0),
-                                            nrow = 3,
-                                            ncol = 3,
-                                            byrow = TRUE,
-                                            dimnames =  list(1:3,1:3))))
-  expect_equal(nrow(ch$ch_info$potential_error_log$max_obs_age_knownagefish),3)
+                   site_arr))
+  expect_equal(nrow(ch$potential_error_log$max_obs_age_knownagefish),3)
 
 
 })

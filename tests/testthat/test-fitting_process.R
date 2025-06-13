@@ -9,11 +9,7 @@ test_that("models can fit ml ", {
     ch <- s4t_cjs_ch(
       ch_df = sim.dat$ch_df,
       aux_age_df = sim.dat$aux_age_df,
-      min_a = sim.dat$min_a,
-      max_a = sim.dat$max_a,
-      sites_names = sim.dat$sites_names,
-      sites_config = sim.dat$sites_config,
-      holdover_config = sim.dat$holdover_config
+      s4t_config = sim.dat$s4t_config
     )
   )
 
@@ -41,12 +37,7 @@ test_that("models can fit rstan", {
   suppressMessages(
     ch <- s4t_cjs_ch(
       ch_df = sim.dat$ch_df,
-      aux_age_df = sim.dat$aux_age_df,
-      min_a = sim.dat$min_a,
-      max_a = sim.dat$max_a,
-      sites_names = sim.dat$sites_names,
-      sites_config = sim.dat$sites_config,
-      holdover_config = sim.dat$holdover_config
+      aux_age_df = sim.dat$aux_age_df
     )
   )
 

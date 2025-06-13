@@ -12,7 +12,7 @@
 #' @param ... not used
 #' @returns a ggplot2 type figure of the transition probabilities
 plotTheta <- function(x,textsize = 3, ...) {
-  if (!is(x,"s4t_cjs") & !is(x,"s4t_cjs_rstan")) stop("x must be class s4t_cjs or s4t_cjs_rstan")
+  if (!is(x,"s4t_cjs_ml") & !is(x,"s4t_cjs_rstan")) stop("x must be class s4t_cjs or s4t_cjs_rstan")
 
   cohort_surv <- as.data.frame(x$cohort_surv)
 
@@ -87,7 +87,7 @@ plotTheta <- function(x,textsize = 3, ...) {
 #' @returns a ggplot2 type figure of the apparent survivals
 plotSurvival <- function(x,textsize = 3, ...) {
 
-  if (!is(x,"s4t_cjs") & !is(x,"s4t_cjs_rstan")) stop("x must be class s4t_cjs or s4t_cjs_rstan")
+  if (!is(x,"s4t_cjs_ml") & !is(x,"s4t_cjs_rstan")) stop("x must be class s4t_cjs or s4t_cjs_rstan")
 
   overall_surv <- as.data.frame(x$overall_surv)
 
@@ -289,5 +289,5 @@ traceplot2 <- function(object,
 }
 
 # fix no visible binding note
-k <- j <- site_rel <- site_rec <- age_rel <- estimate <- time_rel <-
+b <- k <- j <- r <- site_rel <- site_rec <- age_rel <- estimate <- time_rel <-
   Theta <- site_diff <- age_rec <- age_diff <- NULL

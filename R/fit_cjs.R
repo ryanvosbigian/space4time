@@ -68,21 +68,21 @@ format_s4t_cjs <- function(p_formula,
                            ageclass_formula,
                            cov_p = NULL, cov_theta = NULL,groups = NULL,
                            s4t_ch) {
-  holdover_config <- s4t_ch$user_defined$holdover_config
-  sites <- sites_config <- s4t_ch$user_defined$sites_config
+  holdover_config <- s4t_ch$s4t_config$holdover_config
+  sites_config <- s4t_ch$s4t_config$sites_config
 
   recap_sites <- s4t_ch$ch_info$recap_sites #which(colSums(sites) > 0)
   last_sites <- s4t_ch$ch_info$last_sites # unique(unlist(lapply(site_path,FUN = max)))
 
-  n_stations <- s4t_ch$ch_info$n_stations
+  n_sites <- s4t_ch$ch_info$n_sites
 
-  n_batches <- s4t_ch$ch_info$n_batches
-  batches_list <- s4t_ch$ch_info$batches_list
+  n_init_relsite <- s4t_ch$ch_info$n_init_relsite # n_batches
+  init_relsite_list <- s4t_ch$ch_info$init_relsite_list # batches_list
 
   max_s_rel <- as.integer(s4t_ch$ch_info$max_s_rel)
   max_t_recap <- as.integer(s4t_ch$ch_info$max_t_recap)
-  set_max_a <- s4t_ch$ch_info$set_max_a
-  set_min_a <- s4t_ch$ch_info$set_min_a
+  set_max_a <- s4t_ch$s4t_config$set_max_a
+  set_min_a <- s4t_ch$s4t_config$set_min_a
   first_obs <- s4t_ch$ch_info$first_obs
   first_sites <- s4t_ch$ch_info$first_sites
   site_path <- s4t_ch$ch_info$site_path
@@ -143,17 +143,17 @@ format_s4t_cjs <- function(p_formula,
 
   # 7 columns because first two are a1 and a2. Third is t. Fourth is j, fifth is k, sixth is batch, seventh is group
   indices_theta <- matrix(NA, nrow = 0,ncol = 8)
-  colnames(indices_theta) <- c("a1","a2","s","t","j","k","b","g")
+  colnames(indices_theta) <- c("a1","a2","s","t","j","k","r","g")
 
 
   for (g in 1:N_groups) {
-    for (j in 1:(n_stations-1)) {
-      for (k in which(sites[j,]==1)) { # doesn't need to be a loop
+    for (j in 1:(n_sites-1)) {
+      for (k in which(sites_config[j,]==1)) { # doesn't need to be a loop
 
         # sites[,k]
         # making an assumption that transitions between sites are the same
         # for all batches.
-        for (b in batches_list[[j]]) {
+        for (r in init_relsite_list[[j]]) {
           if (holdover_config[j,k] == 0) {
             # min_a <- max(c(1,))
             # max_a +
@@ -161,7 +161,7 @@ format_s4t_cjs <- function(p_formula,
             # s in 1:max_s_rel[j]
             for (s in 1:max_s_rel[j]) {
               t <- s
-              # tmp_min_a <- set_min_a[j] # max(1,t - max_s_rel[b] + 1)
+              # tmp_min_a <- set_min_a[j] # max(1,t - max_s_rel[r] + 1)
               # tmp_max_a <- set_max_a[j]
 
               tmp_min_a <- min_ageclass_mat[j,s]
@@ -181,7 +181,7 @@ format_s4t_cjs <- function(p_formula,
                                         t = t,
                                         j = j,
                                         k = k,
-                                        b = b,
+                                        r = r,
                                         g = g)
 
               indices_theta <- rbind(indices_theta, tmp_indices)
@@ -214,7 +214,7 @@ format_s4t_cjs <- function(p_formula,
                                           rep_crosses(tmp_min_a,tmp_max_a),
                                         j = j,
                                         k = k,
-                                        b = b,
+                                        r = r,
                                         g = g)
 
               # drop transitions that exceed max_t_recap[k]
@@ -226,7 +226,7 @@ format_s4t_cjs <- function(p_formula,
               indices_theta <- rbind(indices_theta, tmp_indices)
             }
           }
-        } # b
+        } # r
 
       } # k
     } # j
@@ -235,18 +235,18 @@ format_s4t_cjs <- function(p_formula,
 
 
   indices_p_obs <- matrix(NA, nrow = 0,ncol = 8)
-  colnames(indices_p_obs) <- c("a1","a2","s","t","j","k","b","g")
+  colnames(indices_p_obs) <- c("a1","a2","s","t","j","k","r","g")
 
   # recap_sites[!(recap_sites %in% last_sites)]
   for (g in 1:N_groups) {
     for (k in recap_sites_not_last) {
 
-      for (b in batches_list[[k]]) {
+      for (r in init_relsite_list[[k]]) {
         max_t_recap[k]
 
         # Identify the site path for this release group (batch). Then,
         # obtain the previous site (j)
-        j <- site_path[[b]][which(site_path[[b]] == k) - 1]
+        j <- site_path[[r]][which(site_path[[r]] == k) - 1]
 
         # skip if this isn't a recap for this particular batch/release group
         if (length(j) == 0) next()
@@ -272,7 +272,7 @@ format_s4t_cjs <- function(p_formula,
                                       t = s,
                                       j = j,
                                       k = k,
-                                      b=b,
+                                      r=r,
                                       g=g)
             indices_p_obs <- rbind(indices_p_obs, tmp_indices)
           } else {
@@ -295,7 +295,7 @@ format_s4t_cjs <- function(p_formula,
                                                                   rep_crosses(tmp_min_a,tmp_max_a)),
                                                        j = j,
                                                        k = k,
-                                                       b = b,
+                                                       r = r,
                                                        g = g))
 
             # drop rows that exceed the max recap time
@@ -573,12 +573,12 @@ format_s4t_cjs <- function(p_formula,
               sites = s4t_ch$user_defined$sites_config,
               site_path=s4t_ch$ch_info$site_path,
               holdover_config = s4t_ch$user_defined$holdover_config,
-              set_min_a = s4t_ch$ch_info$set_min_a,
-              set_max_a = s4t_ch$ch_info$set_max_a,
-              n_batches  = s4t_ch$ch_info$n_batches,
+              set_min_a = s4t_ch$s4t_config$set_min_a,
+              set_max_a = s4t_ch$s4t_config$set_max_a,
+              n_init_relsite  = s4t_ch$ch_info$n_init_relsite,
               N_groups=N_groups,
               group_names = group_names,
-              batches_list = s4t_ch$ch_info$batches_list,
+              init_relsite_list = s4t_ch$ch_info$init_relsite_list,
               mod_mat_theta = mod_mat_theta,
               indices_theta = indices_theta,
               mod_mat_p = mod_mat_p,
@@ -653,9 +653,9 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 
   # marginalize these
   ageclassdat_L$mod_mat_a_beta
-  # need to make sure the first five columns are j, s, b, obs_time, ageclass
-  # if (sum(colnames(s4t_ch$ch$l_matrix)[1:6] == c("j","s","b","g","obs_time","ageclass")) != 6) {
-  #   stop("l_matrix not formed correctly with first five columns: j, s, b, obs_time, ageclass")
+  # need to make sure the first five columns are j, s, r, obs_time, ageclass
+  # if (sum(colnames(s4t_ch$ch$l_matrix)[1:6] == c("j","s","r","g","obs_time","ageclass")) != 6) {
+  #   stop("l_matrix not formed correctly with first five columns: j, s, r, obs_time, ageclass")
   # }
 
   ## Marginalize l_matrix
@@ -732,12 +732,12 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
     ageclass_fit <- fit_ageclass(age_formula = ageclass_formula,s4t_ch = s4t_ch)
 
     fixed_ageclass_l <- ageclass_nll(par = ageclass_fit$res$par,
-                                     max_a = max(s4t_ch$ch_info$set_max_a),
+                                     max_a = max(s4t_ch$s4t_config$set_max_a),
                                      mod_mat_a_beta = ageclassdat_L$mod_mat_a_beta,
                                      ll = FALSE)
 
     fixed_ageclass_m <- ageclass_nll(par = ageclass_fit$res$par,
-                                     max_a = max(s4t_ch$ch_info$set_max_a),,
+                                     max_a = max(s4t_ch$s4t_config$set_max_a),,
                                      mod_mat_a_beta = ageclassdat_M$mod_mat_a_beta,
                                      ll = FALSE)
 
@@ -783,14 +783,14 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                obs_aux = s4t_ch$ch$obs_aux,
                max_t_recap = s4t_ch$ch_info$max_t_recap,
                max_s_rel = s4t_ch$ch_info$max_s_rel,
-               sites = s4t_ch$user_defined$sites_config,
+               sites_config = s4t_ch$s4t_config$sites_config,
                site_path=s4t_ch$ch_info$site_path,
-               holdover_config = s4t_ch$user_defined$holdover_config,
-               set_min_a = s4t_ch$ch_info$set_min_a,
-               set_max_a = s4t_ch$ch_info$set_max_a,
-               n_batches  = s4t_ch$ch_info$n_batches,
+               holdover_config = s4t_ch$s4t_config$holdover_config,
+               set_min_a = s4t_ch$s4t_config$set_min_a,
+               set_max_a = s4t_ch$s4t_config$set_max_a,
+               n_init_relsite  = s4t_ch$ch_info$n_init_relsite,
                n_groups  = format_cjs$N_groups,
-               batches_list = s4t_ch$ch_info$batches_list,
+               init_relsite_list = s4t_ch$ch_info$init_relsite_list, # batches_list
                mod_mat_theta = format_cjs$mod_mat_theta,
                indices_theta = format_cjs$indices_theta,
                mod_mat_p = format_cjs$mod_mat_p,
@@ -813,18 +813,18 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
     obs_aux = s4t_ch$ch$obs_aux
     max_t_recap = s4t_ch$ch_info$max_t_recap
     max_s_rel = s4t_ch$ch_info$max_s_rel
-    sites = s4t_ch$user_defined$sites_config
+    sites_config = s4t_ch$s4t_config$sites_config
     site_path=s4t_ch$ch_info$site_path
-    holdover_config = s4t_ch$user_defined$holdover_config
-    set_min_a = s4t_ch$ch_info$set_min_a
-    set_max_a = s4t_ch$ch_info$set_max_a
-    n_batches  = s4t_ch$ch_info$n_batches
+    holdover_config = s4t_ch$s4t_config$holdover_config
+    set_min_a = s4t_ch$s4t_config$set_min_a
+    set_max_a = s4t_ch$s4t_config$set_max_a
+    n_init_relsite  = s4t_ch$ch_info$n_init_relsite
     n_groups  = format_cjs$N_groups
-    batches_list = s4t_ch$ch_info$batches_list
-    mod_mat_theta = mod_mat_theta
-    indices_theta = indices_theta
-    mod_mat_p = mod_mat_p
-    indices_p_obs = indices_p_obs
+    init_relsite_list = s4t_ch$ch_info$init_relsite_list
+    mod_mat_theta = format_cjs$mod_mat_theta
+    indices_theta = format_cjs$indices_theta
+    mod_mat_p = format_cjs$mod_mat_p
+    indices_p_obs = format_cjs$indices_p_obs
     ageclass_data = ageclass_data
     ageclassdat_L = ageclassdat_L
     ageclassdat_M = ageclassdat_M
@@ -873,17 +873,17 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
   cohort_surv <- estimate_cohort_surv(res = res,format_cjs = format_cjs, s4t_ch = s4t_ch)
 
   # put into user_defined?
-  sites_names <- colnames(s4t_ch$user_defined$sites_config)
-  j_site_df <- data.frame(j = (1:s4t_ch$ch_info$n_stations),site_rel = sites_names)
-  k_site_df <- data.frame(k = (1:s4t_ch$ch_info$n_stations),site_rec = sites_names)
+  sites_names <- colnames(s4t_ch$s4t_config$sites_config)
+  j_site_df <- data.frame(j = (1:s4t_ch$ch_info$n_sites),site_rel = sites_names)
+  k_site_df <- data.frame(k = (1:s4t_ch$ch_info$n_sites),site_rec = sites_names)
 
   # will rename to release group later
-  batch_df <- data.frame(b = (1:s4t_ch$ch_info$n_stations),batch_site = sites_names)
+  init_relsite_df <- data.frame(r = (1:s4t_ch$ch_info$n_sites),init_relsite = sites_names)
 
   group_df <- data.frame(g = (1:format_cjs$N_groups),group_name = format_cjs$group_names)
 
-  time_diff <- s4t_ch$ch_info$observed_relative_min_max$min_obs_time - 1
-  age_diff <- s4t_ch$ch_info$observed_relative_min_max$min_obs_age - 1
+  time_diff <- s4t_ch$ch_info$observed_relative_min_max$obs_min_time - 1
+  age_diff <- s4t_ch$ch_info$observed_relative_min_max$obs_min_a - 1
 
   tmp_cohort_surv1 <- cohort_surv[,1:8]
   tmp_cohort_surv2 <- cohort_surv[,9:ncol(cohort_surv)]
@@ -896,15 +896,15 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
            a2 = as.integer(a2),
            t = as.integer(t),
            s = as.integer(s),
-           b = as.integer(b),
+           r = as.integer(r),
            g = as.integer(g)) %>%
     dplyr::left_join(j_site_df, by = "j") %>%
     dplyr::left_join(k_site_df, by = "k") %>%
     dplyr::mutate(time_rel = s + time_diff,
                   time_rec = t + time_diff,
                   age_rel = a1 + age_diff,
-                  age_rel = a2 + age_diff) %>%
-    dplyr::left_join(batch_df, by = "b") %>%
+                  age_rec = a2 + age_diff) %>%
+    dplyr::left_join(init_relsite_df, by = "r") %>%
     dplyr::left_join(group_df, by = "g") %>%
     cbind(tmp_cohort_surv2)
 
@@ -917,14 +917,14 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                   k = as.integer(k),
                   s = as.integer(s),
                   a1 = as.integer(a1),
-                  b = as.integer(b),
+                  r = as.integer(r),
                   g = as.integer(g)) %>%
     dplyr::left_join(j_site_df, by = "j") %>%
     dplyr::left_join(k_site_df, by = "k") %>%
     dplyr::mutate(time_rel = s + time_diff,
                   # time_rec = t + time_diff,
                   age_rel = a1 + age_diff) %>%
-    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(init_relsite_df, by = "r") %>%
     dplyr::left_join(group_df, by = "g") %>%
     cbind(tmp_overall_surv2)
 
@@ -936,7 +936,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                   time_rec = t + time_diff,
                   age_rel = a1 + age_diff,
                   age_rec = a2 + age_diff) %>%
-    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(init_relsite_df, by = "r") %>%
     dplyr::left_join(group_df, by = "g")
 
 
@@ -948,7 +948,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                   time_rec = t + time_diff,
                   age_rel = a1 + age_diff,
                   age_rec = a2 + age_diff) %>%
-    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(init_relsite_df, by = "r") %>%
     dplyr::left_join(group_df, by = "g")
 
 
@@ -957,13 +957,13 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
   data_theta_rename[,c("a1","a2",
                        "s","t",
                        "j","k",
-                       "b","g")] <- indices_theta_original[,c("age_rel",
+                       "r","g")] <- indices_theta_original[,c("age_rel",
                                                               "age_rec",
                                                               "time_rel",
                                                               "time_rec",
                                                               "site_rel",
                                                               "site_rec",
-                                                              "batch_site",
+                                                              "init_relsite",
                                                               "group_name")]
 
   theta_parnames_original_units <- model_mat_info(form = theta_formula,df = data_theta_rename)$parnames
@@ -975,13 +975,13 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
   data_p_obs_rename[,c("a1","a2",
                        "s","t",
                        "j","k",
-                       "b","g")] <- indices_p_obs_original[,c("age_rel",
+                       "r","g")] <- indices_p_obs_original[,c("age_rel",
                                                               "age_rec",
                                                               "time_rel",
                                                               "time_rec",
                                                               "site_rel",
                                                               "site_rec",
-                                                              "batch_site",
+                                                              "init_relsite",
                                                               "group_name")]
 
   p_obs_parnames_original_units <- model_mat_info(form = p_formula,df = data_p_obs_rename)$parnames
@@ -1000,11 +1000,15 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
   interp_parnames[grepl("theta_params",interp_parnames)] <- theta_parnames_original_units
   interp_parnames[grepl("p_params",interp_parnames)] <- p_obs_parnames_original_units
 
-  max_a_overall <- max(s4t_ch$ch_info$set_max_a)
+  max_a_overall <- max(s4t_ch$s4t_config$set_max_a)
+
+  # set_max_a_obsaux <- max()
 
   if (fixed_age == FALSE) {
     warning("need to add scripts to add ageclass param names")
-    interp_parnames[grepl("alk_par_eta",interp_parnames)] <- paste0("a_alpha_",1:(max_a_overall - 1) + age_diff)
+
+    etas <- interp_parnames[grepl("alk_par_eta",interp_parnames)]
+    interp_parnames[grepl("alk_par_eta",interp_parnames)] <- paste0("a_alpha_",(1:length(etas)) + age_diff)
     interp_parnames[grepl("alk_par_beta",interp_parnames)] <- ageclass_beta_parnames_original_units # HERE
   } else {
     ageclass_interp_parnames <- c(paste0("a_alpha_",1:(max_a_overall - 1) + age_diff),
@@ -1037,7 +1041,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                              mod_mat_p = format_cjs$mod_mat_p,
                              indices_p_obs = format_cjs$indices_p_obs,
                              ageclass_data = ageclass_data,
-                             fixed_age = NULL
+                             fixed_age = list(fixed_age = fixed_age)
                   ),
                   original_units = list(indices_theta_original = indices_theta_original,
                                         indices_p_obs_original = indices_p_obs_original,
@@ -1046,7 +1050,8 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                                         compare_parnames = compare_parnames))
 
   if (fixed_age) {
-    s4t_cjs$fit$fixed_age <- list(ageclass_fit=ageclass_fit,
+    s4t_cjs$fit$fixed_age <- list(fixed_age = fixed_age,
+                                  ageclass_fit=ageclass_fit,
                                   fixed_ageclass_l = fixed_ageclass_l,
                                   fixed_ageclass_m = fixed_ageclass_m)
 
@@ -1054,7 +1059,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
     s4t_cjs$original_units$compare_parnames_ageclass <- compare_parnames_ageclass
   }
 
-  class(s4t_cjs) <- "s4t_cjs"
+  class(s4t_cjs) <- "s4t_cjs_ml"
 
   return(s4t_cjs)
 }
@@ -1121,7 +1126,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                                groups = groups,
                                s4t_ch = s4t_ch)
 
-  holdover_config <- format_cjs$holdover_config
+  holdover_config <- s4t_ch$s4t_config$holdover_config
   max_t_recap <- format_cjs$max_t_recap
   set_min_a <- format_cjs$set_min_a
   set_max_a <- format_cjs$set_max_a
@@ -1178,7 +1183,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
   l_matrix_marg <- marg_unique_id_l[,c(1:7) + ncol(ageclassdat_L$mod_mat_a_beta)] # s4t_ch$ch$l_matrix[unique_l,1:5]
 
   l_matrix_marg <- as.matrix(l_matrix_marg)
-  colnames(l_matrix_marg) <- c("j","s","b","g","obs_time","ageclass","n")
+  colnames(l_matrix_marg) <- c("j","s","r","g","obs_time","ageclass","n")
   # l_matrix_marg <- cbind(l_matrix_marg,n = n_L)
 
 
@@ -1205,7 +1210,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
   m_matrix_marg <- marg_unique_id_m[,c(1:9) + ncol(ageclassdat_M$mod_mat_a_beta)] # s4t_ch$ch$m_matrix[unique_m,1:7]
 
   m_matrix_marg <- as.matrix(m_matrix_marg)
-  colnames(m_matrix_marg) <- c("j","k","s","t","b","g","obs_time","ageclass","n")
+  colnames(m_matrix_marg) <- c("j","k","s","t","r","g","obs_time","ageclass","n")
 
 
   ageclassdat_M$mod_mat_a_beta <- as.matrix(marg_unique_id_m[,1:ncol(ageclassdat_M$mod_mat_a_beta)])
@@ -1243,10 +1248,10 @@ fit_s4t_cjs_rstan <- function(p_formula,
     site_path_mat[i,] = c(s4t_ch$ch_info$site_path[[i]],rep(0,tmp - length(s4t_ch$ch_info$site_path[[i]])))
   }
 
-  tmp <- max(unlist(lapply(s4t_ch$ch_info$batches_list,FUN = length)))
-  batches_list_mat <- matrix(0,nrow = length(s4t_ch$ch_info$batches_list),ncol = tmp)
-  for (i in 1:length(s4t_ch$ch_info$batches_list)) {
-    batches_list_mat[i,] = c(s4t_ch$ch_info$batches_list[[i]],rep(0,tmp - length(s4t_ch$ch_info$batches_list[[i]])))
+  tmp <- max(unlist(lapply(s4t_ch$ch_info$init_relsite_list,FUN = length)))
+  init_relsite_list_mat <- matrix(0,nrow = length(s4t_ch$ch_info$init_relsite_list),ncol = tmp)
+  for (i in 1:length(s4t_ch$ch_info$init_relsite_list)) {
+    init_relsite_list_mat[i,] = c(s4t_ch$ch_info$init_relsite_list[[i]],rep(0,tmp - length(s4t_ch$ch_info$init_relsite_list[[i]])))
   }
 
   #
@@ -1260,33 +1265,33 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
 
   inits_theta = array(0,dim = c(g = N_groups,
-                                j = s4t_ch$ch_info$n_stations,
+                                j = s4t_ch$ch_info$n_sites,
                                 s = max(s4t_ch$ch_info$max_t),
-                                b = s4t_ch$ch_info$n_batches,
+                                r = s4t_ch$ch_info$n_init_relsite,
                                 a1 = max_a_overall,
                                 a2 = max_a_overall))
 
 
   inits_Theta = array(0,dim = c(g = N_groups,
-                                j = s4t_ch$ch_info$n_stations,
+                                j = s4t_ch$ch_info$n_sites,
                                 s = max(s4t_ch$ch_info$max_t),
-                                b = s4t_ch$ch_info$n_batches,
+                                r = s4t_ch$ch_info$n_init_relsite,
                                 a1 = max_a_overall,
                                 a2 = max_a_overall + 1))
 
 
 
   inits_lambda_array = array(0,dim = c(g = N_groups,
-                                       j = s4t_ch$ch_info$n_stations,
-                                       k = s4t_ch$ch_info$n_stations,
+                                       j = s4t_ch$ch_info$n_sites,
+                                       k = s4t_ch$ch_info$n_sites,
                                        t = max(s4t_ch$ch_info$max_t),
-                                       b = s4t_ch$ch_info$n_batches,
+                                       r = s4t_ch$ch_info$n_init_relsite,
                                        s = max(s4t_ch$ch_info$max_t),
                                        a1 = max_a_overall))
 
   inits_p_obs = array(0,dim = c(g = N_groups,
-                                k = s4t_ch$ch_info$n_stations,
-                                b = s4t_ch$ch_info$n_batches,
+                                k = s4t_ch$ch_info$n_sites,
+                                r = s4t_ch$ch_info$n_init_relsite,
                                 t = max(format_cjs$indices_p_obs[,"t"]), # check
                                 a1 = max(set_max_a),
                                 a2 = max(set_max_a))
@@ -1296,8 +1301,8 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
 
   inits_chi_array <- array(0,dim = c(g = N_groups,
-                                     j = s4t_ch$ch_info$n_stations,
-                                     b = s4t_ch$ch_info$n_batches,
+                                     j = s4t_ch$ch_info$n_sites,
+                                     r = s4t_ch$ch_info$n_init_relsite,
                                      s = max(s4t_ch$ch_info$max_t),
                                      a1 = max_a_overall))
 
@@ -1306,10 +1311,10 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
   overall_surv <- data.frame(j = as.integer(),k = as.integer(),
                              a1 = as.integer(),s= as.integer(),
-                             b = as.integer(),
+                             r = as.integer(),
                              g = as.integer())
-  not_last_sites = c(1:s4t_ch$ch_info$n_stations)[-s4t_ch$ch_info$last_sites]
-  next_site = apply(s4t_ch$user_defined$sites_config,
+  not_last_sites = c(1:s4t_ch$ch_info$n_sites)[-s4t_ch$ch_info$last_sites]
+  next_site = apply(s4t_ch$s4t_config$sites_config,
                     MARGIN = 1,FUN = function(x) ifelse(is.na(which(x == 1)[1]),0,which(x == 1)[1]))
 
 
@@ -1331,10 +1336,10 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
 
         for (a1 in tmp_min_a:tmp_max_a) {
-          for (b in format_cjs$batches_list[[j]]) {
+          for (r in format_cjs$init_relsite_list[[j]]) {
             overall_surv <- rbind(overall_surv,c(j=j,k=k,
                                                  a1=a1,s=s,
-                                                 b=b,g=g))
+                                                 r=r,g=g))
 
           }
 
@@ -1344,21 +1349,21 @@ fit_s4t_cjs_rstan <- function(p_formula,
     }
   } # end
 
-  colnames(overall_surv) <- c("j","k","a1","s","b","g")
+  colnames(overall_surv) <- c("j","k","a1","s","r","g")
 
 
   cohort_surv <- data.frame(a1 = as.integer(),
                             a2 = as.integer(),
                             s = as.integer(),t = as.integer(),
                             j = as.integer(),k = as.integer(),
-                            b = as.integer(),
+                            r = as.integer(),
                             g = as.integer())
 
   # cohort survival
   for (g in 1:N_groups) {
     for (j in not_last_sites) {
       k = next_site[j];
-      for (b in format_cjs$batches_list[[j]]) {
+      for (r in format_cjs$init_relsite_list[[j]]) {
         for (s in 1:format_cjs$max_s_rel[j]) {
           tmp_min_a <- min_ageclass_mat[j,s]
           tmp_max_a <- max_ageclass_mat[k,s]
@@ -1383,7 +1388,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                                                  t=t,
                                                  j=j,
                                                  k=k,
-                                                 b=b,
+                                                 r=r,
                                                  g=g))
 
             } else { # holdover_config[j,k] == 1
@@ -1400,17 +1405,17 @@ fit_s4t_cjs_rstan <- function(p_formula,
                                                    t=t,
                                                    j=j,
                                                    k=k,
-                                                   b=b,
+                                                   r=r,
                                                    g=g))
               } # t
             } # end elseif
 
           } # s
         } # a1
-      } #  b
+      } #  r
     } #j
   }
-  colnames(cohort_surv) <- c("a1","a2","s","t","j","k","b","g")
+  colnames(cohort_surv) <- c("a1","a2","s","t","j","k","r","g")
 
 
 
@@ -1418,13 +1423,13 @@ fit_s4t_cjs_rstan <- function(p_formula,
   N_cohort_surv <- nrow(cohort_surv)
   # print(broodyear_surv); print(N_broodyear_surv)
 
-  max_a_overall <- max(s4t_ch$ch_info$set_max_a)
+  max_a_overall <- max(s4t_ch$s4t_config$set_max_a)
   input_data <- list(max_a_overall = max_a_overall,
-                     set_min_a = s4t_ch$ch_info$set_min_a,
-                     set_max_a = s4t_ch$ch_info$set_max_a,
+                     set_min_a = s4t_ch$s4t_config$set_min_a,
+                     set_max_a = s4t_ch$s4t_config$set_max_a,
                      mod_mat_a_r = nrow(ageclassdat$mod_mat_a_beta),
                      mod_mat_a_c = ncol(ageclassdat$mod_mat_a_beta),
-                     N_a_parbeta = ncol(ageclassdat$mod_mat_a_beta)-1,
+                     N_a_parbeta = 1, # not currently used
                      N_obsageclass = length(ageclassdat$obsageclass),
                      obsageclass = ageclassdat$obsageclass,
                      mod_mat_a_beta = as.matrix(ageclassdat$mod_mat_a_beta[,-1]),
@@ -1432,22 +1437,22 @@ fit_s4t_cjs_rstan <- function(p_formula,
                      N_groups = N_groups,
                      N_m = nrow(m_matrix_marg),
                      N_l = nrow(l_matrix_marg),
-                     N_j = ncol(s4t_ch$user_defined$sites_config),
+                     N_j = ncol(s4t_ch$s4t_config$sites_config),
                      N_k = length(s4t_ch$ch_info$recap_sites),
                      max_t = max(s4t_ch$ch_info$max_t),#max(c(s4t_ch$ch_info$max_s_rel,s4t_ch$ch_info$max_t_recap)),
-                     N_stations = s4t_ch$ch_info$n_stations,
-                     N_batches = s4t_ch$ch_info$n_batches,
+                     N_stations = s4t_ch$ch_info$n_sites,
+                     N_batches = s4t_ch$ch_info$n_init_relsite,
                      N_recap_sites = length(s4t_ch$ch_info$recap_sites),
                      N_last_sites = length(s4t_ch$ch_info$last_sites),
                      # N_recap_sites_not_last = length(s4t_ch$ch_info$recap_sites_not_last),
-                     N_not_last_sites = length(c(1:s4t_ch$ch_info$n_stations)[-s4t_ch$ch_info$last_sites]),
+                     N_not_last_sites = length(c(1:s4t_ch$ch_info$n_sites)[-s4t_ch$ch_info$last_sites]),
 
                      max_t_p = max(format_cjs$indices_p_obs[,"t"]), # CHECK
                      N_site_path_length3 = length(which(unlist(lapply(format_cjs$site_path,length)) >= 3)),
-                     N_not_last_sites_rev = length(c(1:s4t_ch$ch_info$n_stations)[-s4t_ch$ch_info$last_sites]),
+                     N_not_last_sites_rev = length(c(1:s4t_ch$ch_info$n_sites)[-s4t_ch$ch_info$last_sites]),
                      max_s_rel = s4t_ch$ch_info$max_s_rel,
                      max_t_recap = s4t_ch$ch_info$max_t_recap,
-                     next_site = apply(s4t_ch$user_defined$sites_config,
+                     next_site = apply(s4t_ch$s4t_config$sites_config,
                                        MARGIN = 1,FUN = function(x) ifelse(is.na(which(x == 1)[1]),0,which(x == 1)[1])),
                      N_knownage_m = length(which(!is.na(m_matrix_marg[,8]))),
                      N_knownage_l = length(which(!is.na(l_matrix_marg[,6]))),
@@ -1460,10 +1465,10 @@ fit_s4t_cjs_rstan <- function(p_formula,
                      recap_sites = s4t_ch$ch_info$recap_sites,
                      last_sites = as.matrix(s4t_ch$ch_info$last_sites),
                      # recap_sites_not_last = s4t_ch$ch_info$recap_sites_not_last,
-                     not_last_sites = c(1:s4t_ch$ch_info$n_stations)[-s4t_ch$ch_info$last_sites],
+                     not_last_sites = c(1:s4t_ch$ch_info$n_sites)[-s4t_ch$ch_info$last_sites],
                      site_path_length3 = as.matrix(which(unlist(lapply(format_cjs$site_path,length)) >= 3)),
-                     not_last_sites_rev = rev(c(1:s4t_ch$ch_info$n_stations)[-s4t_ch$ch_info$last_sites]),
-                     batches_list_len = unlist(lapply(s4t_ch$ch_info$batches_list,length)),
+                     not_last_sites_rev = rev(c(1:s4t_ch$ch_info$n_sites)[-s4t_ch$ch_info$last_sites]),
+                     batches_list_len = unlist(lapply(s4t_ch$ch_info$init_relsite_list,length)),
                      site_path_len = unlist(lapply(s4t_ch$ch_info$site_path,length)),
                      N_overall_surv = N_overall_surv,
                      N_cohort_surv = N_cohort_surv,
@@ -1492,7 +1497,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                      indices_overall_surv = overall_surv,
                      indices_cohort_surv = cohort_surv,
 
-                     batches_list = batches_list_mat,
+                     batches_list = init_relsite_list_mat,
                      site_path = site_path_mat,
 
                      mod_mat_a_L_r = nrow(ageclassdat_L$mod_mat_a_beta),
@@ -1530,8 +1535,8 @@ fit_s4t_cjs_rstan <- function(p_formula,
                            # pars = c("theta_params","p_params","overall_surv","cohort_surv","log_lik"), # ,"log_lik"
                            data=input_data,chains = chains,
                            warmup = warmup,
-                           iter = iter,
-                           ...)
+                           iter = iter)#,
+                           # ...)
 
 
   } else {
@@ -1554,20 +1559,20 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
   overall_ests <- estimated_parameters[grepl("overall_surv",rownames(estimated_parameters)),]
 
-  colnames(overall_surv) <- c("j","k","a1","s","b","g")
+  colnames(overall_surv) <- c("j","k","a1","s","r","g")
 
   # put into user_defined?
-  sites_names <- colnames(s4t_ch$user_defined$sites_config)
-  j_site_df <- data.frame(j = 1:s4t_ch$ch_info$n_stations,site_rel = sites_names)
-  k_site_df <- data.frame(k = 1:s4t_ch$ch_info$n_stations,site_rec = sites_names)
+  sites_names <- colnames(s4t_ch$s4t_config$sites_config)
+  j_site_df <- data.frame(j = 1:s4t_ch$ch_info$n_sites,site_rel = sites_names)
+  k_site_df <- data.frame(k = 1:s4t_ch$ch_info$n_sites,site_rec = sites_names)
 
   # will rename to release group later
-  batch_df <- data.frame(b = 1:s4t_ch$ch_info$n_stations,batch_site = sites_names)
+  init_relsite_df <- data.frame(r = 1:s4t_ch$ch_info$n_sites,init_relsite = sites_names)
 
   group_df <- data.frame(g = 1:format_cjs$N_groups,group_name = format_cjs$group_names)
 
-  time_diff <- s4t_ch$ch_info$observed_relative_min_max$min_obs_time - 1
-  age_diff <- s4t_ch$ch_info$observed_relative_min_max$min_obs_age - 1
+  time_diff <- s4t_ch$ch_info$observed_relative_min_max$obs_min_time - 1
+  age_diff <- min(s4t_ch$ch_info$observed_relative_min_max$obs_min_a) - 1
 
   overall_surv <- overall_surv %>%
     as.data.frame() %>%
@@ -1576,14 +1581,14 @@ fit_s4t_cjs_rstan <- function(p_formula,
     dplyr::mutate(time_rel = s + time_diff,
                   # time_rec = t + time_diff,
                   age_rel = a1 + age_diff) %>%
-    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(init_relsite_df, by = "r") %>%
     dplyr::left_join(group_df, by = "g")
 
   overall_surv <- cbind(overall_surv,overall_ests)
 
   cohort_ests <- estimated_parameters[grepl("cohort_surv",rownames(estimated_parameters)),]
 
-  colnames(cohort_surv) <- c("a1","a2","s","t","j","k","b","g")
+  colnames(cohort_surv) <- c("a1","a2","s","t","j","k","r","g")
 
   cohort_surv <- cohort_surv %>%
     as.data.frame() %>%
@@ -1593,7 +1598,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                   time_rec = t + time_diff,
                   age_rel = a1 + age_diff,
                   age_rec = a2 + age_diff) %>%
-    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(init_relsite_df, by = "r") %>%
     dplyr::left_join(group_df, by = "g")
 
   cohort_surv <- cbind(cohort_surv,cohort_ests)
@@ -1607,7 +1612,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                   time_rec = t + time_diff,
                   age_rel = a1 + age_diff,
                   age_rec = a2 + age_diff) %>%
-    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(init_relsite_df, by = "r") %>%
     dplyr::left_join(group_df, by = "g")
 
 
@@ -1619,7 +1624,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                   time_rec = t + time_diff,
                   age_rel = a1 + age_diff,
                   age_rec = a2 + age_diff) %>%
-    dplyr::left_join(batch_df, by = "b") %>%
+    dplyr::left_join(init_relsite_df, by = "r") %>%
     dplyr::left_join(group_df, by = "g")
 
 
@@ -1628,13 +1633,13 @@ fit_s4t_cjs_rstan <- function(p_formula,
   data_theta_rename[,c("a1","a2",
                        "s","t",
                        "j","k",
-                       "b","g")] <- indices_theta_original[,c("age_rel",
+                       "r","g")] <- indices_theta_original[,c("age_rel",
                                                               "age_rec",
                                                               "time_rel",
                                                               "time_rec",
                                                               "site_rel",
                                                               "site_rec",
-                                                              "batch_site",
+                                                              "init_relsite",
                                                               "group_name")]
 
   data_theta_rename <- data_theta_rename %>%
@@ -1644,7 +1649,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
            t = factor(t),
            j = factor(j),
            k = factor(k),
-           b = factor(b),
+           r = factor(r),
            g = factor(g))
 
   theta_parnames_original_units <- model_mat_info(form = theta_formula,df = data_theta_rename)$parnames
@@ -1655,13 +1660,13 @@ fit_s4t_cjs_rstan <- function(p_formula,
   data_p_obs_rename[,c("a1","a2",
                        "s","t",
                        "j","k",
-                       "b","g")] <- indices_p_obs_original[,c("age_rel",
+                       "r","g")] <- indices_p_obs_original[,c("age_rel",
                                                               "age_rec",
                                                               "time_rel",
                                                               "time_rec",
                                                               "site_rel",
                                                               "site_rec",
-                                                              "batch_site",
+                                                              "init_relsite",
                                                               "group_name")]
 
   data_p_obs_rename <- data_p_obs_rename %>%
@@ -1671,7 +1676,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                   t = factor(t),
                   j = factor(j),
                   k = factor(k),
-                  b = factor(b),
+                  r = factor(r),
                   g = factor(g))
 
   p_obs_parnames_original_units <- model_mat_info(form = p_formula,df = data_p_obs_rename)$parnames
@@ -1700,7 +1705,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
     ageclass_interp_parnames <- rownames(ageclass_fit$estimated_parameters)
 
     tmp = ageclass_interp_parnames[grepl("a_alpha_",ageclass_interp_parnames)]
-    ageclass_interp_parnames[grepl("a_alpha_",ageclass_interp_parnames)] <- paste0("a_alpha_",1:(length(tmp) - 1) + age_diff)
+    ageclass_interp_parnames[grepl("a_alpha_",ageclass_interp_parnames)] <- paste0("a_alpha_",1:(length(tmp)) + age_diff)
 
     ageclass_interp_parnames[grepl("b_beta",ageclass_interp_parnames)] <- ageclass_beta_parnames_original_units
 
@@ -1748,4 +1753,4 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
 
 # fix no visible binding note
-j <- k <- a1 <- a2 <- s <- b <- g <- max_a_overall <- NULL
+j <- k <- a1 <- a2 <- s <- r <- g <- max_a_overall <- NULL

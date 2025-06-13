@@ -1,13 +1,13 @@
 
 
-#' print summary of s4t_cjs
+#' print summary of s4t_cjs_ml
 #'
 #' @export
-#' @param x summary.s4t_cjs object
+#' @param x summary.s4t_cjs_ml object
 #' @param digits number of digits
 #' @param ... passed to
 #'
-print.summary.s4t_cjs <- function(x,
+print.summary.s4t_cjs_ml <- function(x,
                                   digits = max(3L, getOption("digits") - 3L),
                                   ...) {
 
@@ -43,6 +43,17 @@ print.summary.s4t_cjs <- function(x,
 
 
   invisible(x)
+}
+
+
+#' print s4t_cjs_ml
+#'
+#' @export
+#' @param x s4t_cjs_ml object
+#' @param ... for generic consistency
+print.s4t_cjs_ml <- function(x, ...) {
+  stopifnot(is(x,"s4t_cjs_ml"))
+  summary(x)
 }
 
 

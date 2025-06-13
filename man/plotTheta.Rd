@@ -4,10 +4,12 @@
 \alias{plotTheta}
 \title{Plot s4t_cjs or s4t_cjs_rstan object results}
 \usage{
-plotTheta(x, textsize = NULL, ...)
+plotTheta(x, textsize = 3, ...)
 }
 \arguments{
 \item{x}{a \code{s4t_cjs} or \code{s4t_cjs_rstan} object}
+
+\item{textsize}{an integer for the font size to pass to \code{geomtextpath::geom_textsegment()}}
 
 \item{...}{not used}
 }

@@ -1,16 +1,16 @@
 
-#' summary of s4t_cjs object
+#' summary of s4t_cjs_ml object
 #'
-#' @param object A s4t_cjs object
+#' @param object A s4t_cjs_ml object
 #' @param ... Not used
 #' @returns estimated parameters table and AIC
 #' @export
-summary.s4t_cjs <- function(object, ...) {
+summary.s4t_cjs_ml <- function(object, ...) {
   # print(object$estimated_parameters,digits = 4)
   # print(data.frame(AIC = round(object$AIC,2)))
 
   # row.names(object$estimated_parameters)
-  if (object$call$fixed_age == TRUE) {
+  if (object$fit$fixed_age$fixed_age == TRUE) {
 
     coefficients <- list(cjs = object$estimated_parameters,
                          age = object$fit$fixed_age$ageclass_fit$estimated_parameters)
@@ -94,16 +94,16 @@ summary.s4t_ageclass_model <- function(object, ...) {
 #' @description
 #' Compute analysis of variance table.
 #'
-#' @param object object of class `s4t_cjs`
-#' @param ... object of class `s4t_cjs`
+#' @param object object of class `s4t_cjs_ml`
+#' @param ... object of class `s4t_cjs_ml`
 #' @returns An object of class `anova` inheriting form class `data.frame` ???
 #'
 #' @export
-anova.s4t_cjs <- function(object, ...) {
+anova.s4t_cjs_ml <- function(object, ...) {
   mCall <- match.call(expand.dots = TRUE)
   dots <- list(...)
   .sapply <- function(L, FUN, ...) unlist(lapply(L, FUN, ...))
-  modp <- (as.logical(vapply(dots, is, NA, "s4t_cjs")))
+  modp <- (as.logical(vapply(dots, is, NA, "s4t_cjs_ml")))
 
   if (any(modp)) { # compare multiple models
     mods <- list(object,dots[modp])
@@ -236,9 +236,9 @@ anova.s4t_ageclass_model <- function(object, ...) {
 #' Compute and return AIC of fitted model objects
 #'
 #' @description
-#' Compute AIC of one or more fitted `s4t_cjs` model objects
+#' Compute AIC of one or more fitted `s4t_cjs_ml` model objects
 #'
-#' @param object A `s4t_cjs` model object
+#' @param object A `s4t_cjs_ml` model object
 #' @param ... Optionally more fitted model objects
 #' @param k, The penalty parameter, taken to be 2. Not used but needed for
 #' generic consistency
@@ -248,7 +248,7 @@ anova.s4t_ageclass_model <- function(object, ...) {
 #'     the number of parameters estimated (`df`), and the AIC
 #'
 #' @export
-AIC.s4t_cjs <- function(object, ..., k = 2) {
+AIC.s4t_cjs_ml <- function(object, ..., k = 2) {
   object_list <- list(object, ...)
   if (length(object_list) == 1) {
     object$AIC

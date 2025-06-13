@@ -3,7 +3,7 @@
 
 
 
-process_ch <- function(obs_ch,obs_aux,removed_sites,sites = NULL,batches_list = NULL) {
+process_ch <- function(obs_ch,obs_aux,removed_sites,sites = NULL) {
   obs_ch <- as.matrix(obs_ch)
   # obs_aux <- as.matrix(obs_aux)
   # obs_ch <- sim.dat$obs_ch
@@ -17,9 +17,9 @@ process_ch <- function(obs_ch,obs_aux,removed_sites,sites = NULL,batches_list = 
   additional_aux_var <- setdiff(colnames(obs_aux),c("id","obs_time","ageclass"))
 
   m_matrix <- matrix(0,nrow = tot_entries_m, ncol = 8)
-  colnames(m_matrix) <- c("j","k","s","t","b","g","obs_time","ageclass")
+  colnames(m_matrix) <- c("j","k","s","t","r","g","obs_time","ageclass")
   l_matrix <- matrix(0,nrow = nrow(obs_ch),ncol = 6)
-  colnames(l_matrix) <- c("j","s","b","g","obs_time","ageclass")
+  colnames(l_matrix) <- c("j","s","r","g","obs_time","ageclass")
 
 
   m_aux_df <- as.data.frame(matrix(0,nrow = tot_entries_m, ncol = 2 + length(additional_aux_var)))
@@ -49,7 +49,7 @@ process_ch <- function(obs_ch,obs_aux,removed_sites,sites = NULL,batches_list = 
 
     l_matrix[i,1:2] <- c(last_rel,obs_ch[i,last_rel])
 
-    # obtain location of first observation, which corresponds to the batch
+    # obtain location of first observation, which corresponds to the init_relsite (batch)
     l_matrix[i,3] <- which.min.not.zero(obs_ch[i,])# which(obs_ch[i,]!= 0)[1]
 
     l_aux_df[i,"obs_time"] <- l_matrix[i,5] <- obs_aux[i,"obs_time"]
@@ -95,14 +95,16 @@ process_ch <- function(obs_ch,obs_aux,removed_sites,sites = NULL,batches_list = 
 }
 
 
-new_s4t_cjs_ch <- function(obs_ch,
+new_s4t_ch <- function(obs_ch,
                            obs_aux,
                            set_max_a,
-                           sites_config,
-                           holdover_config,
+                           s4t_config,
                            observed_relative_min_max,
                            potential_error_log,
                            call) {
+
+  sites_config <- s4t_config$sites_config
+  holdover_config <- s4t_config$holdover_config
 
   mat_obs_ch <- as.matrix(obs_ch[,colnames(sites_config)])
   removed_sites <- (obs_ch[,ncol(obs_ch)])
@@ -147,15 +149,15 @@ new_s4t_cjs_ch <- function(obs_ch,
     keep_going <- TRUE
     while (keep_going) {
       f_int_1st <- intersect(f,first_sites)
-      # b_diff_batches <- setdiff(f,batches)
-      # intersect(b_diff_batches,first_sites)
+      # r_diff_init_relsite <- setdiff(f,init_relsite )
+      # intersect(r_diff_init_relsite,first_sites)
 
       if (length(f_int_1st) == length(f)){
 
         keep_going <- FALSE
       } else {
         tmp_f1 <- intersect(f,first_sites)
-        tmp_f2 <- f# setdiff(b,tmp_b1)
+        tmp_f2 <- f
         tmp_f3 <- setdiff(f,first_sites)
 
         app <- c()
@@ -186,56 +188,56 @@ new_s4t_cjs_ch <- function(obs_ch,
 
   # which(sim.dat$obs_ch[,1])
 
-  n_batches <- length(sort(unique(first_obs)))# sum(colSums(sites) == 0)
-  batches <- sort(unique(first_obs)) # which(colSums(sites) == 0)
+  n_init_relsite <- length(sort(unique(first_obs)))# sum(colSums(sites) == 0)
+  init_relsite <- sort(unique(first_obs)) # which(colSums(sites) == 0)
 
-  batches_list <- list()
+  init_relsite_list <- list()
 
   first_sites <- which(colSums(sites_config) == 0)
 
   for (j in 1:nrow(sites_config)) {
 
-    b <- j
-    # b <- c()
+    r <- j
+    # r <- c()
 
     keep_going <- TRUE
     while (keep_going) {
-      b_int_batches <- intersect(b,batches)
-      b_diff_batches <- setdiff(b,batches)
+      r_int_init_relsite <- intersect(r,init_relsite)
+      r_diff_init_relsite <- setdiff(r,init_relsite)
 
       # NEED to check whether all sites are properly explored
 
       explored <- TRUE
-      for (i in 1:length(b)) {
+      for (i in 1:length(r)) {
         # if there are any sites in the path that haven't been explored.
-        if (length(setdiff(site_1stin_path[[b[i]]],b)) > 0) {
+        if (length(setdiff(site_1stin_path[[r[i]]],r)) > 0) {
           explored <- FALSE
         }
       }
 
 
-      if (length(intersect(b,batches)) == length(b) &
+      if (length(intersect(r,init_relsite)) == length(r) &
           explored == TRUE){
 
         keep_going <- FALSE
       } else {
-        # save all batches encountered
-        tmp_b1 <- intersect(b,batches)
-        tmp_b2 <- b# setdiff(b,tmp_b1)
+        # save all init_relsite encountered
+        tmp_r1 <- intersect(r,init_relsite)
+        tmp_r2 <- r
 
-        # save all the b's that are a first site.
-        tmp_b3 <- setdiff(b,first_sites)
-        tmp_b4 <- intersect(b,first_sites)
+        # save all the r's that are a first site.
+        tmp_r3 <- setdiff(r,first_sites)
+        tmp_r4 <- intersect(r,first_sites)
 
-        # loop through all the b's that are not a first site to explore it further
+        # loop through all the r's that are not a first site to explore it further
         app <- c()
-        if (length(tmp_b3) > 0) {
-          for (i in 1:length(tmp_b3)) {
-            app <-  c(app,which(sites_config[,tmp_b3[i]] == 1))
+        if (length(tmp_r3) > 0) {
+          for (i in 1:length(tmp_r3)) {
+            app <-  c(app,which(sites_config[,tmp_r3[i]] == 1))
           }
         }
 
-        b <- (sort(c(tmp_b1,tmp_b4,app))) # unique
+        r <- (sort(c(tmp_r1,tmp_r4,app))) # unique
 
 
       }
@@ -244,18 +246,18 @@ new_s4t_cjs_ch <- function(obs_ch,
     }
 
 
-    batches_list[[j]] <- b
+    init_relsite_list[[j]] <- r
 
 
 
   } # end for loop
-  batches_list
+  init_relsite_list
 
 
-  n_stations <- ncol(sites_config)
+  n_sites <- ncol(sites_config)
 
-  # should have as many entries as n_stations
-  max_s_rel <- rep(0,n_stations); names(max_s_rel) <- 1:n_stations
+  # should have as many entries as n_sites
+  max_s_rel <- rep(0,n_sites); names(max_s_rel) <- 1:n_sites
   # max_s_rel <- unlist(lapply(split(l_matrix[,"s"],l_matrix[,"j"]),FUN = max)); max_s_rel
   tmp1 <- unlist(lapply(split(l_matrix[,"s"],l_matrix[,"j"]),FUN = max)); tmp1
   tmp2 <- unlist(lapply(split(m_matrix[,"s"],m_matrix[,"j"]),FUN = max)); tmp2
@@ -274,8 +276,8 @@ new_s4t_cjs_ch <- function(obs_ch,
 
   # l_matrix <- l_matrix[which(!(l_matrix[,"j"] %in% last_sites)),]
 
-  # max_t for sites with recaps. Typically second to last n_stations (when there is only 1 release site)
-  max_t_recap <- rep(0,n_stations); names(max_t_recap) <- 1:n_stations
+  # max_t for sites with recaps. Typically second to last n_sites (when there is only 1 release site)
+  max_t_recap <- rep(0,n_sites); names(max_t_recap) <- 1:n_sites
   tmp <- unlist(lapply(split(m_matrix[,"t"],m_matrix[,"k"]),FUN = max))
   max_t_recap[names(tmp)] <- tmp; max_t_recap
 
@@ -412,7 +414,7 @@ new_s4t_cjs_ch <- function(obs_ch,
   recap_sites_not_last <- recap_sites[!(recap_sites %in% last_sites)]
 
 
-  not_last_sites <- c(1:n_stations)[-last_sites]
+  not_last_sites <- c(1:n_sites)[-last_sites]
 
 
   s4t_ch <- list(ch = list(m_matrix = m_matrix,
@@ -423,30 +425,33 @@ new_s4t_cjs_ch <- function(obs_ch,
                  obs_data = list(obs_ch = obs_ch,
                                  obs_aux = obs_aux),
                  call = call,
-                 user_defined = list(sites_config = sites_config,
-                                     holdover_config = holdover_config,
-                                     max_a = observed_relative_min_max$orig_max_a,
-                                     set_max_a = set_max_a,
-                                     sites_names = rownames(sites_config)),
-                 ch_info = list(first_obs = first_obs,
-                                n_batches = n_batches,
-                                batches_list = batches_list,
-                                n_stations = n_stations,
-                                first_sites = first_sites,
-                                site_path = site_path,
+                 s4t_config = s4t_config,
+                 # user_defined = list(sites_config = sites_config,
+                 #                     holdover_config = holdover_config,
+                 #                     max_a = observed_relative_min_max$orig_max_a,
+                 #                     set_max_a = set_max_a,
+                 #                     sites_names = rownames(sites_config)),
+                 ch_info = list(n_init_relsite = n_init_relsite, # n_batches
+                                n_sites = n_sites, # n_stations
                                 max_s_rel = max_s_rel,
                                 max_t_recap = max_t_recap,
-                                set_max_a = set_max_a,
-                                set_min_a = observed_relative_min_max$set_min_a,
+                                min_ageclass_mat = min_ageclass_mat,
+                                max_ageclass_mat = max_ageclass_mat,
+                                # set_max_a = set_max_a,
+                                # set_min_a = observed_relative_min_max$set_min_a,
+                                observed_relative_min_max = observed_relative_min_max,
+
+                                first_obs = first_obs,
+                                first_sites = first_sites,
+                                site_path = site_path,
                                 recap_sites = recap_sites,
                                 last_sites = last_sites,
                                 recap_sites_not_last = recap_sites_not_last,
-                                observed_relative_min_max = observed_relative_min_max,
-                                potential_error_log = potential_error_log,
-                                min_ageclass_mat = min_ageclass_mat,
-                                max_ageclass_mat = max_ageclass_mat,
+
+                                init_relsite_list = init_relsite_list,# batches_list
                                 init_rel_j = init_rel_j,
-                                init_rel_times = init_rel_times)
+                                init_rel_times = init_rel_times),
+                 potential_error_log = potential_error_log
   )
   class(s4t_ch) = "s4t_cjs_ch"
 
@@ -461,18 +466,9 @@ new_s4t_cjs_ch <- function(obs_ch,
 #'
 #' @param ch_df `data.frame` object containing each capture. See LINK VIGNETTE and details.
 #' @param aux_age_df `data.frame` containing auxiliary data for each individual. See LINK VIGNETTE and details.
-#' @param cov_df `NULL` or `data.frame` of covariates aligned with `j,k,s,t,b,r` indices. See LINK VIGNETTE and details.
-#' @param min_a a `vector` of the minimum ageclass individuals in a site can be.
-#'     Must be the same length and order as `sites_names`
-#' @param max_a a `vector` of the maximum ageclass individuals in a site can be.
-#'     Must be the same length and order as `sites_names`
-#' @param sites_names a character `vector` of the site names
-#' @param sites_config a `matrix` that determine how sites are linked together.
-#'     Must be in the same order as sites_names. See LINK VIGNETTE and details.
-#' @param holdover_config a `matrix` that determine whether individuals can holdover in between
-#'      sites. In the same format as sites_configs. See LINK VIGNETTE and details.
-#' @param sites_to_pool a list of character vectors that contain the names of sites
-#'      to be pooled together and treated as one site. See LINK VIGNETTE and details.
+#' @param cov_df `NULL` or `data.frame` of covariates aligned with `j,k,s,t,r,g` indices. See LINK VIGNETTE and details.
+#' @param s4t_config a `s4t_config` object created using `s4t_config()`,
+#'     `linear_s4t_config`, or `simplebranch_s4t_config`.
 #' @details
 #' Additional details...
 #' @examples
@@ -483,12 +479,12 @@ new_s4t_cjs_ch <- function(obs_ch,
 #'                            4,
 #'                            5,
 #'                            6),
-#'                      site = c(1,2,3,
-#'                               1,2,
-#'                               1,3,
-#'                               1,
-#'                               1,
-#'                               1),
+#'                      site = c("A","B","C",
+#'                               "A","B",
+#'                               "A","C",
+#'                               "A",
+#'                               "A",
+#'                               "A"),
 #'                      time = c(1,3,3,
 #'                               2,3,
 #'                               1,3,
@@ -504,54 +500,28 @@ new_s4t_cjs_ch <- function(obs_ch,
 #'                       )
 #'
 #' aux_age_df <- data.frame(id = 1:6,
-#'                           obs_site = rep(1,6),
+#'                           obs_site = rep("A",6),
 #'                           ageclass = c(1,2,1,1,2,1),
 #'                           obs_time = c(1,2,1,2,1,1),
 #'                           Covariate1 = c(3,1,2,1,2,1))
 #'
-#' ch <- s4t_cjs_ch(ch_df,aux_age_df,
-#'                  min_a = c(1,1,1),
-#'                  max_a = c(3,3,3),
-#'                  sites_names = 1:3,
-#'                  sites_config = matrix(c(0,1,0,
-#'                                          0,0,1,
-#'                                          0,0,0),
-#'                                          nrow = 3,
-#'                                          ncol = 3,
-#'                                          byrow = TRUE,
-#'                                          dimnames = list(1:3,1:3)),
-#'                 holdover_config = matrix(c(0,1,0,
-#'                                            0,0,0,
-#'                                            0,0,0),
-#'                                            nrow = 3,
-#'                                            ncol = 3,
-#'                                            byrow = TRUE,
-#'                                            dimnames = list(1:3,1:3)),
-#'                 )
+#' site_arr <- linear_s4t_config(sites_names = c("A","B","C"),
+#'                               holdover_sites = c("A"),
+#'                               min_a = c(1,1,1),
+#'                               max_a = c(3,3,3))
+#'
+#' ch <- s4t_ch(ch_df = ch_df,
+#'              aux_age_df = aux_age_df,
+#'              s4t_config = site_arr)
 #'
 #'
 #'
 #'
 #' @export
-s4t_cjs_ch <- function(ch_df,
-                       aux_age_df,
-                       cov_df = NULL,
-                       min_a,
-                       max_a,
-                       sites_names,
-                       sites_config,
-                       holdover_config,
-                       sites_to_pool = NULL) {
-#
-#   call <- list(ch_df = ch_df,
-#                aux_age_df = aux_age_df,
-#                cov_df = cov_df,
-#                min_a = min_a,
-#                max_a = max_a,
-#                sites_names = sites_names,
-#                sites_config = sites_config,
-#                holdover_config = holdover_config,
-#                sites_to_pool = sites_to_pool)
+s4t_ch <- function(ch_df,
+                   aux_age_df,
+                   s4t_config,
+                   cov_df = NULL) {
 
   ## Consider changing some of these to messages that result in an error after the whole thing is run
 
@@ -587,91 +557,6 @@ s4t_cjs_ch <- function(ch_df,
   }
 
 
-  max_a <- as.integer(max_a)
-  min_a <- as.integer(min_a)
-
-  if (sum(is.na(max_a))>1) {
-    stop("max_a must be coercible to an integer")
-  }
-
-  if (sum(is.na(min_a))>1) {
-    stop("min_a must be coercible to an integer")
-  }
-
-  if (length(max_a) != ncol(sites_config)) {
-    stop(paste0("max_a should be length = ",ncol(sites_config)))
-  }
-
-  if (length(min_a) != ncol(sites_config)) {
-    stop(paste0("minx_a should be length = ",ncol(sites_config)))
-  }
-
-
-  sites_names <- as.character(sites_names)
-  if (sum(is.na(sites_names))>1) {
-    stop("sites_names must be coercible to a character vector")
-  }
-
-
-  if (!is(sites_config,"matrix") | length(dim(sites_config)) != 2) {
-    stop("sites_config must be a matrix")
-  }
-
-
-  if (!is(holdover_config,"matrix") | length(dim(holdover_config)) != 2) {
-    stop("holdover_config must be a matrix")
-  }
-
-
-  if (!is.null(sites_to_pool)) {
-    if (!is(sites_to_pool,"list")) {
-      stop("sites_to_pool must be a list")
-      # should also check if the names match
-    }
-    if (length(setdiff(names(sites_to_pool),sites_names)) > 0) {
-      stop("Names of sites_to_pool not in sites_names")
-    }
-    for (i in 1:length(sites_to_pool)) {
-      if (length(setdiff(sites_to_pool[[i]],sites_names)) > 0) {
-        stop("Names of sites in sites_to_pool not in sites_names")
-      }
-    }
-  }
-
-
-
-
-
-  # check that sites_names and sites_config, holdover_config are the right dimensions
-  if (length(unique(c(nrow(sites_config),ncol(sites_config),
-                      nrow(holdover_config ),ncol(holdover_config ),
-                      length(sites_names), length(max_a),
-                      length(min_a)))) != 1) {
-    stop("Dimensions of sites_config, holdover_config")
-  }
-
-  # check that if configs are named, that the names match sites_names
-  if (!is.null(rownames(sites_config))) {
-    if (any(!(rownames(sites_config) == sites_names))) {
-      stop("If present, row and column names of sites_config must equal and in the same order as sites_names")
-    }
-  }
-  if (!is.null(colnames(sites_config))) {
-    if (any(!(colnames(sites_config) == sites_names))) {
-      stop("If present, row and column names of sites_config must equal and in the same order as sites_names")
-    }
-  }
-  if (!is.null(rownames(holdover_config))) {
-    if (any(!(rownames(holdover_config) == sites_names))) {
-      stop("If present, row and column names of holdover_config must equal and in the same order as sites_names")
-    }
-  }
-  if (!is.null(colnames(holdover_config))) {
-    if (any(!(colnames(holdover_config) == sites_names))) {
-      stop("If present, row and column names of holdover_config must equal and in the same order as sites_names")
-    }
-  }
-
 
 
   # ch_df$id
@@ -684,7 +569,7 @@ s4t_cjs_ch <- function(ch_df,
 
 
 
-
+  sites_names <- s4t_config$sites_names
 
   tmp_sites_to_remove <- setdiff(unique(ch_df$site),sites_names)
 
@@ -749,22 +634,26 @@ s4t_cjs_ch <- function(ch_df,
 
   aux_age_df <- as.data.frame(aux_age_df)
   # use these to recover time classes and age classes
-  min_obs_time <- min_not_zero(c(ch_df$time,aux_age_df$obs_time))
-  max_obs_time <- max(c(ch_df$time,aux_age_df$obs_time),na.rm = TRUE)
+  obs_min_time <- min_not_zero(c(ch_df$time,aux_age_df$obs_time))
+  obs_max_time <- max(c(ch_df$time,aux_age_df$obs_time),na.rm = TRUE)
 
 
 
   # the minimum obs age-class will be age-class 1 (even if it is 0, 2, etc.)
-  min_obs_age <- min(aux_age_df$ageclass,na.rm = TRUE)
+  obsaux_min_a <- min(aux_age_df$ageclass,na.rm = TRUE)
+
+
 
   # min_obs_age <- min_not_zero(aux_age_df$ageclass)
-  max_obs_age <- max(aux_age_df$ageclass,na.rm = TRUE)
+  obsaux_max_a <- max(aux_age_df$ageclass,na.rm = TRUE)
 
   # sets the minimum age_class to 1.
-  set_max_a <- max_a - min_obs_age + 1
-  set_min_a <- min_a  - min_obs_age + 1
+  set_max_a <- s4t_config$set_max_a
+  set_min_a <- s4t_config$set_min_a
+  obs_max_a <- s4t_config$obs_max_a
+  obs_min_a <- s4t_config$obs_min_a
 
-  max_rel_age_class = max(max_a) - min_obs_age + 1
+  max_rel_age_class = max(s4t_config$obs_max_a) - obsaux_min_a + 1
 
 
 
@@ -773,20 +662,21 @@ s4t_cjs_ch <- function(ch_df,
 
   # aux_age_df
   aux_age_df_abbr <- aux_age_df
-  aux_age_df_abbr$ageclass <- aux_age_df_abbr$ageclass - min_obs_age + 1
-  aux_age_df_abbr$obs_time <- aux_age_df_abbr$obs_time - min_obs_time + 1
+  aux_age_df_abbr$ageclass <- aux_age_df_abbr$ageclass - min(obs_min_a) + 1
+  aux_age_df_abbr$obs_time <- aux_age_df_abbr$obs_time - obs_min_time + 1
 
 
   ## next create obs_ch.
 
   new_ch_df <- data.frame(id = ch_df$id,
                           site = ch_df$site,
-                          time = ch_df$time - min_obs_time + 1,
+                          time = ch_df$time - obs_min_time + 1,
                           removed = as.logical(ch_df$removed))
   new_ch_df$removed <- as.character(ifelse(new_ch_df$removed,new_ch_df$site,FALSE))
 
 
   # pool sites
+  sites_to_pool <- s4t_config$sites_to_pool
 
   using_sites <- sites_names
 
@@ -795,45 +685,45 @@ s4t_cjs_ch <- function(ch_df,
 
       tmp_sitename <- names(sites_to_pool)[i]
 
-      if (tmp_sitename %in% sites_to_pool[[i]]) sites_to_pool[[i]] <- setdiff(sites_to_pool[[i]],tmp_sitename)
+      # if (tmp_sitename %in% sites_to_pool[[i]]) sites_to_pool[[i]] <- setdiff(sites_to_pool[[i]],tmp_sitename)
 
 
       ## ADD THE CHECK RIGHT HERE
       # tmp_sconfig <- sites_config[which(sites_names %in% sites_to_pool[[i]] | sites_names == tmp_sitename),]
       # tmp_seqal <- apply(tmp_sconfig,MARGIN = 1,FUN = function(x) length(unique(x)))
 
-      tmp_hconfig <- holdover_config[which(sites_names %in% sites_to_pool[[i]] | sites_names == tmp_sitename),]
-      tmp_heqal <- apply(tmp_hconfig,MARGIN = 1,FUN = function(x) length(unique(x)))
+      # tmp_hconfig <- holdover_config[which(sites_names %in% sites_to_pool[[i]] | sites_names == tmp_sitename),]
+      # tmp_heqal <- apply(tmp_hconfig,MARGIN = 1,FUN = function(x) length(unique(x)))
 
-      if (any(tmp_heqal != 1)) {
-        stop(paste0("Cannot pool sites with different holdovers: ",tmp_sitename," with: ",
-                    paste0(sites_to_pool[[i]],collapse = ", ")))
-      }
-
-      # remove the sites that we are pooling
-      using_sites <- setdiff(using_sites,sites_to_pool[[i]])
-
-      using_sites <- ifelse(using_sites == tmp_sitename,paste0(tmp_sitename,"_plus"),using_sites)
+      # if (any(tmp_heqal != 1)) {
+      #   stop(paste0("Cannot pool sites with different holdovers: ",tmp_sitename," with: ",
+      #               paste0(sites_to_pool[[i]],collapse = ", ")))
+      # }
+      #
+      # # remove the sites that we are pooling
+      # using_sites <- setdiff(using_sites,sites_to_pool[[i]])
+      #
+      # using_sites <- ifelse(using_sites == tmp_sitename,paste0(tmp_sitename,"_plus"),using_sites)
+      # # sites_names <- using_sites
+      #
+      # # sites_config and holdovers config to drop:
+      # keepthesesites <- !(sites_names %in% sites_to_pool[[i]])
+      # sites_config <- sites_config[keepthesesites,keepthesesites]
+      # holdover_config <- holdover_config[keepthesesites,keepthesesites]
+      #
       # sites_names <- using_sites
-
-      # sites_config and holdovers config to drop:
-      keepthesesites <- !(sites_names %in% sites_to_pool[[i]])
-      sites_config <- sites_config[keepthesesites,keepthesesites]
-      holdover_config <- holdover_config[keepthesesites,keepthesesites]
-
-      sites_names <- using_sites
-
-      # dropping min_a and max_a values
-      min_a <- min_a[keepthesesites]
-      max_a <- max_a[keepthesesites]
-      set_min_a <- set_min_a[keepthesesites]
-      set_max_a <- set_max_a[keepthesesites]
-
-      colnames(holdover_config) <- rownames(holdover_config) <- sites_names
-      colnames(sites_config) <- rownames(sites_config) <- sites_names
-
-      sites <- sites_config
-      holdover_config <- holdover_config
+      #
+      # # dropping min_a and max_a values
+      # min_a <- min_a[keepthesesites]
+      # max_a <- max_a[keepthesesites]
+      # set_min_a <- set_min_a[keepthesesites]
+      # set_max_a <- set_max_a[keepthesesites]
+      #
+      # colnames(holdover_config) <- rownames(holdover_config) <- sites_names
+      # colnames(sites_config) <- rownames(sites_config) <- sites_names
+      #
+      # sites <- sites_config
+      # holdover_config <- holdover_config
 
       removingsites_df <- new_ch_df %>%
         dplyr::filter(site %in% sites_to_pool[[i]]) %>%
@@ -871,15 +761,18 @@ s4t_cjs_ch <- function(ch_df,
 
 
   observed_relative_min_max <-
-    list(min_obs_time = min_obs_time,
-         max_obs_time = max_obs_time,
-         min_obs_age = min_obs_age,
-         max_obs_age = max_obs_age,
-         max_age_class = max(set_max_a),
+    list(obs_min_time = obs_min_time,
+         obs_max_time = obs_max_time,
+         obs_min_a = obs_min_a,
+         obs_max_a = obs_max_a,
+         max_a_overall = max(set_max_a), # max_age_class
          set_max_a = set_max_a,
          set_min_a = set_min_a,
-         orig_max_a = max_a, # original max_a [but excluding pooled sites]
-         max_rel_age_class = max(max_a) - min_obs_age + 1
+         # orig_max_a = max_a, # original max_a [but excluding pooled sites]
+         max_rel_age_class = max(obs_max_a) - obs_min_a + 1,
+         obsaux_min_a = obsaux_min_a,
+         obsaux_max_a = obsaux_max_a,
+         setaux_max_a = obsaux_max_a - min(obs_min_a) + 1
     )
 
 
@@ -890,8 +783,8 @@ s4t_cjs_ch <- function(ch_df,
 
 
 
-  site_order <- data.frame(site = colnames(sites_config),
-                           ord = 1:ncol(sites_config))
+  site_order <- data.frame(site = colnames(s4t_config$sites_config),
+                           ord = 1:ncol(s4t_config$sites_config))
 
 
   tmp_removed_df <- new_ch_df %>%
@@ -953,13 +846,14 @@ s4t_cjs_ch <- function(ch_df,
                      dplyr::filter(id_site > 1))
 
   suppressMessages(timedifferenceincaptures <- ch_df %>%
-    dplyr::left_join(data.frame(site = sites_names,max_a = max_a)) %>%
+    dplyr::left_join(data.frame(site = sites_names,obs_max_a = obs_max_a,
+                                obs_min_a = obs_min_a)) %>%
     dplyr::filter(id %in% ids_inboth) %>%
     dplyr::group_by(id) %>%
     dplyr::mutate(first_obs = min_not_zero(time),
               last_obs = max(time),
               diff_time_obs = last_obs - first_obs) %>%
-    dplyr::filter(diff_time_obs > max_a - min_obs_age))
+    dplyr::filter(diff_time_obs > obs_max_a - obs_min_a))
 
 
   suppressMessages(tmp_summary_dat <- ch_df %>%
@@ -1006,10 +900,11 @@ s4t_cjs_ch <- function(ch_df,
     dplyr::filter(!all(time == sort(time)))
 
 
+
   ## NEED TO REDO
   suppressMessages(max_obs_age_knownagefish <- ch_df %>%
     dplyr::left_join(aux_age_df, by = "id") %>%
-    dplyr::left_join(data.frame(site = sites_names,max_a = max_a)) %>%
+    dplyr::left_join(data.frame(site = sites_names,obs_max_a = obs_max_a)) %>%
     dplyr::group_by(id) %>%
     dplyr::filter(any(!is.na(ageclass))) %>%
     tidyr::fill(ageclass,obs_time) %>%
@@ -1018,8 +913,8 @@ s4t_cjs_ch <- function(ch_df,
               obs_age = dplyr::first(ageclass),
               obs_time = dplyr::first(obs_time),
               diff_time_obs = last_obs - obs_time,
-              obs_max_age = obs_age + diff_time_obs) %>%
-    dplyr::filter(obs_max_age > max_a))
+              in_dataobs_max_age = obs_age + diff_time_obs) %>%
+    dplyr::filter(in_dataobs_max_age > obs_max_a))
 
 
 
@@ -1051,11 +946,10 @@ s4t_cjs_ch <- function(ch_df,
   message(paste0("Number of known age individuals with observed ages greater than max_a: ",
                  length(unique(max_obs_age_knownagefish$id))))
 
-  new_s4t_cjs_ch(obs_ch = obs_ch, # need to add something for removed individuals. maybe an additional column to obs_ch?
+  new_s4t_ch(obs_ch = obs_ch, # need to add something for removed individuals. maybe an additional column to obs_ch?
                  obs_aux = obs_aux,
                  set_max_a = set_max_a,
-                 sites_config = sites_config,
-                 holdover_config = holdover_config,
+                 s4t_config = s4t_config,
                  observed_relative_min_max = observed_relative_min_max,
                  potential_error_log = potential_error_log,
                  call = call) # need to add stuff to relate age class and time to actual ages and years
@@ -1069,7 +963,7 @@ s4t_cjs_ch <- function(ch_df,
 site <- id <- time <- removed <- dups <- ord <- id_site <-
   last_obs <- first_obs <- diff_time_obs <- observations <-
   removed_site <- ageclass <- obs_time <- obs_max_age <- time <-
-  obs_age <- NULL
+  obs_age <- in_dataobs_max_age <- NULL
 
 
 marginalize_ch <- function(s4t_ch) {

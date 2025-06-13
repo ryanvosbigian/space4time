@@ -3,14 +3,14 @@
 
 
 return_cohort_surv <- function(par,
-                               n_batches,
-                               batches_list,
+                               n_init_relsite,
+                               init_relsite_list, # batches_list___
                                n_groups,
                                set_min_a,
                                set_max_a,
                                max_s_rel,
                                max_t_recap,
-                               n_stations,
+                               n_sites,
                                recap_sites,
                                last_sites,
                                recap_sites_not_last,
@@ -25,20 +25,20 @@ return_cohort_surv <- function(par,
   max_t <- max(c(max_s_rel,max_t_recap))
   max_a <- max(set_max_a)
 
-  not_last_sites <- c(1:n_stations)[-last_sites]
+  not_last_sites <- c(1:n_sites)[-last_sites]
 
   Theta <- array(0,dim = c(a1 = max_a,
                            a2 = max_a+1,
                            s = max_t,
-                           j = n_stations,
-                           b = n_batches,
+                           j = n_sites,
+                           r = n_init_relsite,
                            g = n_groups))
 
   theta <- array(0,dim = c(a1 = max_a,
                            a2 = max_a,
                            s = max_t,
-                           j = n_stations,
-                           b = n_batches,
+                           j = n_sites,
+                           r = n_init_relsite,
                            g = n_groups))
 
 
@@ -54,10 +54,10 @@ return_cohort_surv <- function(par,
     s <- indices_theta[i,"s"]
     j <- indices_theta[i,"j"]
     # k <- indices_theta[i,"k"]
-    b <- indices_theta[i,"b"]
+    r <- indices_theta[i,"r"]
     g <- indices_theta[i,"g"]
 
-    theta[a1,a2,s,j,b,g] <- mu_indices_theta[i]
+    theta[a1,a2,s,j,r,g] <- mu_indices_theta[i]
 
   }
 
@@ -65,26 +65,26 @@ return_cohort_surv <- function(par,
   theta_inv <- 1-theta
   ## reconsider these loops for j and k. Should determine k based on sites matrix
   for (g in 1:n_groups) {
-    for (j in 1:n_stations) {
+    for (j in 1:n_sites) {
       k <- which(sites_config[j,] == 1)
       # for (k in 2:(length(max_t_recap))) {
       for (a1 in 1:set_max_a[j]) {
         for (s in 1:max_s_rel[j]) {
-          for (b in batches_list[[j]]) {
+          for (r in init_relsite_list[[j]]) {
 
 
-            Theta[a1,a1,s,j,b,g] <- theta[a1,a1,s,j,b,g]
+            Theta[a1,a1,s,j,r,g] <- theta[a1,a1,s,j,r,g]
 
             for (a2 in 2:max(set_max_a)) {
 
-              Theta[a1,a2,s,j,b,g] <- theta[a1,a2,s,j,b,g]*prod(theta_inv[a1,1:(a2-1),s,j,b,g])
+              Theta[a1,a2,s,j,r,g] <- theta[a1,a2,s,j,r,g]*prod(theta_inv[a1,1:(a2-1),s,j,r,g])
 
 
             }
 
-            Theta[a1,max(set_max_a)+1,s,j,b,g] <- prod(theta_inv[a1,1:max(set_max_a),s,j,b,g])
+            Theta[a1,max(set_max_a)+1,s,j,r,g] <- prod(theta_inv[a1,1:max(set_max_a),s,j,r,g])
 
-          } # b
+          } # r
 
         } #  t
       } #  a1
@@ -101,7 +101,7 @@ return_cohort_surv <- function(par,
   for (g in 1:n_groups) {
     for (j in not_last_sites) {
       k <- which(sites_config[j,] == 1)
-      for (b in batches_list[[j]]) {
+      for (r in init_relsite_list[[j]]) {
         for (a1 in set_min_a[j]:set_max_a[j]) {
           for (s in 1:max_s_rel[j]) { # should this be "s"?
             tmp_max_t <- min(c(max_t_recap[k],
@@ -118,8 +118,8 @@ return_cohort_surv <- function(par,
             if (holdover_config[j,k] == 0) {
               a2 <- a1
               t <- s
-              cohort_surv[paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",b,",",g,"]")] <-
-                stats::qlogis(Theta[a1,a2,s,j,b,g])
+              cohort_surv[paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",r,",",g,"]")] <-
+                stats::qlogis(Theta[a1,a2,s,j,r,g])
             } else { # holdover_config[j,k] == 1
               for (t in (s):(tmp_max_t)) {
                 a2 <- a1 + t - s
@@ -127,8 +127,8 @@ return_cohort_surv <- function(par,
 
                 # tmp_upperage <- min(c(t - s + a1, set_max_a[k])); tmp_upperage
 
-                cohort_surv[paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",b,",",g,"]")] <-
-                  stats::qlogis(Theta[a1,a2,s,j,b,g])
+                cohort_surv[paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",r,",",g,"]")] <-
+                  stats::qlogis(Theta[a1,a2,s,j,r,g])
 
               } # t
             } # end elseif
@@ -137,7 +137,7 @@ return_cohort_surv <- function(par,
 
           } # s
         } # a1
-      } #  b
+      } #  r
     } #j
   } # g
 
@@ -146,14 +146,14 @@ return_cohort_surv <- function(par,
 }
 
 return_overall_surv <- function(par,
-                               n_batches,
-                               batches_list,
+                               n_init_relsite,
+                               init_relsite_list,
                                n_groups,
                                set_min_a,
                                set_max_a,
                                max_s_rel,
                                max_t_recap,
-                               n_stations,
+                               n_sites,
                                recap_sites,
                                last_sites,
                                recap_sites_not_last,
@@ -168,18 +168,18 @@ return_overall_surv <- function(par,
   max_t <- max(c(max_s_rel,max_t_recap))
   max_a <- max(set_max_a)
 
-  not_last_sites <- c(1:n_stations)[-last_sites]
+  not_last_sites <- c(1:n_sites)[-last_sites]
 
   Theta <- array(0,dim = c(a1 = max_a, a2 = max_a+1,
                            s = max_t,
-                           j = n_stations,
-                           b = n_batches,
+                           j = n_sites,
+                           r = n_init_relsite,
                            g = n_groups))
 
   theta <- array(0,dim = c(a1 = max_a, a2 = max_a,
                            s = max_t,
-                           j = n_stations,
-                           b = n_batches,
+                           j = n_sites,
+                           r = n_init_relsite,
                            g = n_groups))
 
 
@@ -195,10 +195,10 @@ return_overall_surv <- function(par,
     s <- indices_theta[i,"s"]
     j <- indices_theta[i,"j"]
     # k <- indices_theta[i,"k"]
-    b <- indices_theta[i,"b"]
+    r <- indices_theta[i,"r"]
     g <- indices_theta[i,"g"]
 
-    theta[a1,a2,s,j,b,g] <- mu_indices_theta[i]
+    theta[a1,a2,s,j,r,g] <- mu_indices_theta[i]
 
   }
 
@@ -206,26 +206,26 @@ return_overall_surv <- function(par,
   theta_inv <- 1-theta
   ## reconsider these loops for j and k. Should determine k based on sites matrix
   for (g in 1:n_groups) {
-    for (j in 1:n_stations) {
+    for (j in 1:n_sites) {
       k <- which(sites_config[j,] == 1)
       # for (k in 2:(length(max_t_recap))) {
       for (a1 in 1:set_max_a[j]) {
         for (s in 1:max_s_rel[j]) {
-          for (b in batches_list[[j]]) {
+          for (r in init_relsite_list[[j]]) {
 
 
-            Theta[a1,a1,s,j,b,g] <- theta[a1,a1,s,j,b,g]
+            Theta[a1,a1,s,j,r,g] <- theta[a1,a1,s,j,r,g]
 
             for (a2 in 2:max(set_max_a)) {
 
-              Theta[a1,a2,s,j,b,g] <- theta[a1,a2,s,j,b,g]*prod(theta_inv[a1,1:(a2-1),s,j,b,g])
+              Theta[a1,a2,s,j,r,g] <- theta[a1,a2,s,j,r,g]*prod(theta_inv[a1,1:(a2-1),s,j,r,g])
 
 
             }
 
-            Theta[a1,max(set_max_a)+1,s,j,b,g] <- prod(theta_inv[a1,1:max(set_max_a),s,j,b,g])
+            Theta[a1,max(set_max_a)+1,s,j,r,g] <- prod(theta_inv[a1,1:max(set_max_a),s,j,r,g])
 
-          } # b
+          } # r
 
         } #  t
       } #  a1
@@ -242,7 +242,7 @@ return_overall_surv <- function(par,
   for (g in 1:n_groups) {
     for (j in not_last_sites) {
       k <- which(sites_config[j,] == 1)
-      for (b in batches_list[[j]]) {
+      for (r in init_relsite_list[[j]]) {
         for (a1 in set_min_a[j]:set_max_a[j]) {
           for (s in 1:max_s_rel[j]) { # should this be "s"?
             tmp_max_t <- min(c(max_t_recap[k],
@@ -258,12 +258,12 @@ return_overall_surv <- function(par,
             }
 
 
-            overall_surv[paste0("overall_surv[",a1,",",s,",",j,",",k,",",b,",",g,"]")] <-
-              stats::qlogis(1 - Theta[a1,max_a + 1,s,j,b,g])
+            overall_surv[paste0("overall_surv[",a1,",",s,",",j,",",k,",",r,",",g,"]")] <-
+              stats::qlogis(1 - Theta[a1,max_a + 1,s,j,r,g])
 
           } # s
         } # a1
-      } #  b
+      } #  r
     } #j
   } # g
 
@@ -279,22 +279,22 @@ return_overall_surv <- function(par,
 #
 #   # chobject <- s4t_ch
 #
-#   n_batches <- format_cjs$n_batches
+#   n_init_relsite <- format_cjs$n_init_relsite
 #   n_groups <- format_cjs$N_groups # may cause issues
 #
-#   batches_list <- format_cjs$batches_list
+#   init_relsite_list <- format_cjs$init_relsite_list
 #   set_min_a <- format_cjs$set_min_a
 #   set_max_a <- format_cjs$set_max_a
 #
 #   max_s_rel <- format_cjs$max_s_rel
 #   max_t_recap <- format_cjs$max_t_recap
-#   n_stations <- format_cjs$n_stations
+#   n_sites <- format_cjs$n_sites
 #   recap_sites <- s4t_ch$ch_info$recap_sites
 #   last_sites <- s4t_ch$ch_info$last_sites
 #   recap_sites_not_last <- s4t_ch$ch_info$recap_sites_not_last
 #   not_last_sites <- s4t_ch$ch_info$not_last_sites
-#   sites_config <- s4t_ch$user_defined$sites_config
-#   holdover_config <- s4t_ch$user_defined$holdover_config
+#   sites_config <- s4t_ch$s4t_config$sites_config
+#   holdover_config <- s4t_ch$s4t_config$holdover_config
 #
 #   mod_mat_theta <- format_cjs$mod_mat_theta
 #   indices_theta <- format_cjs$indices_theta
@@ -309,19 +309,19 @@ return_overall_surv <- function(par,
 #
 #   Theta <- array(0,dim = c(a1 = max_a, a2 = max_a+1,
 #                            s = max_t,
-#                            j = n_stations,
-#                            k = n_stations,
-#                            b = n_batches,
+#                            j = n_sites,
+#                            k = n_sites,
+#                            b = n_init_relsite,
 #                            g = n_groups))
 #
 #   theta <- array(0,dim = c(a1 = max_a, a2 = max_a,
 #                            s = max_t,
-#                            j = n_stations,
-#                            k = n_stations,
-#                            b = n_batches,
+#                            j = n_sites,
+#                            k = n_sites,
+#                            b = n_init_relsite,
 #                            g = n_groups))
 #
-#   not_last_sites <- c(1:n_stations)[-last_sites]
+#   not_last_sites <- c(1:n_sites)[-last_sites]
 #
 #   # mod_mat_theta; indices_theta
 #
@@ -346,8 +346,8 @@ return_overall_surv <- function(par,
 #   # p_obs <- array(0,dim = c(a1 = max(set_max_a),
 #   #                          a2 = max(set_max_a),
 #   #                          t = max(indices_p_obs[,"t"]),
-#   #                          k = n_stations,
-#   #                          b = n_batches,
+#   #                          k = n_sites,
+#   #                          b = n_init_relsite,
 #   #                          g = n_groups))
 #
 #
@@ -355,12 +355,12 @@ return_overall_surv <- function(par,
 #   theta_inv <- 1-theta
 #   ## reconsider these loops for j and k. Should determine k based on sites matrix
 #   for (g in 1:n_groups) {
-#     for (j in 1:n_stations) {
+#     for (j in 1:n_sites) {
 #       k <- which(sites[j,] == 1)
 #       # for (k in 2:(length(max_t_recap))) {
 #       for (a1 in 1:set_max_a[j]) {
 #         for (s in 1:max_s_rel[j]) {
-#           for (b in batches_list[[j]]) {
+#           for (b in init_relsite_list[[j]]) {
 #
 #
 #             Theta[a1,a1,s,j,b,g] <- theta[a1,a1,s,j,b,g]
@@ -385,13 +385,13 @@ return_overall_surv <- function(par,
 #
 #   cohort_surv <- vector()
 #
-#   not_last_sites <- c(1:n_stations)[-last_sites]
+#   not_last_sites <- c(1:n_sites)[-last_sites]
 #
 #
 #   for (g in 1:n_groups) {
 #     for (j in not_last_sites) {
 #       k <- which(sites_config[j,] == 1)
-#       for (b in batches_list[[j]]) {
+#       for (b in init_relsite_list[[j]]) {
 #         for (a1 in set_min_a[j]:set_max_a[j]) {
 #           for (s in 1:max_s_rel[j]) { # should this be "s"?
 #             tmp_max_t <- min(c(max_t_recap[k],
@@ -427,22 +427,22 @@ return_overall_surv <- function(par,
 # }
 
 estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
-  n_batches <- format_cjs$n_batches
+  n_init_relsite <- format_cjs$n_init_relsite
   n_groups <- format_cjs$N_groups # may cause issues
 
-  batches_list <- format_cjs$batches_list
+  init_relsite_list <- format_cjs$init_relsite_list
   set_min_a <- format_cjs$set_min_a
   set_max_a <- format_cjs$set_max_a
 
   max_s_rel <- format_cjs$max_s_rel
   max_t_recap <- format_cjs$max_t_recap
-  n_stations <- s4t_ch$ch_info$n_stations
+  n_sites <- s4t_ch$ch_info$n_sites
   recap_sites <- s4t_ch$ch_info$recap_sites
   last_sites <- s4t_ch$ch_info$last_sites
   recap_sites_not_last <- s4t_ch$ch_info$recap_sites_not_last
   not_last_sites <- s4t_ch$ch_info$not_last_sites
-  sites_config <- s4t_ch$user_defined$sites_config
-  holdover_config <- s4t_ch$user_defined$holdover_config
+  sites_config <- s4t_ch$s4t_config$sites_config
+  holdover_config <- s4t_ch$s4t_config$holdover_config
 
   mod_mat_theta <- format_cjs$mod_mat_theta
   indices_theta <- format_cjs$indices_theta
@@ -451,14 +451,14 @@ estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
   max_ageclass_mat <- s4t_ch$ch_info$max_ageclass_mat
 
   ja <- numDeriv::jacobian(return_cohort_surv,x = res$par,
-                           n_batches = n_batches,
-                           batches_list = batches_list,
+                           n_init_relsite = n_init_relsite,
+                           init_relsite_list = init_relsite_list,
                            n_groups = n_groups,
                            set_min_a = set_min_a,
                            set_max_a = set_max_a,
                            max_s_rel = max_s_rel,
                            max_t_recap = max_t_recap,
-                           n_stations = n_stations,
+                           n_sites = n_sites,
                            recap_sites = recap_sites,
                            last_sites = last_sites,
                            recap_sites_not_last = recap_sites_not_last,
@@ -475,14 +475,14 @@ estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
   der_vc <- ja %*% vc %*% t(ja)
 
   ests <- return_cohort_surv(par = res$par,
-                              n_batches = n_batches,
-                              batches_list = batches_list,
+                              n_init_relsite = n_init_relsite,
+                              init_relsite_list = init_relsite_list,
                               n_groups = n_groups,
                               set_min_a = set_min_a,
                               set_max_a = set_max_a,
                               max_s_rel = max_s_rel,
                               max_t_recap = max_t_recap,
-                              n_stations = n_stations,
+                              n_sites = n_sites,
                               recap_sites = recap_sites,
                               last_sites = last_sites,
                               recap_sites_not_last = recap_sites_not_last,
@@ -496,7 +496,7 @@ estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
 
   par_name = gsub("cohort_surv[[]|[]]","",names(ests))
 
-  # paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",b,"]")
+  # paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",r,"]")
 
   age1 <- stringr::str_split_i(par_name,",",1)
   age2 <- stringr::str_split_i(par_name,",",2)
@@ -504,7 +504,7 @@ estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
   time_t <- stringr::str_split_i(par_name,",",4)
   site_j <- stringr::str_split_i(par_name,",",5)
   site_k <- stringr::str_split_i(par_name,",",6)
-  batch <- stringr::str_split_i(par_name,",",7)
+  init_relsite <- stringr::str_split_i(par_name,",",7)
   group <- stringr::str_split_i(par_name,",",8)
 
   data.frame(a1 = age1,
@@ -513,7 +513,7 @@ estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
              t = time_t,
              j = site_j,
              k = site_k,
-             b = batch,
+             r = init_relsite,
              g = group,
              estimate = stats::plogis(ests),
              lcl = stats::plogis(ests - 1.96*sqrt(diag(der_vc))),
@@ -527,22 +527,22 @@ estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
 
 
 estimate_overall_surv <- function(res,format_cjs, s4t_ch) {
-  n_batches <- format_cjs$n_batches
+  n_init_relsite <- format_cjs$n_init_relsite
   n_groups <- format_cjs$N_groups # may cause issues
 
-  batches_list <- format_cjs$batches_list
+  init_relsite_list <- format_cjs$init_relsite_list
   set_min_a <- format_cjs$set_min_a
   set_max_a <- format_cjs$set_max_a
 
   max_s_rel <- format_cjs$max_s_rel
   max_t_recap <- format_cjs$max_t_recap
-  n_stations <- s4t_ch$ch_info$n_stations
+  n_sites <- s4t_ch$ch_info$n_sites
   recap_sites <- s4t_ch$ch_info$recap_sites
   last_sites <- s4t_ch$ch_info$last_sites
   recap_sites_not_last <- s4t_ch$ch_info$recap_sites_not_last
   not_last_sites <- s4t_ch$ch_info$not_last_sites
-  sites_config <- s4t_ch$user_defined$sites_config
-  holdover_config <- s4t_ch$user_defined$holdover_config
+  sites_config <- s4t_ch$s4t_config$sites_config
+  holdover_config <- s4t_ch$s4t_config$holdover_config
 
   mod_mat_theta <- format_cjs$mod_mat_theta
   indices_theta <- format_cjs$indices_theta
@@ -551,14 +551,14 @@ estimate_overall_surv <- function(res,format_cjs, s4t_ch) {
   max_ageclass_mat <- s4t_ch$ch_info$max_ageclass_mat
 
   ja <- numDeriv::jacobian(return_overall_surv,x = res$par,
-                           n_batches = n_batches,
-                           batches_list = batches_list,
+                           n_init_relsite = n_init_relsite,
+                           init_relsite_list = init_relsite_list,
                            n_groups = n_groups,
                            set_min_a = set_min_a,
                            set_max_a = set_max_a,
                            max_s_rel = max_s_rel,
                            max_t_recap = max_t_recap,
-                           n_stations = n_stations,
+                           n_sites = n_sites,
                            recap_sites = recap_sites,
                            last_sites = last_sites,
                            recap_sites_not_last = recap_sites_not_last,
@@ -575,14 +575,14 @@ estimate_overall_surv <- function(res,format_cjs, s4t_ch) {
   der_vc <- ja %*% vc %*% t(ja)
 
   ests <- return_overall_surv(par = res$par,
-                              n_batches = n_batches,
-                              batches_list = batches_list,
+                              n_init_relsite = n_init_relsite,
+                              init_relsite_list = init_relsite_list,
                               n_groups = n_groups,
                               set_min_a = set_min_a,
                               set_max_a = set_max_a,
                               max_s_rel = max_s_rel,
                               max_t_recap = max_t_recap,
-                              n_stations = n_stations,
+                              n_sites = n_sites,
                               recap_sites = recap_sites,
                               last_sites = last_sites,
                               recap_sites_not_last = recap_sites_not_last,
@@ -596,7 +596,7 @@ estimate_overall_surv <- function(res,format_cjs, s4t_ch) {
 
   par_name = gsub("overall_surv[[]|[]]","",names(ests))
 
-  # paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",b,"]")
+  # paste0("cohort_surv[",a1,",",a2,",",s,",",t,",",j,",",k,",",r,"]")
 
   age1 <- as.integer(stringr::str_split_i(par_name,",",1))
   # age2 <- stringr::str_split_i(par_name,",",2)
@@ -604,14 +604,14 @@ estimate_overall_surv <- function(res,format_cjs, s4t_ch) {
   # time_t <- stringr::str_split_i(par_name,",",4)
   site_j <- as.integer(stringr::str_split_i(par_name,",",3))
   site_k <- as.integer(stringr::str_split_i(par_name,",",4))
-  b <- as.integer(stringr::str_split_i(par_name,",",5))
+  r <- as.integer(stringr::str_split_i(par_name,",",5))
   g <- as.integer(stringr::str_split_i(par_name,",",6))
 
   data.frame(a1 = age1,
              s = time_s,
              j = site_j,
              k = site_k,
-             b = b,
+             r = r,
              g = g,
              estimate = stats::plogis(ests),
              lcl = stats::plogis(ests - 1.96*sqrt(diag(der_vc))),
@@ -630,14 +630,14 @@ cdl_alg_marg <- function(par,
                          obs_aux,
                          max_t_recap,
                          max_s_rel,
-                         sites,
+                         sites_config,
                          site_path,
                          holdover_config,
                          set_min_a,
                          set_max_a,
-                         n_batches,
+                         n_init_relsite,
                          n_groups,
-                         batches_list,
+                         init_relsite_list,
                          mod_mat_theta,
                          indices_theta,
                          mod_mat_p,
@@ -653,7 +653,7 @@ cdl_alg_marg <- function(par,
     # define alk params
     alk_par <- par[grepl("^a_",names(par))]
 
-    if (alk_par["a_alpha_2"] < 0) return(NA) ## TEMPORARY
+    # if (alk_par["a_alpha_2"] < 0) return(NA) ## TEMPORARY
 
   }
 
@@ -664,30 +664,31 @@ cdl_alg_marg <- function(par,
 
   # max_t
   max_t <- max(c(max_s_rel,max_t_recap))
-  n_stations <- ncol(sites)
+  sites <- sites_config
+  n_sites <- ncol(sites)
   recap_sites <- which(colSums(sites) > 0)
   last_sites <- unique(unlist(lapply(site_path,FUN = max)))
 
   recap_sites_not_last <- recap_sites[!(recap_sites %in% last_sites)]
 
 
-  not_last_sites <- c(1:n_stations)[-last_sites]
+  not_last_sites <- c(1:n_sites)[-last_sites]
 
 
 
   Theta <- array(0,dim = c(a1 = max(set_max_a), a2 = max(set_max_a)+1,
                            s = max_t,
-                           j = n_stations,
-                           b = n_batches,
+                           j = n_sites,
+                           r = n_init_relsite,
                            g = n_groups))
 
   theta <- array(0,dim = c(a1 = max(set_max_a), a2 = max(set_max_a),
                            s = max_t,
-                           j = n_stations,
-                           b = n_batches,
+                           j = n_sites,
+                           r = n_init_relsite,
                            g = n_groups))
 
-  not_last_sites <- c(1:n_stations)[-last_sites]
+  not_last_sites <- c(1:n_sites)[-last_sites]
 
   mod_mat_theta; indices_theta
 
@@ -703,18 +704,18 @@ cdl_alg_marg <- function(par,
     s <- indices_theta[i,"s"]
     j <- indices_theta[i,"j"]
     # k <- indices_theta[i,"k"]
-    b <- indices_theta[i,"b"]
+    r <- indices_theta[i,"r"]
     g <- indices_theta[i,"g"]
 
-    theta[a1,a2,s,j,b,g] <- mu_indices_theta[i]
+    theta[a1,a2,s,j,r,g] <- mu_indices_theta[i]
 
   }
 
   p_obs <- array(0,dim = c(a1 = max(set_max_a),
                            a2 = max(set_max_a),
                            t = max(indices_p_obs[,"t"]),
-                           k = n_stations,
-                           b = n_batches,
+                           k = n_sites,
+                           r = n_init_relsite,
                            g = n_groups))
 
   mu_indices_p_obs <- stats::plogis(mod_mat_p %*% p_params)
@@ -724,10 +725,10 @@ cdl_alg_marg <- function(par,
     a2 <- indices_p_obs[i,"a2"]
     t <- indices_p_obs[i,"t"]
     k <- indices_p_obs[i,"k"]
-    b <- indices_p_obs[i,"b"]
+    r <- indices_p_obs[i,"r"]
     g <- indices_p_obs[i,"g"]
 
-    p_obs[a1,a2,t,k,b,g] <- mu_indices_p_obs[i]
+    p_obs[a1,a2,t,k,r,g] <- mu_indices_p_obs[i]
 
   }
 
@@ -738,26 +739,26 @@ cdl_alg_marg <- function(par,
   theta_inv <- 1-theta
   ## reconsider these loops for j and k. Should determine k based on sites matrix
   for (g in 1:n_groups) {
-    for (j in 1:n_stations) {
+    for (j in 1:n_sites) {
       k <- which(sites[j,] == 1)
       # for (k in 2:(length(max_t_recap))) {
       for (a1 in 1:set_max_a[j]) {
         for (s in 1:max_s_rel[j]) {
-          for (b in batches_list[[j]]) {
+          for (r in init_relsite_list[[j]]) {
 
 
-            Theta[a1,a1,s,j,b,g] <- theta[a1,a1,s,j,b,g]
+            Theta[a1,a1,s,j,r,g] <- theta[a1,a1,s,j,r,g]
 
             for (a2 in 2:max(set_max_a)) {
 
-              Theta[a1,a2,s,j,b,g] <- theta[a1,a2,s,j,b,g]*prod(theta_inv[a1,1:(a2-1),s,j,b,g])
+              Theta[a1,a2,s,j,r,g] <- theta[a1,a2,s,j,r,g]*prod(theta_inv[a1,1:(a2-1),s,j,r,g])
 
 
             }
 
-            Theta[a1,max(set_max_a)+1,s,j,b,g] <- prod(theta_inv[a1,1:max(set_max_a),s,j,b,g])
+            Theta[a1,max(set_max_a)+1,s,j,r,g] <- prod(theta_inv[a1,1:max(set_max_a),s,j,r,g])
 
-          } # b
+          } # r
 
         } #  t
       } #  a1
@@ -768,31 +769,31 @@ cdl_alg_marg <- function(par,
 
 
 
-  lambda_array <- array(0,dim = c(j = n_stations,
-                                  k = n_stations,
+  lambda_array <- array(0,dim = c(j = n_sites,
+                                  k = n_sites,
                                   s = max_t,
                                   t = max_t,
-                                  b = n_batches,
+                                  r = n_init_relsite,
                                   g = n_groups,
                                   a1 = max(set_max_a)))
 
-  not_last_sites <- c(1:n_stations)[-last_sites]
+  not_last_sites <- c(1:n_sites)[-last_sites]
 
   for (g in 1:n_groups) {
     for (j in not_last_sites) {
       k <- which(sites[j,]==1) #
-      for (b in batches_list[[j]]) {
+      for (r in init_relsite_list[[j]]) {
         for (s in 1:max_s_rel[j]) {
           for (a1 in 1:set_max_a[j]) {
 
             tmp_max_t <- min(c(max_t_recap[k],s + (set_max_a[k] - a1)))
             for (t in s:tmp_max_t) {
               a2 <- a1 + t - s
-              lambda_array[j,k,s,t,b,g,a1] <- Theta[a1,a2,s,j,b,g]
+              lambda_array[j,k,s,t,r,g,a1] <- Theta[a1,a2,s,j,r,g]
             } # t
           } # a1
         } # s
-      } # b
+      } # r
     } # j
   } # g
 
@@ -808,8 +809,8 @@ cdl_alg_marg <- function(par,
       for (n.k in 3:site_path_lengths[j]) {
         k <- tmp_ks[n.k]
         k_min1 <- tmp_ks[n.k - 1]
-        # for (k in tmp_ks[3:n_stations]) {
-        for (b in batches_list[[j]]) {
+        # for (k in tmp_ks[3:n_sites]) {
+        for (r in init_relsite_list[[j]]) {
           # use max_s_rel??
           for (s in 1:(max_s_rel[j])) {
             # use max_s_rel??
@@ -827,33 +828,33 @@ cdl_alg_marg <- function(par,
 
                 # if (t - s + a1 > max_a) stop()
 
-                lambda_array[j,k,s,t,b,g,a1] <- sum(lambda_array[j,k_min1,s,s:t,b,g,a1]*
-                                                    (1-flex_diag(p_obs[a1,a1:tmp_upperage,s:t,k_min1,b,g]))*
-                                                    flex_diag(lambda_array[k_min1,k,s:t,t,b,g,a1:tmp_upperage]))
-                # if (sum(is.na(lambda_array[j,k,s,t,b,a1])) > 0) stop()
+                lambda_array[j,k,s,t,r,g,a1] <- sum(lambda_array[j,k_min1,s,s:t,r,g,a1]*
+                                                    (1-flex_diag(p_obs[a1,a1:tmp_upperage,s:t,k_min1,r,g]))*
+                                                    flex_diag(lambda_array[k_min1,k,s:t,t,r,g,a1:tmp_upperage]))
+                # if (sum(is.na(lambda_array[j,k,s,t,r,a1])) > 0) stop()
 
               } # t
             } # a1
           } # s
-        } # b
+        } # r
       } # k
     }
   } # g
 
 
-  chi_array <- array(0,dim = c(j = n_stations,s = max_t,b = n_batches,
+  chi_array <- array(0,dim = c(j = n_sites,s = max_t,r = n_init_relsite,
                                g = n_groups,a = max(set_max_a)))
 
   chi_array[last_sites,,,,] <- 1
 
 
-  not_last_sites_rev <- rev(c(1:n_stations)[-last_sites])
+  not_last_sites_rev <- rev(c(1:n_sites)[-last_sites])
 
   for (g in 1:n_groups) {
     for (j in not_last_sites_rev) {
       k <- which(sites[j,] == 1)
 
-      for (b in batches_list[[j]]) {
+      for (r in init_relsite_list[[j]]) {
         for (s in 1:max_s_rel[j]) {
           for (a1 in 1:set_max_a[j]) {
 
@@ -863,9 +864,9 @@ cdl_alg_marg <- function(par,
             tmp_maxage <- min(c(set_max_a[k],tmp_max_t - s + a1))
             # max(set_max_a)
 
-            chi_array[j,s,b,g,a1] <- Theta[a1,max(set_max_a)+1,s,j,b,g] +
-              sum(Theta[a1,a1:(tmp_maxage),s,j,b,g]  * (1 - flex_diag(p_obs[a1,a1:tmp_maxage,s:tmp_max_t,k,b,g])) *
-                    flex_diag(chi_array[k,s:tmp_max_t,b,g,a1:(tmp_maxage)]))
+            chi_array[j,s,r,g,a1] <- Theta[a1,max(set_max_a)+1,s,j,r,g] +
+              sum(Theta[a1,a1:(tmp_maxage),s,j,r,g]  * (1 - flex_diag(p_obs[a1,a1:tmp_maxage,s:tmp_max_t,k,r,g])) *
+                    flex_diag(chi_array[k,s:tmp_max_t,r,g,a1:(tmp_maxage)]))
 
           }
         }
@@ -975,7 +976,7 @@ cdl_alg_marg <- function(par,
 
 
     tmp_p_obs1 <- p_obs[j_age,k_age,m_matrix[i,"t"],
-                                  m_matrix[i,"k"],m_matrix[i,"b"],m_matrix[i,"g"]]
+                                  m_matrix[i,"k"],m_matrix[i,"r"],m_matrix[i,"g"]]
 
 
     # tmp_p_obs2[k_age]
@@ -1010,11 +1011,11 @@ cdl_alg_marg <- function(par,
     diff_s_t = m_matrix[i,"t"] - m_matrix[i,"s"]
 
     ## CHANGING THIS TOO!!!
-    tmp_p_obs1 <- flex_diag(p_obs[1:(max(set_max_a)-diff_s_t),(1+diff_s_t):max(set_max_a),m_matrix[i,"t"],m_matrix[i,"k"],m_matrix[i,"b"],m_matrix[i,"g"]])
+    tmp_p_obs1 <- flex_diag(p_obs[1:(max(set_max_a)-diff_s_t),(1+diff_s_t):max(set_max_a),m_matrix[i,"t"],m_matrix[i,"k"],m_matrix[i,"r"],m_matrix[i,"g"]])
     tmp_p_obs2 <- c(tmp_p_obs1,rep(0,diff_s_t))
 
 
-    # tmp_p_obs1 <- flex_diag(p_obs[1:(set_max_a[k]-diff_age_t),(1+diff_age_t):set_max_a[k],m_matrix[i,"t"],m_matrix[i,"k"],m_matrix[i,"b"]])
+    # tmp_p_obs1 <- flex_diag(p_obs[1:(set_max_a[k]-diff_age_t),(1+diff_age_t):set_max_a[k],m_matrix[i,"t"],m_matrix[i,"k"],m_matrix[i,"r"]])
     # tmp_p_obs2 <- c(rep(0,diff_age),tmp_p_obs1,rep(0,diff_age_t-diff_age))
 
 
