@@ -15,10 +15,10 @@ fit_ageclass <- function(age_formula  = ~ 1,
 
   ### add checks
 
-  new_max_a <- max(s4t_ch$ch$obs_aux[,"ageclass"],na.rm = TRUE)
+  new_max_a <- max(s4t_ch$ch$all_aux[,"ageclass"],na.rm = TRUE)
 
   ageclass_data <- ageclass_call(age_formula=age_formula,
-                                 obs_aux = stats::na.omit(s4t_ch$ch$obs_aux)
+                                 obs_aux = stats::na.omit(s4t_ch$ch$all_aux)
                                  # max_a = s4t_ch$ch_info$max_a
   )
 

@@ -104,11 +104,13 @@ return_cohort_surv <- function(par,
       for (r in init_relsite_list[[j]]) {
         for (a1 in set_min_a[j]:set_max_a[j]) {
           for (s in 1:max_s_rel[j]) { # should this be "s"?
-            tmp_max_t <- min(c(max_t_recap[k],
-                               s + (max_a - a1)))
+
 
             tmp_min_a <- min_ageclass_mat[j,s]
             tmp_max_a <- max_ageclass_mat[k,s]
+
+            tmp_max_t <- min(c(max_t_recap[k],
+                               s + (tmp_max_a - a1)))
 
             if (is.na(tmp_min_a) | is.na(tmp_max_a)) {
               next()
@@ -245,11 +247,13 @@ return_overall_surv <- function(par,
       for (r in init_relsite_list[[j]]) {
         for (a1 in set_min_a[j]:set_max_a[j]) {
           for (s in 1:max_s_rel[j]) { # should this be "s"?
-            tmp_max_t <- min(c(max_t_recap[k],
-                               s + (max_a - a1)))
+
 
             tmp_min_a <- min_ageclass_mat[j,s]
             tmp_max_a <- max_ageclass_mat[k,s]
+
+            tmp_max_t <- min(c(max_t_recap[k],
+                               s + (tmp_max_a - a1)))
 
             if (is.na(tmp_min_a) | is.na(tmp_max_a)) {
               next()

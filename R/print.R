@@ -169,3 +169,26 @@ print.s4t_cjs_rstan <- function(x,
     return(invisible(NULL))
   }
 }
+
+#' print summary of `clean_s4t_ch` object
+#'
+#' Returns the observations of individuals that had observations dropped
+#'     for data cleaning.
+#'
+#' @export
+#' @param x `clean_s4t_ch` object from `clean_s4t_ch()`
+#' @param ... passed to `print.tibble()`
+#'
+#' @export
+print.clean_s4t_ch <- function(x, ...) {
+  stopifnot(is(x,"clean_s4t_ch"))
+
+  x$intermediate_ch_df %>%
+    as.data.frame() %>%
+    dplyr::group_by(id) %>%
+    dplyr::filter(TRUE %in% drop_obs) %>%
+    dplyr::arrange(id) %>%
+    print(,...)
+
+  # return(invisible(NULL))
+}

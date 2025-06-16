@@ -11,7 +11,6 @@ RoxygenNote: 7.3.2
 Imports: 
     dplyr,
     ggplot2,
-    httr2,
     loo,
     lubridate,
     magrittr,

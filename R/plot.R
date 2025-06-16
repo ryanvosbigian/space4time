@@ -31,36 +31,38 @@ plotTheta <- function(x,textsize = 3, ...) {
     as.data.frame() %>%
     dplyr::mutate(site_diff = as.integer(as.character(k)) - as.integer(as.character(j)),
            age_diff = as.integer(as.character(a2)) - as.integer(as.character(a1)),
-           # j = factor(j),
-           # k = factor(k),
-           site_rel = factor(site_rel),
-           site_rec = factor(site_rec),
-           age_rel = factor(age_rel,levels = rev(unique(age_rel))),
-           age_rec = factor(age_rec,levels = rev(unique(age_rec))),
+           j = factor(j),
+           k = factor(k),
+           a1 = factor(a1,levels = rev(unique(a1))),
+           a2 = factor(a2,levels = rev(unique(a2))),
+           # site_rel = factor(site_rel),
+           # site_rec = factor(site_rec),
+           # age_rel = factor(age_rel,levels = rev(unique(age_rel))),
+           # age_rec = factor(age_rec,levels = rev(unique(age_rec))),
            Theta = round(estimate,2),
-           time_rel_label = paste0("Release time: ",time_rel)) %>%
+           time_rel_label = paste0("Release time: ",s)) %>%
     dplyr::filter(estimate > 0,
                   ...) %>%
-    ggplot2::ggplot(ggplot2::aes(x = site_rel, y = age_rel)) +
+    ggplot2::ggplot(ggplot2::aes(x = j, y = a1)) +
     ggplot2::theme_bw() +
     ggplot2::labs(x = "Sites",
          y = "Age",
          color = "Theta") +
-    ggplot2::geom_point(ggplot2::aes(x = site_rel, y = age_rel),color = "black") +
-    ggplot2::geom_point(ggplot2::aes(x = site_rec, y = age_rel),color = "black")
+    ggplot2::geom_point(ggplot2::aes(x = j, y = a1),color = "black") +
+    ggplot2::geom_point(ggplot2::aes(x = k, y = a1),color = "black")
 
   if (requireNamespace("geomtextpath", quietly = TRUE)) {
     p +
-      geomtextpath::geom_textsegment(ggplot2::aes(x = site_rel,xend = site_rec,
-                                         y = age_rel, yend = age_rec,
+      geomtextpath::geom_textsegment(ggplot2::aes(x = j,xend = k,
+                                         y = a1, yend = a2,
                                          color = estimate,
                                          label = Theta),hjust = 0.25,
                                      size = textsize) +
       ggplot2::facet_wrap(~time_rel_label)
   } else {
     p +
-      ggplot2::geom_segment(ggplot2::aes(x = site_rel,xend = site_rec,
-                                y = age_rel, yend = age_rec,
+      ggplot2::geom_segment(ggplot2::aes(x = j,xend = k,
+                                y = a1, yend = a2,
                                 color = estimate)) +
       ggplot2::geom_text(ggplot2::aes(label = Theta,
                              hjust = -site_diff,
@@ -104,12 +106,14 @@ plotSurvival <- function(x,textsize = 3, ...) {
                   # age_diff = as.integer(as.character(a2)) - as.integer(as.character(a1)),
                   j = factor(j),
                   k = factor(k),
-                  site_rel = factor(site_rel),
-                  site_rec = factor(site_rec),
-                  age_rel = factor(age_rel,levels = rev(unique(age_rel))),
+                  a1 = factor(a1,levels = rev(unique(a1))),
+                  # a2 = factor(a2),
+                  # site_rel = factor(site_rel),
+                  # site_rec = factor(site_rec),
+                  # age_rel = factor(age_rel,levels = rev(unique(age_rel))),
                   # age_rec = factor(age_rec,levels = rev(unique(age_rec))),
                   Theta = round(estimate,2),
-                  time_rel_label = paste0("Release time: ",time_rel)) %>%
+                  time_rel_label = paste0("Release time: ",s)) %>%
     # dplyr::mutate(site_diff = as.integer(as.character(k)) - as.integer(as.character(j)),
     #        # age_diff = a1,
     #        j = factor(j),
@@ -118,18 +122,18 @@ plotSurvival <- function(x,textsize = 3, ...) {
     #        Theta = round(estimate,2)) %>%
     dplyr::filter(estimate > 0,
                   ...) %>%
-    ggplot2::ggplot(ggplot2::aes(x = site_rel, y = (age_rel))) +
+    ggplot2::ggplot(ggplot2::aes(x = j, y = (a1))) +
     ggplot2::theme_bw() +
     ggplot2::labs(x = "Sites",
                  y = "Age",
                  color = "Survival") +
-    ggplot2::geom_point(ggplot2::aes(x = site_rel, y = age_rel),color = "black") +
-    ggplot2::geom_point(ggplot2::aes(x = site_rec, y = age_rel),color = "black")
+    ggplot2::geom_point(ggplot2::aes(x = j, y = a1),color = "black") +
+    ggplot2::geom_point(ggplot2::aes(x = k, y = a1),color = "black")
 
   if (requireNamespace("geomtextpath", quietly = TRUE)) {
     p +
-      geomtextpath::geom_textsegment(ggplot2::aes(x = site_rel,xend = site_rec,
-                                         y = age_rel,yend = age_rel,
+      geomtextpath::geom_textsegment(ggplot2::aes(x = j,xend = k,
+                                         y = a1,yend = a1,
                                          color = estimate,
                                          label = Theta),
                                      size = textsize) +
@@ -137,8 +141,8 @@ plotSurvival <- function(x,textsize = 3, ...) {
   } else {
     message("Install package geomtextpath for better figures")
     p +
-      ggplot2::geom_segment(ggplot2::aes(x = site_rel,xend = site_rec,
-                                y = age_rel,
+      ggplot2::geom_segment(ggplot2::aes(x = j,xend = k,
+                                y = a1,
                                 color = estimate)) +
       ggplot2::geom_text(ggplot2::aes(label = Theta,
                              hjust = -site_diff

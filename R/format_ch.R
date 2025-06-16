@@ -96,12 +96,14 @@ process_ch <- function(obs_ch,obs_aux,removed_sites,sites = NULL) {
 
 
 new_s4t_ch <- function(obs_ch,
-                           obs_aux,
-                           set_max_a,
-                           s4t_config,
-                           observed_relative_min_max,
-                           potential_error_log,
-                           call) {
+                       obs_aux,
+                       all_aux,
+                       ch_df,
+                       set_max_a,
+                       s4t_config,
+                       observed_relative_min_max,
+                       potential_error_log,
+                       call) {
 
   sites_config <- s4t_config$sites_config
   holdover_config <- s4t_config$holdover_config
@@ -421,9 +423,10 @@ new_s4t_ch <- function(obs_ch,
                            l_matrix = l_matrix,
                            m_aux_df = m_aux_df,
                            l_aux_df = l_aux_df,
-                           obs_aux = obs_aux),
-                 obs_data = list(obs_ch = obs_ch,
-                                 obs_aux = obs_aux),
+                           all_aux = all_aux),
+                 obs_data = list(ch_df = ch_df,
+                                 obs_aux = obs_aux,
+                                 all_aux = all_aux),
                  call = call,
                  s4t_config = s4t_config,
                  # user_defined = list(sites_config = sites_config,
@@ -569,9 +572,10 @@ s4t_ch <- function(ch_df,
 
 
 
-  sites_names <- s4t_config$sites_names
+  all_sites_names <- c(s4t_config$sites_names,
+                       unlist(s4t_config$sites_to_pool))
 
-  tmp_sites_to_remove <- setdiff(unique(ch_df$site),sites_names)
+  tmp_sites_to_remove <- setdiff(unique(ch_df$site),all_sites_names)
 
   if (length(tmp_sites_to_remove) > 0) {
     message(paste0("Removing sites from capture history: ",paste(tmp_sites_to_remove,sep = "",collapse = ", ")))
@@ -726,12 +730,13 @@ s4t_ch <- function(ch_df,
       # holdover_config <- holdover_config
 
       removingsites_df <- new_ch_df %>%
+        as.data.frame() %>%
         dplyr::filter(site %in% sites_to_pool[[i]]) %>%
-        dplyr::mutate(site = paste0(tmp_sitename,"_plus")) %>%
+        dplyr::mutate(site = paste0(tmp_sitename)) %>%
         dplyr::ungroup() %>%
         dplyr::group_by(id) %>%
         dplyr::summarize(id = dplyr::first(id),
-                  site = paste0(tmp_sitename,"_plus"),
+                  site = paste0(tmp_sitename),
                   time = min(time),
                   removed = (ifelse(any(removed != FALSE),TRUE,FALSE)))
       # distinct(id,site,time,.keep_all = TRUE)
@@ -778,11 +783,6 @@ s4t_ch <- function(ch_df,
 
 
 
-
-
-
-
-
   site_order <- data.frame(site = colnames(s4t_config$sites_config),
                            ord = 1:ncol(s4t_config$sites_config))
 
@@ -817,7 +817,7 @@ s4t_ch <- function(ch_df,
   ids_not_in_aux <- setdiff(wide_new_ch_df$id,aux_age_df_abbr$id)
 
   if (length(ids_not_in_ch) > 0) {
-    message(paste0("Dropping IDs in aux_age_df that are not in ch_df, n = ",length(ids_not_in_ch)))
+    message(paste0("Note, there are IDs in aux_age_df that are not in ch_df, n = ",length(ids_not_in_ch)))
   }
 
   if (length(ids_not_in_aux) > 0) {
@@ -833,20 +833,24 @@ s4t_ch <- function(ch_df,
   obs_aux <- as.data.frame(new_ch_aux_df[,c((ncol(wide_new_ch_df) + 1):ncol(new_ch_aux_df))])
 
 
+  # keep all auxiliary info
+  all_aux <- aux_age_df_abbr %>%
+    dplyr::select(-id)
+
 
 
   ### need to perform some checks first
 
   # is each individual recorded at each site once (not more than once)
 
-  suppressMessages(repeatobservations <- ch_df %>%
+  suppressMessages(repeatobservations <- new_ch_df %>%
                      dplyr::filter(id %in% ids_inboth) %>%
                      dplyr::group_by(id,site) %>%
                      dplyr::summarize(id_site = dplyr::n()) %>%
                      dplyr::filter(id_site > 1))
 
-  suppressMessages(timedifferenceincaptures <- ch_df %>%
-    dplyr::left_join(data.frame(site = sites_names,obs_max_a = obs_max_a,
+  suppressMessages(timedifferenceincaptures <- new_ch_df %>%
+    dplyr::left_join(data.frame(site = s4t_config$sites_names,obs_max_a = obs_max_a,
                                 obs_min_a = obs_min_a)) %>%
     dplyr::filter(id %in% ids_inboth) %>%
     dplyr::group_by(id) %>%
@@ -856,7 +860,7 @@ s4t_ch <- function(ch_df,
     dplyr::filter(diff_time_obs > obs_max_a - obs_min_a))
 
 
-  suppressMessages(tmp_summary_dat <- ch_df %>%
+  suppressMessages(tmp_summary_dat <- new_ch_df %>%
     dplyr::filter(id %in% ids_inboth) %>%
     dplyr::group_by(site,time) %>%
     dplyr::summarize(observations = dplyr::n()) %>%
@@ -865,8 +869,8 @@ s4t_ch <- function(ch_df,
   fewcaptures_insitetime <- tmp_summary_dat %>%
     dplyr::filter(observations < 10)
 
-  suppressMessages(nocaptures_insitetime <- expand.grid(site = unique(ch_df$site),
-                                       time = unique(ch_df$site)) %>%
+  suppressMessages(nocaptures_insitetime <- expand.grid(site = unique(new_ch_df$site),
+                                       time = unique(new_ch_df$site)) %>%
     dplyr::left_join(tmp_summary_dat) %>%
     dplyr::filter(observations == 0))
 
@@ -879,7 +883,7 @@ s4t_ch <- function(ch_df,
   # zombie_obs <- tmp_removed_ind[zombies,]
 
 
-  suppressWarnings(suppressMessages(zombie_individuals <- ch_df %>%
+  suppressWarnings(suppressMessages(zombie_individuals <- new_ch_df %>%
     dplyr::filter(id %in% ids_inboth) %>%
     dplyr::filter(site %in% site_order$site) %>%
     dplyr::left_join(site_order, by = "site") %>%
@@ -893,7 +897,7 @@ s4t_ch <- function(ch_df,
   ## time travelers
 
   # assume that site order is correct
-  reversemovement <- ch_df %>%
+  reversemovement <- new_ch_df %>%
     dplyr::left_join(site_order, by = "site") %>%
     dplyr::arrange(id,ord) %>%
     dplyr::group_by(id) %>%
@@ -902,9 +906,9 @@ s4t_ch <- function(ch_df,
 
 
   ## NEED TO REDO
-  suppressMessages(max_obs_age_knownagefish <- ch_df %>%
+  suppressMessages(max_obs_age_knownagefish <- new_ch_df %>%
     dplyr::left_join(aux_age_df, by = "id") %>%
-    dplyr::left_join(data.frame(site = sites_names,obs_max_a = obs_max_a)) %>%
+    dplyr::left_join(data.frame(site = s4t_config$sites_names,obs_max_a = obs_max_a)) %>%
     dplyr::group_by(id) %>%
     dplyr::filter(any(!is.na(ageclass))) %>%
     tidyr::fill(ageclass,obs_time) %>%
@@ -917,6 +921,14 @@ s4t_ch <- function(ch_df,
     dplyr::filter(in_dataobs_max_age > obs_max_a))
 
 
+  # suppressMessages(holdovers_indirecttransition <- new_ch_df %>% # by recap site
+  #                    dplyr::left_join(data.frame(site = s4t_config$sites_names,holdover = colSums(s4t_config$holdover_config))) %>%
+  #                    dplyr::group_by(id) %>%
+  #                    dplyr::arrange(id,time) %>%
+  #                    dplyr::mutate(time_diff = time - dplyr::lag(time)) %>%
+  #                    dplyr::mutate(time_diff = ifelse(is.na(time_diff),0,time_diff)) %>%
+  #                    dplyr::filter(any(time_diff > 0 & holdover == 0)))
+
 
 
   potential_error_log <- list(repeatobservations = repeatobservations,
@@ -927,32 +939,38 @@ s4t_ch <- function(ch_df,
                               reversemovement = reversemovement,
                               max_obs_age_knownagefish = max_obs_age_knownagefish)
 
-  message(paste0("Potential error log:"))
+  message(paste0("Error log:"))
 
-  message(paste0("Number of individuals encountered more than once at a site: ",nrow(repeatobservations)))
+  message(paste0("\nRepeat encounters at same site N = ",nrow(repeatobservations)))
 
-  message(paste0("Number of individuals with a gap in observation times that exceed difference \nin minimum and maximum ages: ",nrow(timedifferenceincaptures)))
 
-  message(paste0("Number of site/time combinations with less than 10 observations: ",nrow(fewcaptures_insitetime)))
 
-  message(paste0("Number of site/time combinations with no observations: ",nrow(nocaptures_insitetime)))
-
-  message(paste0("Number of 'zombies' (individuals observed after being removed): ",
+  message(paste0("Individuals observed after being removed ('zombies') N = ",
                  length(unique(zombie_individuals$id))))
 
-  # reversemovement
-  message(paste0("Number of individuals with reverse movements: ",length(unique(reversemovement$id))))
+  message(paste0("Gap in observation times that exceed max difference in ages N = ",nrow(timedifferenceincaptures)))
 
-  message(paste0("Number of known age individuals with observed ages greater than max_a: ",
+  # reversemovement
+  message(paste0("Reverse movements N = ",length(unique(reversemovement$id))))
+
+  message(paste0("Known age individuals with ages greater than max age N = ",
                  length(unique(max_obs_age_knownagefish$id))))
 
+  message("\nPotential errors:")
+
+  message(paste0("Site/time combinations with 0 observations N = ",nrow(nocaptures_insitetime)))
+
+  message(paste0("Site/time combinations with less than 10 observations N = ",nrow(fewcaptures_insitetime)))
+
   new_s4t_ch(obs_ch = obs_ch, # need to add something for removed individuals. maybe an additional column to obs_ch?
-                 obs_aux = obs_aux,
-                 set_max_a = set_max_a,
-                 s4t_config = s4t_config,
-                 observed_relative_min_max = observed_relative_min_max,
-                 potential_error_log = potential_error_log,
-                 call = call) # need to add stuff to relate age class and time to actual ages and years
+             obs_aux = obs_aux,
+             all_aux = all_aux,
+             ch_df = ch_df,
+             set_max_a = set_max_a,
+             s4t_config = s4t_config,
+             observed_relative_min_max = observed_relative_min_max,
+             potential_error_log = potential_error_log,
+             call = call) # need to add stuff to relate age class and time to actual ages and years
 
   # potential_error_log
   # site name stuff
@@ -999,36 +1017,147 @@ marginalize_ch <- function(s4t_ch) {
   return(s4t_ch_marg)
 }
 
-validate_s4t_ch <- function(s4t_ch) {
-  # not up to date
-  if (sum(names(s4t_ch) != c("ch",
-                             "obs_data",
-                             "user_defined",
-                             "ch_info")) > 0) return(FALSE)
 
-  if (sum(names(s4t_ch$ch) != c("m_matrix",
-                                "l_matrix",
-                                "obs_lengthyear")) > 0) return(FALSE)
+clean_s4t_ch_obs <- function(s4t_ch) {
+  s4t_ch$potential_error_log$timedifferenceincaptures
 
-  if (sum(names(s4t_ch$obs_data) != c("obs_ch",
-                                      "obs_lengthyear")) > 0) return(FALSE)
+  # repeatobservations = repeatobservations,
+  # timedifferenceincaptures = timedifferenceincaptures,
+  # fewcaptures_insitetime = fewcaptures_insitetime,
+  # nocaptures_insitetime = nocaptures_insitetime,
+  # zombie_individuals = zombie_individuals,
+  # reversemovement = reversemovement,
+  # max_obs_age_knownagefish = max_obs_age_knownagefish
 
-  if (sum(names(s4t_ch$user_defined) != c("sites_config",
-                                          "holdover_config",
-                                          "max_a")) > 0) return(FALSE)
+  ch_df <- as.data.frame(s4t_ch$obs_data$ch_df) %>%
+    dplyr::mutate(drop_obs = FALSE)
+  all_aux <- s4t_ch$obs_data$all_aux
 
-  if (sum(names(s4t_ch$ch_info) != c('first_obs',
-                                     'n_batches',
-                                     'batches_list',
-                                     'first_sites',
-                                     'max_s_rel',
-                                     'max_t_recap',
-                                     'recap_sites',
-                                     'last_sites',
-                                     'recap_sites_not_last',
-                                     'observed_relative_min_max',
-                                     'potential_error_log')) > 0) return(FALSE)
+  # repeat observations
+
+  message("not implemented repeatobservation removal yet")
 
 
-  return(TRUE)
+  ## timedifferenceincaptures
+  timedifferenceincaptures <- s4t_ch$potential_error_log$timedifferenceincaptures
+  if (nrow(timedifferenceincaptures) > 0) {
+    for (i in 1:nrow(timedifferenceincaptures)) {
+      tmp_ind <- ch_df[ch_df$id == timedifferenceincaptures$id[i],]; tmp_ind
+      first_obs <- min(tmp_ind$time); first_obs
+      time_diff <- timedifferenceincaptures$diff_time_obs[i]; time_diff
+
+#
+      ch_df[ch_df$id == timedifferenceincaptures$id[i] &
+              (ch_df$time - first_obs) ==  time_diff,]
+
+      # if the observation exceeds the max time difference, drop that observation
+      ch_df$drop_obs[ch_df$id == timedifferenceincaptures$id[i] &
+                       (ch_df$time - first_obs) ==  time_diff] <- TRUE
+
+
+
+    }
+
+  }
+
+  ## zombie_individuals
+  zombie_individuals <- s4t_ch$potential_error_log$zombie_individuals
+
+  message("not implemented zombie removal yet")
+
+
+  ## reversemovement
+  reversemovement <- s4t_ch$potential_error_log$reversemovement
+
+  if (nrow(reversemovement) > 0) {
+    revmove_ids <- unique(reversemovement$id)
+    for (i in 1:length(revmove_ids)) {
+      tmp_ind <- ch_df[ch_df$id == revmove_ids[i],]; tmp_ind
+
+      info_ind <- as.data.frame(reversemovement[reversemovement$id == revmove_ids[i],]); info_ind
+
+
+
+      # identify the last time the individual was observed, and drop that observation
+      last_obs_site <- info_ind[which.max(info_ind$time),"site"]; last_obs_site
+
+
+      ch_df[ch_df$id == revmove_ids[i] &
+              ch_df$site == last_obs_site,]
+
+      # if the observation exceeds the max time difference, drop that observation
+      ch_df$drop_obs[ch_df$id == revmove_ids[i] &
+                       ch_df$site == last_obs_site] <- TRUE
+
+
+
+    }
+
+  }
+
+
+  ## timedifferenceincaptures
+  max_obs_age_knownagefish <- s4t_ch$potential_error_log$max_obs_age_knownagefish
+
+  message("not implemented max_obs_age_knownagefish removal yet")
+
+
+  dropped_ch_df <- ch_df %>%
+    as.data.frame() %>%
+    dplyr::filter(drop_obs == TRUE) %>%
+    dplyr::select(-drop_obs)
+
+  cleaned_ch_df <- ch_df %>%
+    as.data.frame() %>%
+    dplyr::filter(drop_obs == FALSE) %>%
+    dplyr::select(-drop_obs)
+
+  dropped_ind <- length(setdiff(dropped_ch_df$id,cleaned_ch_df$id))
+
+  message(paste0("N = ",nrow(dropped_ch_df)," observations and N = ",dropped_ind," individuals were dropped."))
+
+
+
+  # if fewcaptures_insitetime or nocaptures_insitetime
+  #  are greater than 1, send message that these cannot be resolved
+
+  clean_s4t_ch <- list(cleaned_ch_df = cleaned_ch_df,dropped_ch_df = dropped_ch_df,
+                       intermediate_ch_df = ch_df)
+  class(clean_s4t_ch) <- "clean_s4t_ch"
+  return(clean_s4t_ch)
 }
+
+
+# validate_s4t_ch <- function(s4t_ch) {
+#   # not up to date
+#   if (sum(names(s4t_ch) != c("ch",
+#                              "obs_data",
+#                              "user_defined",
+#                              "ch_info")) > 0) return(FALSE)
+#
+#   if (sum(names(s4t_ch$ch) != c("m_matrix",
+#                                 "l_matrix",
+#                                 "obs_lengthyear")) > 0) return(FALSE)
+#
+#   if (sum(names(s4t_ch$obs_data) != c("obs_ch",
+#                                       "obs_lengthyear")) > 0) return(FALSE)
+#
+#   if (sum(names(s4t_ch$user_defined) != c("sites_config",
+#                                           "holdover_config",
+#                                           "max_a")) > 0) return(FALSE)
+#
+#   if (sum(names(s4t_ch$ch_info) != c('first_obs',
+#                                      'n_batches',
+#                                      'batches_list',
+#                                      'first_sites',
+#                                      'max_s_rel',
+#                                      'max_t_recap',
+#                                      'recap_sites',
+#                                      'last_sites',
+#                                      'recap_sites_not_last',
+#                                      'observed_relative_min_max',
+#                                      'potential_error_log')) > 0) return(FALSE)
+#
+#
+#   return(TRUE)
+# }

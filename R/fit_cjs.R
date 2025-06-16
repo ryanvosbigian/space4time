@@ -93,14 +93,14 @@ format_s4t_cjs <- function(p_formula,
   ###
   # groups
   if (!is.null(groups)) {
-    if (length(setdiff(groups,colnames(s4t_ch$ch$obs_aux))) > 0) {
-      stop(paste0("groups were not found in obs_aux: ",paste0(setdiff(groups,colnames(s4t_ch$ch$obs_aux)),collapse = ", ")))
+    if (length(setdiff(groups,colnames(s4t_ch$ch$all_aux))) > 0) {
+      stop(paste0("groups were not found in obs_aux: ",paste0(setdiff(groups,colnames(s4t_ch$ch$all_aux)),collapse = ", ")))
     }
 
     # the below needs to go after the covariates are added in.
     if (length(intersect(groups,"")) > 0) stop("group names are also in covariates")
 
-    df_groups <- as.data.frame(as.data.frame(s4t_ch$ch$obs_aux)[,groups])
+    df_groups <- as.data.frame(as.data.frame(s4t_ch$ch$all_aux)[,groups])
 
     if (length(groups) == 1) colnames(df_groups) <- groups
 
@@ -130,7 +130,7 @@ format_s4t_cjs <- function(p_formula,
     group_names <- apply(distinct_groups_df[,groups],MARGIN = 1,FUN = function(x) paste0(x, collapse = "_"))
   } else {
     N_groups <- 1
-    group_id <- as.factor(rep(1,nrow(s4t_ch$ch$obs_aux)))
+    group_id <- as.factor(rep(1,nrow(s4t_ch$ch$all_aux)))
     group_names <- 1
   } # end if statement for groups
 
@@ -641,7 +641,7 @@ format_s4t_cjs <- function(p_formula,
   #
   # not marginalizing this portion
   ageclass_data <- ageclass_call(age_formula=ageclass_formula,
-                                 obs_aux = s4t_ch$ch$obs_aux[stats::complete.cases(s4t_ch$ch$obs_aux),]
+                                 obs_aux = s4t_ch$ch$all_aux[stats::complete.cases(s4t_ch$ch$all_aux),]
                                  #na.omit(s4t_ch$ch$obs_aux),
                                  # max_a = s4t_ch$ch_info$max_a
   )
@@ -669,7 +669,7 @@ format_s4t_cjs <- function(p_formula,
               l_matrix = l_matrix_red,
               m_aux_df = s4t_ch$ch$m_aux_df,
               l_aux_df = l_aux_df_red,
-              obs_aux = s4t_ch$ch$obs_aux,
+              all_aux = s4t_ch$ch$all_aux,
               max_t_recap = s4t_ch$ch_info$max_t_recap,
               max_s_rel = s4t_ch$ch_info$max_s_rel,
               sites = s4t_ch$user_defined$sites_config,
@@ -738,7 +738,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
   max_t_recap <- format_cjs$max_t_recap
   set_min_a <- format_cjs$set_min_a
   set_max_a <- format_cjs$set_max_a
-  tmp_obs_aux <-format_cjs$obs_aux[!is.na(format_cjs$obs_aux[,"ageclass"]),]
+  tmp_obs_aux <-format_cjs$all_aux[!is.na(format_cjs$all_aux[,"ageclass"]),]
   ageclassdat <- ageclass_call(age_formula = ageclass_formula,
                                obs_aux = tmp_obs_aux
                                # max_a = format_cjs$max_a,ll = TRUE
@@ -821,7 +821,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 
   # not marginalizing this portion
   ageclass_data <- ageclass_call(age_formula=ageclass_formula,
-                                 obs_aux = s4t_ch$ch$obs_aux[stats::complete.cases(s4t_ch$ch$obs_aux),]
+                                 obs_aux = s4t_ch$ch$all_aux[stats::complete.cases(s4t_ch$ch$all_aux),]
                                  #na.omit(s4t_ch$ch$obs_aux),
                                  # max_a = s4t_ch$ch_info$max_a
   )
@@ -882,7 +882,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                upper = upper,
                m_matrix = m_matrix_marg,
                l_matrix = l_matrix_marg,
-               obs_aux = s4t_ch$ch$obs_aux,
+               obs_aux = s4t_ch$ch$all_aux,
                max_t_recap = s4t_ch$ch_info$max_t_recap,
                max_s_rel = s4t_ch$ch_info$max_s_rel,
                sites_config = s4t_ch$s4t_config$sites_config,
@@ -912,7 +912,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
     par = inits
     m_matrix = m_matrix_marg
     l_matrix = l_matrix_marg
-    obs_aux = s4t_ch$ch$obs_aux
+    obs_aux = s4t_ch$ch$all_aux
     max_t_recap = s4t_ch$ch_info$max_t_recap
     max_s_rel = s4t_ch$ch_info$max_s_rel
     sites_config = s4t_ch$s4t_config$sites_config
@@ -984,8 +984,8 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 
   group_df <- data.frame(g = (1:format_cjs$N_groups),group_name = format_cjs$group_names)
 
-  time_diff <- s4t_ch$ch_info$observed_relative_min_max$obs_min_time - 1
-  age_diff <- s4t_ch$ch_info$observed_relative_min_max$obs_min_a - 1
+  time_diff <- min(s4t_ch$ch_info$observed_relative_min_max$obs_min_time) - 1
+  age_diff <- min(s4t_ch$ch_info$observed_relative_min_max$obs_min_a) - 1
 
   tmp_cohort_surv1 <- cohort_surv[,1:8]
   tmp_cohort_surv2 <- cohort_surv[,9:ncol(cohort_surv)]
@@ -1113,7 +1113,8 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
     interp_parnames[grepl("a_alpha",interp_parnames)] <- paste0("a_alpha_",(1:length(alphas)) + age_diff)
     interp_parnames[grepl("a_delta",interp_parnames)] <- ageclass_beta_parnames_original_units # HERE
   } else {
-    ageclass_interp_parnames <- c(paste0("a_alpha_",1:(max_a_overall - 1) + age_diff),
+    tmp <- rownames(ageclass_fit$estimated_parameters)[grepl("^a_alpha",rownames(ageclass_fit$estimated_parameters))]
+    ageclass_interp_parnames <- c(paste0("a_alpha_",1:(length(tmp)) + age_diff),
                                   ageclass_beta_parnames_original_units)
 
     compare_parnames_ageclass <- cbind(parnames = rownames(ageclass_fit$estimated_parameters),
@@ -1126,6 +1127,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 
 
   ext_overall_surv <- overall_surv %>%
+    # dplyr::select(-a1,-s,-j,-k,-r,-k,-g) %>%
     dplyr::select(a1 = age_rel,
                   s = time_rel,
                   j = site_rel,
@@ -1254,7 +1256,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
   set_max_a <- format_cjs$set_max_a
   max_a_overall <- max(set_max_a)
   N_groups <- format_cjs$N_groups
-  tmp_obs_aux <-format_cjs$obs_aux[!is.na(format_cjs$obs_aux[,"ageclass"]),]
+  tmp_obs_aux <-format_cjs$all_aux[!is.na(format_cjs$all_aux[,"ageclass"]),]
   ageclassdat <- ageclass_call(age_formula = ageclass_formula,
                                obs_aux = tmp_obs_aux
                                # max_a = format_cjs$max_a,ll = TRUE
@@ -1450,6 +1452,8 @@ fit_s4t_cjs_rstan <- function(p_formula,
         tmp_min_a <- min_ageclass_mat[j,s]
         tmp_max_a <- max_ageclass_mat[k,s]
 
+        tmp_max_j_a <- max_ageclass_mat[j,s]
+
         if (is.na(tmp_min_a) | is.na(tmp_max_a)) {
           next()
           # if it is NA, then skip, because it is likely a
@@ -1457,7 +1461,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
         }
 
 
-        for (a1 in tmp_min_a:tmp_max_a) {
+        for (a1 in tmp_min_a:tmp_max_j_a) {
           for (r in format_cjs$init_relsite_list[[j]]) {
             overall_surv <- rbind(overall_surv,c(j=j,k=k,
                                                  a1=a1,s=s,
@@ -1490,6 +1494,9 @@ fit_s4t_cjs_rstan <- function(p_formula,
           tmp_min_a <- min_ageclass_mat[j,s]
           tmp_max_a <- max_ageclass_mat[k,s]
 
+          tmp_max_j_a <- max_ageclass_mat[j,s]
+
+
           if (is.na(tmp_min_a) | is.na(tmp_max_a)) {
             next()
             # if it is NA, then skip, because it is likely a
@@ -1497,7 +1504,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
           }
 
 
-          for (a1 in tmp_min_a:tmp_max_a) {
+          for (a1 in tmp_min_a:tmp_max_j_a) {
             tmp_max_t <- min(c(max_t_recap[k],
                                s + (set_max_a[k] - a1)))
 
@@ -1518,7 +1525,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                 a2 <- a1 + t - s
 
 
-                tmp_upperage <- min(c(t - s + a1, set_max_a[k])); tmp_upperage
+                # tmp_upperage <- min(c(t - s + a1, set_max_a[k])); tmp_upperage
 
 
                 cohort_surv <- rbind(cohort_surv,c(a1=a1,
@@ -1554,7 +1561,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                      N_a_parbeta = 1, # not currently used
                      N_obsageclass = length(ageclassdat$obsageclass),
                      obsageclass = ageclassdat$obsageclass,
-                     setaux_max_a = ch$ch_info$observed_relative_min_max$setaux_max_a,
+
                      mod_mat_a_beta = as.matrix(ageclassdat$mod_mat_a_beta[,-1]),
 
                      N_groups = N_groups,
@@ -1654,6 +1661,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
     input_data[["fixed_ageclass_m"]] <- fixed_ageclass_m
 
 
+
     res <- rstan::sampling(stanmodels$s4t_cjs_fixedage_draft7,
                            # pars = c("theta_params","p_params","overall_surv","cohort_surv","log_lik"), # ,"log_lik"
                            data=input_data,chains = chains,
@@ -1665,6 +1673,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
   } else {
     input_data[["fixed_ageclass_l"]] <- fixed_ageclass_l
     input_data[["fixed_ageclass_m"]] <- fixed_ageclass_m
+    input_data[["setaux_max_a"]] <- s4t_ch$ch_info$observed_relative_min_max$setaux_max_a
 
     res <- rstan::sampling(stanmodels$s4t_cjs_draft7,
                            data=input_data,chains = chains,
@@ -1676,14 +1685,25 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
   }
 
+
+  # so that log_lik can be excluded
+  if (fixed_age) {
+    tmp_pars <- c("theta_params",
+                  "p_params",
+                  "overall_surv",
+                  "cohort_surv")
+  } else {
+    tmp_pars <-  c("theta_params",
+                   "p_params",
+                   "overall_surv",
+                   "cohort_surv",
+                   "alk_par_alpha",
+                   "alk_par_delta")
+  }
+
   # summary of all elements except log_lik
   sum_res <- rstan::summary(res,
-                            pars = c("theta_params",
-                                     "p_params",
-                                     "overall_surv",
-                                     "cohort_surv",
-                                     "alk_par_alpha",
-                                     "alk_par_delta"))
+                            pars = tmp_pars)
 
   estimated_parameters <- sum_res$summary
 
@@ -1829,7 +1849,8 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
 
   if (fixed_age == FALSE) {
-    interp_parnames[grepl("alk_par_alpha",interp_parnames)] <- paste0("a_alpha_",1:(max_a_overall - 1) + age_diff)
+    tmp <- interp_parnames[grepl("alk_par_alpha",interp_parnames)]
+    interp_parnames[grepl("alk_par_alpha",interp_parnames)] <- paste0("a_alpha_",1:(length(tmp)) + age_diff)
     interp_parnames[grepl("alk_par_delta",interp_parnames)] <- ageclass_beta_parnames_original_units # HERE
   } else {
     ageclass_interp_parnames <- rownames(ageclass_fit$estimated_parameters)
@@ -1924,3 +1945,5 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
 # fix no visible binding note
 j <- k <- a1 <- a2 <- s <- r <- g <- max_a_overall <- NULL
+`2.5%` <-  `25%` <- `50%` <-  `75%`  <- `97.5%`  <- Rhat  <- ch  <- estimate_logitscale  <- group_name <-
+init_relsite  <- lcl  <- n_eff <-  sd <-  se_logitscale <-  se_mean  <- time_rec  <- ucl <- NULL
