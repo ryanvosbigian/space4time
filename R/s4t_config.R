@@ -204,7 +204,7 @@ s4t_config <- function(sites_names,
       # remove the sites that we are pooling
       using_sites <- setdiff(using_sites,sites_to_pool[[i]])
 
-      using_sites <- ifelse(using_sites == tmp_sitename,paste0(tmp_sitename,"_plus"),using_sites)
+      using_sites <- ifelse(using_sites == tmp_sitename,tmp_sitename,using_sites)
       # sites_names <- using_sites
 
       # sites_config and holdovers config to drop:

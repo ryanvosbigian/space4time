@@ -518,7 +518,7 @@ estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
              estimate = stats::plogis(ests),
              lcl = stats::plogis(ests - 1.96*sqrt(diag(der_vc))),
              ucl = stats::plogis(ests + 1.96*sqrt(diag(der_vc))),
-             estimates_logitscale = ests,3,
+             estimate_logitscale = ests,
              se_logitscale = sqrt(diag(der_vc)),
              row.names = names(ests)
              )
@@ -616,7 +616,7 @@ estimate_overall_surv <- function(res,format_cjs, s4t_ch) {
              estimate = stats::plogis(ests),
              lcl = stats::plogis(ests - 1.96*sqrt(diag(der_vc))),
              ucl = stats::plogis(ests + 1.96*sqrt(diag(der_vc))),
-             estimate_logitscale = ests,3,
+             estimate_logitscale = ests,
              se_logitscale = sqrt(diag(der_vc)),
              row.names = names(ests)
   )

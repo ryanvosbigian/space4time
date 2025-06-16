@@ -322,14 +322,103 @@ format_s4t_cjs <- function(p_formula,
   tmp_indices_theta <- as.data.frame(apply(indices_theta,MARGIN = 2,as.factor))
 
 
-  # cov_p <- data.frame(t = as.character(1:4),cov = rnorm(4))
+
+  ## Convert indices to original units and use that to merge in covariates.
+
+  sites_names <- colnames(s4t_ch$s4t_config$sites_config)
+  j_site_df <- data.frame(j = as.character(1:s4t_ch$ch_info$n_sites),site_rel = as.character(sites_names))
+  k_site_df <- data.frame(k = as.character(1:s4t_ch$ch_info$n_sites),site_rec = as.character(sites_names))
+
+
+  init_relsite_df <- data.frame(r = as.character(1:s4t_ch$ch_info$n_sites),init_relsite = as.character(sites_names))
+
+  group_df <- data.frame(g = as.character(1:N_groups),group_name = group_names)
+
+  time_diff <- s4t_ch$ch_info$observed_relative_min_max$obs_min_time - 1
+  age_diff <- min(s4t_ch$ch_info$observed_relative_min_max$obs_min_a) - 1
+
+
+  indices_p_obs_original <- tmp_indices_p_obs %>%
+    as.data.frame() %>%
+    dplyr::mutate(a1 = as.character(a1),
+                  a2 = as.character(a2),
+                  s = as.character(s),
+                  t = as.character(t),
+                  j = as.character(j),
+                  k = as.character(k),
+                  r = as.character(r),
+                  g = as.character(g)) %>%
+    dplyr::left_join(j_site_df, by = "j") %>%
+    dplyr::left_join(k_site_df, by = "k") %>%
+    dplyr::mutate(time_rel = as.integer(s) + time_diff,
+                  time_rec = as.integer(t) + time_diff,
+                  age_rel = as.integer(a1) + age_diff,
+                  age_rec = as.integer(a2) + age_diff) %>%
+    dplyr::left_join(init_relsite_df, by = "r") %>%
+    # dplyr::left_join(group_df, by = "g") %>%
+    dplyr::select(a1 = age_rel,
+                  a2 = age_rec,
+                  s = time_rel,
+                  t = time_rec,
+                  j = site_rel,
+                  k = site_rec,
+                  r = init_relsite,
+                  g = g
+                  # g = group_name
+                  ) %>%
+    dplyr::mutate(a1 = factor(a1),
+           a2 = factor(a2),
+           s = factor(s),
+           t = factor(t),
+           j = factor(j),
+           k = factor(k),
+           r = factor(r),
+           g = factor(g))
+
+  indices_theta_original <- tmp_indices_theta %>%
+    as.data.frame() %>%
+    dplyr::mutate(a1 = as.character(a1),
+                  a2 = as.character(a2),
+                  s = as.character(s),
+                  t = as.character(t),
+                  j = as.character(j),
+                  k = as.character(k),
+                  r = as.character(r),
+                  g = as.character(g)) %>%
+    dplyr::left_join(j_site_df, by = "j") %>%
+    dplyr::left_join(k_site_df, by = "k") %>%
+    dplyr::mutate(time_rel = as.integer(s) + time_diff,
+                  time_rec = as.integer(t) + time_diff,
+                  age_rel = as.integer(a1) + age_diff,
+                  age_rec = as.integer(a2) + age_diff) %>%
+    dplyr::left_join(init_relsite_df, by = "r") %>%
+    # dplyr::left_join(group_df, by = "g") %>%
+    dplyr::select(a1 = age_rel,
+                  a2 = age_rec,
+                  s = time_rel,
+                  t = time_rec,
+                  j = site_rel,
+                  k = site_rec,
+                  r = init_relsite,
+                  g = g # group_name
+    ) %>%
+    dplyr::mutate(a1 = factor(a1),
+                  a2 = factor(a2),
+                  s = factor(s),
+                  t = factor(t),
+                  j = factor(j),
+                  k = factor(k),
+                  r = factor(r),
+                  g = factor(g))
+
+
 
   if (!is.null(cov_p)) {
     if (is(cov_p,"list")) {
 
       for (i in 1:length(cov_p)) {
 
-        match_col <- intersect(colnames(cov_p[[i]]),colnames(tmp_indices_p_obs))
+        match_col <- intersect(colnames(cov_p[[i]]),colnames(indices_p_obs_original))
 
         for (j in match_col) {
           cov_p[[i]][,j] <- as.factor(cov_p[[i]][,j])
@@ -337,13 +426,13 @@ format_s4t_cjs <- function(p_formula,
 
 
 
-        tmp_indices_p_obs <- dplyr::left_join(tmp_indices_p_obs,cov_p[[i]])
+        indices_p_obs_original <- dplyr::left_join(indices_p_obs_original,cov_p[[i]])
       }
 
 
     }
     if (is(cov_p,"data.frame")) {
-      match_col <- intersect(colnames(cov_p),colnames(tmp_indices_p_obs))
+      match_col <- intersect(colnames(cov_p),colnames(indices_p_obs_original))
 
       for (j in match_col) {
         cov_p[,j] <- as.factor(cov_p[,j])
@@ -351,10 +440,17 @@ format_s4t_cjs <- function(p_formula,
 
       # cov_p[,match_col] <- as.data.frame(apply(cov_p[,match_col],MARGIN = 2,as.factor))# as.factor(cov_p[,match_col])
 
-      tmp_indices_p_obs <- dplyr::left_join(tmp_indices_p_obs,cov_p)
+      indices_p_obs_original <- dplyr::left_join(indices_p_obs_original,cov_p)
 
     }
 
+  }
+
+
+  if (ncol(indices_p_obs_original) > 9) {
+    tmp_indices_p_obs <- cbind(tmp_indices_p_obs,indices_p_obs_original[,9:ncol(indices_p_obs_original)])
+  } else {
+    tmp_indices_p_obs <- tmp_indices_p_obs
   }
 
 
@@ -374,7 +470,7 @@ format_s4t_cjs <- function(p_formula,
 
       for (i in 1:length(cov_theta)) {
 
-        match_col <- intersect(colnames(cov_theta[[i]]),colnames(tmp_indices_theta))
+        match_col <- intersect(colnames(cov_theta[[i]]),colnames(indices_theta_original))
 
         # cov_theta[[i]][,match_col] <- as.factor(cov_theta[[i]][,match_col])
 
@@ -382,13 +478,13 @@ format_s4t_cjs <- function(p_formula,
           cov_theta[[i]][,j] <- as.factor(cov_theta[[i]][,j])
         }
 
-        tmp_indices_theta <- dplyr::left_join(tmp_indices_theta,cov_theta[[i]])
+        indices_theta_original <- dplyr::left_join(indices_theta_original,cov_theta[[i]])
       }
 
 
     }
     if (is(cov_theta,"data.frame")) {
-      match_col <- intersect(colnames(cov_theta),colnames(tmp_indices_theta))
+      match_col <- intersect(colnames(cov_theta),colnames(indices_theta_original))
 
       # cov_theta[,match_col] <- as.factor(cov_theta[,match_col])
 
@@ -397,10 +493,16 @@ format_s4t_cjs <- function(p_formula,
       }
 
 
-      tmp_indices_theta <- dplyr::left_join(tmp_indices_theta,cov_theta)
+      indices_theta_original <- dplyr::left_join(indices_theta_original,cov_theta)
 
     }
 
+  }
+
+  if (ncol(indices_theta_original) > 9) {
+    tmp_indices_theta <- cbind(tmp_indices_theta,indices_theta_original[,9:ncol(indices_theta_original)])
+  } else {
+    tmp_indices_theta <- tmp_indices_theta
   }
 
   if (!is.null(groups)) {
@@ -994,7 +1096,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
     dplyr::mutate(obs_time = as.factor(time_diff + as.numeric(as.character(obs_time))))
 
   ageclass_beta_parnames_original_units <- model_mat_info(form = ageclass_formula,df = data_ageclass_rename)$parnames[-1] # drop intercept
-  ageclass_beta_parnames_original_units <- paste0("a_beta_",ageclass_beta_parnames_original_units)
+  ageclass_beta_parnames_original_units <- paste0("a_delta_",ageclass_beta_parnames_original_units)
 
   interp_parnames <- parnames <- rownames(estimated_parameters)
   interp_parnames[grepl("theta_params",interp_parnames)] <- theta_parnames_original_units
@@ -1007,9 +1109,9 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
   if (fixed_age == FALSE) {
     warning("need to add scripts to add ageclass param names")
 
-    etas <- interp_parnames[grepl("alk_par_eta",interp_parnames)]
-    interp_parnames[grepl("alk_par_eta",interp_parnames)] <- paste0("a_alpha_",(1:length(etas)) + age_diff)
-    interp_parnames[grepl("alk_par_beta",interp_parnames)] <- ageclass_beta_parnames_original_units # HERE
+    alphas <- interp_parnames[grepl("a_alpha",interp_parnames)]
+    interp_parnames[grepl("a_alpha",interp_parnames)] <- paste0("a_alpha_",(1:length(alphas)) + age_diff)
+    interp_parnames[grepl("a_delta",interp_parnames)] <- ageclass_beta_parnames_original_units # HERE
   } else {
     ageclass_interp_parnames <- c(paste0("a_alpha_",1:(max_a_overall - 1) + age_diff),
                                   ageclass_beta_parnames_original_units)
@@ -1023,10 +1125,30 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                             interp_parnames = interp_parnames)
 
 
+  ext_overall_surv <- overall_surv %>%
+    dplyr::select(a1 = age_rel,
+                  s = time_rel,
+                  j = site_rel,
+                  k = site_rec,
+                  r = init_relsite,
+                  g = group_name,
+                  estimate, lcl,ucl,estimate_logitscale,se_logitscale)
+
+
+  ext_cohort_surv <- cohort_surv %>%
+    dplyr::select(a1 = age_rel,
+                  a2 = age_rec,
+                  s = time_rel,
+                  t = time_rec,
+                  j = site_rel,
+                  k = site_rec,
+                  r = init_relsite,
+                  g = group_name,
+                  estimate, lcl,ucl,estimate_logitscale,se_logitscale)
 
   s4t_cjs <- list(estimated_parameters = estimated_parameters,
-                  overall_surv = overall_surv,
-                  cohort_surv = cohort_surv,
+                  overall_surv = ext_overall_surv,
+                  cohort_surv = ext_cohort_surv,
                   res = res,
                   AIC = res$value + 2 * length(res$par),
                   nll = res$value, k = length(res$par),
@@ -1432,6 +1554,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
                      N_a_parbeta = 1, # not currently used
                      N_obsageclass = length(ageclassdat$obsageclass),
                      obsageclass = ageclassdat$obsageclass,
+                     setaux_max_a = ch$ch_info$observed_relative_min_max$setaux_max_a,
                      mod_mat_a_beta = as.matrix(ageclassdat$mod_mat_a_beta[,-1]),
 
                      N_groups = N_groups,
@@ -1535,13 +1658,15 @@ fit_s4t_cjs_rstan <- function(p_formula,
                            # pars = c("theta_params","p_params","overall_surv","cohort_surv","log_lik"), # ,"log_lik"
                            data=input_data,chains = chains,
                            warmup = warmup,
-                           iter = iter)#,
-                           # ...)
+                           iter = iter,
+                           ...)
 
 
   } else {
+    input_data[["fixed_ageclass_l"]] <- fixed_ageclass_l
+    input_data[["fixed_ageclass_m"]] <- fixed_ageclass_m
 
-    res <- rstan::sampling(stanmodels$s4t_cjs_draft6d,
+    res <- rstan::sampling(stanmodels$s4t_cjs_draft7,
                            data=input_data,chains = chains,
                            # pars = c("theta_params","p_params","overall_surv","cohort_surv",
                            # "alk_par_beta","alk_par_eta","log_lik"),
@@ -1551,8 +1676,14 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
   }
 
-
-  sum_res <- rstan::summary(res)
+  # summary of all elements except log_lik
+  sum_res <- rstan::summary(res,
+                            pars = c("theta_params",
+                                     "p_params",
+                                     "overall_surv",
+                                     "cohort_surv",
+                                     "alk_par_alpha",
+                                     "alk_par_delta"))
 
   estimated_parameters <- sum_res$summary
 
@@ -1566,7 +1697,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
   j_site_df <- data.frame(j = 1:s4t_ch$ch_info$n_sites,site_rel = sites_names)
   k_site_df <- data.frame(k = 1:s4t_ch$ch_info$n_sites,site_rec = sites_names)
 
-  # will rename to release group later
+
   init_relsite_df <- data.frame(r = 1:s4t_ch$ch_info$n_sites,init_relsite = sites_names)
 
   group_df <- data.frame(g = 1:format_cjs$N_groups,group_name = format_cjs$group_names)
@@ -1689,7 +1820,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
     dplyr::mutate(obs_time = as.factor(time_diff + as.numeric(as.character(obs_time))))
 
   ageclass_beta_parnames_original_units <- model_mat_info(form = ageclass_formula,df = data_ageclass_rename)$parnames[-1] # drop intercept
-  ageclass_beta_parnames_original_units <- paste0("a_beta_",ageclass_beta_parnames_original_units)
+  ageclass_beta_parnames_original_units <- paste0("a_delta_",ageclass_beta_parnames_original_units)
 
 
   interp_parnames <- parnames <- rownames(estimated_parameters)
@@ -1698,9 +1829,8 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
 
   if (fixed_age == FALSE) {
-    warning("need to add scripts to add ageclass param names")
-    interp_parnames[grepl("alk_par_eta",interp_parnames)] <- paste0("a_alpha_",1:(max_a_overall - 1) + age_diff)
-    interp_parnames[grepl("alk_par_beta",interp_parnames)] <- ageclass_beta_parnames_original_units # HERE
+    interp_parnames[grepl("alk_par_alpha",interp_parnames)] <- paste0("a_alpha_",1:(max_a_overall - 1) + age_diff)
+    interp_parnames[grepl("alk_par_delta",interp_parnames)] <- ageclass_beta_parnames_original_units # HERE
   } else {
     ageclass_interp_parnames <- rownames(ageclass_fit$estimated_parameters)
 
@@ -1720,9 +1850,49 @@ fit_s4t_cjs_rstan <- function(p_formula,
   compare_parnames <- cbind(parnames = parnames,
                             interp_parnames = interp_parnames)
 
+  ext_overall_surv <- overall_surv %>%
+    dplyr::select(a1 = age_rel,
+                  s = time_rel,
+                  j = site_rel,
+                  k = site_rec,
+                  r = init_relsite,
+                  g = group_name,
+                  mean,
+                  se_mean,
+                  sd,
+                  `2.5%`,
+                  `25%`,
+                  `50%`,
+                  `75%`,
+                  `97.5%`,
+                  n_eff,
+                  Rhat)
+
+
+  ext_cohort_surv <- cohort_surv %>%
+    dplyr::select(a1 = age_rel,
+                  a2 = age_rec,
+                  s = time_rel,
+                  t = time_rec,
+                  j = site_rel,
+                  k = site_rec,
+                  r = init_relsite,
+                  g = group_name,
+                  mean,
+                  se_mean,
+                  sd,
+                  `2.5%`,
+                  `25%`,
+                  `50%`,
+                  `75%`,
+                  `97.5%`,
+                  n_eff,
+                  Rhat)
+
+
   s4t_cjs_rstan <- list(estimated_parameters = estimated_parameters,
-                        overall_surv = overall_surv,
-                        cohort_surv = cohort_surv,
+                        overall_surv = ext_overall_surv,
+                        cohort_surv = ext_cohort_surv,
                         res = res,
                         call = match.call(),
                         fit = list(p_formula = p_formula,
