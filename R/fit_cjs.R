@@ -68,6 +68,9 @@ format_s4t_cjs <- function(p_formula,
                            ageclass_formula,
                            cov_p = NULL, cov_theta = NULL,groups = NULL,
                            s4t_ch) {
+
+
+
   holdover_config <- s4t_ch$s4t_config$holdover_config
   sites_config <- s4t_ch$s4t_config$sites_config
 
@@ -418,6 +421,7 @@ format_s4t_cjs <- function(p_formula,
 
       for (i in 1:length(cov_p)) {
 
+
         match_col <- intersect(colnames(cov_p[[i]]),colnames(indices_p_obs_original))
 
         for (j in match_col) {
@@ -426,7 +430,7 @@ format_s4t_cjs <- function(p_formula,
 
 
 
-        indices_p_obs_original <- dplyr::left_join(indices_p_obs_original,cov_p[[i]])
+        indices_p_obs_original <- dplyr::left_join(indices_p_obs_original,stats::na.fail(cov_p[[i]]))
       }
 
 
@@ -440,7 +444,7 @@ format_s4t_cjs <- function(p_formula,
 
       # cov_p[,match_col] <- as.data.frame(apply(cov_p[,match_col],MARGIN = 2,as.factor))# as.factor(cov_p[,match_col])
 
-      indices_p_obs_original <- dplyr::left_join(indices_p_obs_original,cov_p)
+      indices_p_obs_original <- dplyr::left_join(indices_p_obs_original,stats::na.fail(cov_p))
 
     }
 
@@ -478,7 +482,7 @@ format_s4t_cjs <- function(p_formula,
           cov_theta[[i]][,j] <- as.factor(cov_theta[[i]][,j])
         }
 
-        indices_theta_original <- dplyr::left_join(indices_theta_original,cov_theta[[i]])
+        indices_theta_original <- dplyr::left_join(indices_theta_original,stats::na.fail(cov_theta[[i]]))
       }
 
 
@@ -493,7 +497,7 @@ format_s4t_cjs <- function(p_formula,
       }
 
 
-      indices_theta_original <- dplyr::left_join(indices_theta_original,cov_theta)
+      indices_theta_original <- dplyr::left_join(indices_theta_original,stats::na.fail(cov_theta))
 
     }
 
@@ -1201,8 +1205,10 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 #' @param p_formula an object of class "formula" for the formula for detection probabilities.
 #' @param theta_formula an object of class "formula" for the formula for transition probabilities.
 #' @param ageclass_formula an object of class "formula" for the ageclass sub-model
-#' @param cov_p a `data.frame` or `list` of `data.frame`'s containing the covariates for p. See details.
-#' @param cov_theta a `data.frame` or `list` of `data.frame`'s containing the covariates for theta. See details.
+#' @param cov_p a `data.frame` or `list` of `data.frame`'s containing the covariates
+#'     for p `j,k,s,t,r,g` indices. See details.
+#' @param cov_theta a `data.frame` or `list` of `data.frame`'s containing the covariates for theta
+#'     `j,k,s,t,r,g` indices. See details.
 #' @param groups a `character` vector containing the names of the covariates that comprise the groups.
 #' @param s4t_ch a `s4t_ch` object
 #' @param chains an `integer` of the number of chains to run.

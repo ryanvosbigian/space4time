@@ -207,7 +207,7 @@ test_that("error is thrown by bad capture history - exceed max age", {
   suppressMessages(ch <- s4t_ch(ch_df,
                    aux_age_df,
                    site_arr))
-  expect_equal(nrow(ch$potential_error_log$max_obs_age_knownagefish),3)
+  expect_equal(nrow(ch$potential_error_log$max_obs_age_knownagefish),2)
 
 
 })

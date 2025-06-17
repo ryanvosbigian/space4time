@@ -4,7 +4,7 @@
 \alias{s4t_ch}
 \title{Create capture history object}
 \usage{
-s4t_ch(ch_df, aux_age_df, s4t_config, cov_df = NULL)
+s4t_ch(ch_df, aux_age_df, s4t_config)
 }
 \arguments{
 \item{ch_df}{\code{data.frame} object containing each capture. See LINK VIGNETTE and details.}
@@ -13,8 +13,6 @@ s4t_ch(ch_df, aux_age_df, s4t_config, cov_df = NULL)
 
 \item{s4t_config}{a \code{s4t_config} object created using \code{s4t_config()},
 \code{linear_s4t_config}, or \code{simplebranch_s4t_config}.}
-
-\item{cov_df}{\code{NULL} or \code{data.frame} of covariates aligned with \verb{j,k,s,t,r,g} indices. See LINK VIGNETTE and details.}
 }
 \description{
 A short description...

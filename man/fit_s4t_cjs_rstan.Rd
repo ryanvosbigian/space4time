@@ -26,9 +26,11 @@ fit_s4t_cjs_rstan(
 
 \item{ageclass_formula}{an object of class "formula" for the ageclass sub-model}
 
-\item{cov_p}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates for p. See details.}
+\item{cov_p}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates
+for p \verb{j,k,s,t,r,g} indices. See details.}
 
-\item{cov_theta}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates for theta. See details.}
+\item{cov_theta}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates for theta
+\verb{j,k,s,t,r,g} indices. See details.}
 
 \item{groups}{a \code{character} vector containing the names of the covariates that comprise the groups.}
 

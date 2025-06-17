@@ -89,8 +89,13 @@ s4t_config <- function(sites_names,
   }
 
   if (length(min_a) != ncol(sites_config)) {
-    stop(paste0("minx_a should be length = ",ncol(sites_config)))
+    stop(paste0("min_a should be length = ",ncol(sites_config)))
   }
+
+  if (any(min_a > max_a)) {
+    stop(paste0("min_a cannot be greater than max_a for any site."))
+  }
+
 
 
   sites_names <- as.character(sites_names)
@@ -232,18 +237,99 @@ s4t_config <- function(sites_names,
   }
 
 
+  site_path <- list()
+
+  for (j in 1:nrow(sites_config)) {
+
+    tmp <- j
+    names(tmp) <- colnames(sites_config)[j]
+    keep_going <- TRUE
+    while(keep_going) {
+      lastelement <- tmp[length(tmp)]
+      if (rowSums(sites_config)[lastelement] == 0) {
+        keep_going <- FALSE
+      } else {
+        tmp <- c(tmp,which(sites_config[lastelement,] == 1))
+      }
+
+    }
+    site_path[[j]] <- tmp
+  }
+  site_path
+
+
+
+
+  ord <- c()
+  first_sites <- which(colSums(sites_config) == 0)
+  for (j in first_sites) {
+    new_path <- site_path[[j]]
+    ord <- setdiff(ord,new_path)
+    ord <- c(ord,new_path)
+  }
+  ord
+
+  sites_order <- data.frame(site = sites_names,order = 1:length(sites_names)) %>%
+    dplyr::arrange(by = ord)
+
+
+  # # First site in path
+  site_1stin_path <- list()
+  first_sites <- which(colSums(sites_config) == 0)
+
+  for (j in 1:nrow(sites_config)) {
+
+    f <- j
+    names(f) <- colnames(sites_config)[j]
+    keep_going <- TRUE
+    while (keep_going) {
+      f_int_1st <- intersect(f,first_sites)
+      # r_diff_init_relsite <- setdiff(f,init_relsite )
+      # intersect(r_diff_init_relsite,first_sites)
+
+      if (length(f_int_1st) == length(f)){
+
+        keep_going <- FALSE
+      } else {
+        tmp_f1 <- intersect(f,first_sites)
+        tmp_f2 <- f
+        tmp_f3 <- setdiff(f,first_sites)
+
+        app <- c()
+        if (length(tmp_f3) > 0) {
+          for (i in 1:length(tmp_f3)) {
+            app <-  c(app,which(sites_config[,tmp_f3[i]] == 1))
+          }
+        }
+
+
+
+        f <- c(tmp_f1,app)
+      }
+
+
+    }
+
+    site_1stin_path[[j]] <- f
+  }
+  site_1stin_path
+
+
   obj <- list(sites_config = sites_config,
               holdover_config = holdover_config,
               sites_names = sites_names,
               sites_to_pool = sites_to_pool,
 
-              max_a_overall = max_a_overall,
+              max_a_overall = max(set_max_a),
 
               obs_min_a = obs_min_a,
               obs_max_a = obs_max_a,
 
               set_min_a = set_min_a,
-              set_max_a = set_max_a
+              set_max_a = set_max_a,
+              site_path = site_path,
+              site_1stin_path = site_1stin_path,
+              sites_order = sites_order
               )
 
   class(obj) <- "s4t_config"
@@ -358,6 +444,8 @@ simplebranch_s4t_config <- function(sites_names,
 
 
   for (i in position_first_intersecting_site:(length(sites_names) - 1)) {
+    if (sites_names[i+1] %in% branch_sites) next()
+
     sites_config[i,i + 1] <- 1
     if (!is.null(holdover_sites)) {
       if (sites_names[i] %in% holdover_sites) {

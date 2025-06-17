@@ -192,3 +192,5 @@ print.clean_s4t_ch <- function(x, ...) {
 
   # return(invisible(NULL))
 }
+
+drop_obs <- NULL

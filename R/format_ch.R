@@ -469,7 +469,6 @@ new_s4t_ch <- function(obs_ch,
 #'
 #' @param ch_df `data.frame` object containing each capture. See LINK VIGNETTE and details.
 #' @param aux_age_df `data.frame` containing auxiliary data for each individual. See LINK VIGNETTE and details.
-#' @param cov_df `NULL` or `data.frame` of covariates aligned with `j,k,s,t,r,g` indices. See LINK VIGNETTE and details.
 #' @param s4t_config a `s4t_config` object created using `s4t_config()`,
 #'     `linear_s4t_config`, or `simplebranch_s4t_config`.
 #' @details
@@ -523,8 +522,7 @@ new_s4t_ch <- function(obs_ch,
 #' @export
 s4t_ch <- function(ch_df,
                    aux_age_df,
-                   s4t_config,
-                   cov_df = NULL) {
+                   s4t_config) {
 
   ## Consider changing some of these to messages that result in an error after the whole thing is run
 
@@ -552,12 +550,6 @@ s4t_ch <- function(ch_df,
   }
 
 
-  if (!is.null(cov_df)) {
-    if (!("data.frame" %in% class(cov_df))) {
-      stop("cov_df must be a data.frame")
-    }
-
-  }
 
 
 
@@ -682,63 +674,25 @@ s4t_ch <- function(ch_df,
   # pool sites
   sites_to_pool <- s4t_config$sites_to_pool
 
-  using_sites <- sites_names
+  # using_sites <- sites_names
 
   if (!is.null(sites_to_pool)) {
     for (i in 1:length(sites_to_pool)) {
 
       tmp_sitename <- names(sites_to_pool)[i]
 
-      # if (tmp_sitename %in% sites_to_pool[[i]]) sites_to_pool[[i]] <- setdiff(sites_to_pool[[i]],tmp_sitename)
 
-
-      ## ADD THE CHECK RIGHT HERE
-      # tmp_sconfig <- sites_config[which(sites_names %in% sites_to_pool[[i]] | sites_names == tmp_sitename),]
-      # tmp_seqal <- apply(tmp_sconfig,MARGIN = 1,FUN = function(x) length(unique(x)))
-
-      # tmp_hconfig <- holdover_config[which(sites_names %in% sites_to_pool[[i]] | sites_names == tmp_sitename),]
-      # tmp_heqal <- apply(tmp_hconfig,MARGIN = 1,FUN = function(x) length(unique(x)))
-
-      # if (any(tmp_heqal != 1)) {
-      #   stop(paste0("Cannot pool sites with different holdovers: ",tmp_sitename," with: ",
-      #               paste0(sites_to_pool[[i]],collapse = ", ")))
-      # }
-      #
-      # # remove the sites that we are pooling
-      # using_sites <- setdiff(using_sites,sites_to_pool[[i]])
-      #
-      # using_sites <- ifelse(using_sites == tmp_sitename,paste0(tmp_sitename,"_plus"),using_sites)
-      # # sites_names <- using_sites
-      #
-      # # sites_config and holdovers config to drop:
-      # keepthesesites <- !(sites_names %in% sites_to_pool[[i]])
-      # sites_config <- sites_config[keepthesesites,keepthesesites]
-      # holdover_config <- holdover_config[keepthesesites,keepthesesites]
-      #
-      # sites_names <- using_sites
-      #
-      # # dropping min_a and max_a values
-      # min_a <- min_a[keepthesesites]
-      # max_a <- max_a[keepthesesites]
-      # set_min_a <- set_min_a[keepthesesites]
-      # set_max_a <- set_max_a[keepthesesites]
-      #
-      # colnames(holdover_config) <- rownames(holdover_config) <- sites_names
-      # colnames(sites_config) <- rownames(sites_config) <- sites_names
-      #
-      # sites <- sites_config
-      # holdover_config <- holdover_config
 
       removingsites_df <- new_ch_df %>%
         as.data.frame() %>%
-        dplyr::filter(site %in% sites_to_pool[[i]]) %>%
+        dplyr::filter(site %in% c(tmp_sitename,sites_to_pool[[i]])) %>% # sites_to_pool[[i]]
         dplyr::mutate(site = paste0(tmp_sitename)) %>%
         dplyr::ungroup() %>%
         dplyr::group_by(id) %>%
         dplyr::summarize(id = dplyr::first(id),
                   site = paste0(tmp_sitename),
                   time = min(time),
-                  removed = (ifelse(any(removed != FALSE),TRUE,FALSE)))
+                  removed = (ifelse(any(removed != "FALSE"),tmp_sitename,"FALSE")))
       # distinct(id,site,time,.keep_all = TRUE)
       # mutate(removed = ifelse(removed != FALSE, paste0(tmp_sitename,"_plus"),removed))
 
@@ -765,6 +719,7 @@ s4t_ch <- function(ch_df,
   }
 
 
+
   observed_relative_min_max <-
     list(obs_min_time = obs_min_time,
          obs_max_time = obs_max_time,
@@ -780,11 +735,24 @@ s4t_ch <- function(ch_df,
          setaux_max_a = obsaux_max_a - min(obs_min_a) + 1
     )
 
+  # if (any(obs_max_a > s4t_config$obs_max_a)) {
+  #   message(paste0("Observed max ages exceed max ages in s4t_config:\n",
+  #                  "Obs: ",paste0(obs_max_a,collapse = " "),
+  #                  "\nSet: "),paste0(s4t_config$obs_max_a,collapse = " "))
+  # }
+  #
+  # if (any(obs_min_a > s4t_config$obs_min_a)) {
+  #   message(paste0("Observed min ages exceed max ages in s4t_config:\n",
+  #                  "Obs: ",paste0(obs_min_a,collapse = " "),
+  #                  "\nSet: "),paste0(s4t_config$obs_min_a,collapse = " "))
+  # }
 
 
 
-  site_order <- data.frame(site = colnames(s4t_config$sites_config),
-                           ord = 1:ncol(s4t_config$sites_config))
+
+
+
+  sites_order <- s4t_config$sites_order
 
 
   tmp_removed_df <- new_ch_df %>%
@@ -793,18 +761,20 @@ s4t_ch <- function(ch_df,
     # mutate(removed = ifelse(removed == 1))
     dplyr::distinct(id,removed) %>%
     dplyr::mutate(site = removed) %>%
-    dplyr::left_join(site_order, by = "site") %>%
-    dplyr::arrange(ord) %>%
-    dplyr::mutate(ord = ifelse(is.na(ord),0,ord),
-           removed = ord) %>%
+    dplyr::left_join(data.frame(site = s4t_config$sites_names,
+                                order = 1:length(s4t_config$sites_names)),
+                     by = "site") %>%
+    dplyr::arrange(order) %>%
+    dplyr::mutate(order = ifelse(is.na(order),0,order),
+           removed = order) %>%
     dplyr::group_by(id) %>%
     dplyr::summarize(removed = dplyr::first(removed)) %>%
     dplyr::select(id,removed) # removed is now the number site
 
 
   wide_new_ch_df <- new_ch_df %>%
-    dplyr::left_join(site_order,by = "site") %>%
-    dplyr::arrange(ord) %>%
+    dplyr::left_join(sites_order,by = "site") %>%
+    dplyr::arrange(order) %>%
     dplyr::select(id,site,time) %>%
     dplyr::group_by(id) %>%
     tidyr::pivot_wider(names_from = site,
@@ -885,49 +855,98 @@ s4t_ch <- function(ch_df,
 
   suppressWarnings(suppressMessages(zombie_individuals <- new_ch_df %>%
     dplyr::filter(id %in% ids_inboth) %>%
-    dplyr::filter(site %in% site_order$site) %>%
-    dplyr::left_join(site_order, by = "site") %>%
+    dplyr::filter(site %in% sites_order$site) %>%
+    dplyr::left_join(sites_order, by = "site") %>%
     dplyr::group_by(id) %>%
-    dplyr::filter(any(removed)) %>%
-    dplyr::arrange(id,ord) %>%
-    dplyr::mutate(removed_site = ifelse(removed,ord,NA)) %>%
+
+    dplyr::filter(any(removed != FALSE)) %>%
+
+    dplyr::arrange(id,order) %>%
+    dplyr::mutate(removed_site = ifelse(removed != "FALSE",order,NA)) %>%
+      # filter(id == "3D9.1C2D85B3A8")
     tidyr::fill(removed_site,.direction = "updown") %>%
-    dplyr::filter((any(min(removed_site) < ord,na.rm = TRUE)))))
+    dplyr::filter((any(min(removed_site) < order,na.rm = TRUE)))
+    ))
 
   ## time travelers
 
   # assume that site order is correct
   reversemovement <- new_ch_df %>%
-    dplyr::left_join(site_order, by = "site") %>%
-    dplyr::arrange(id,ord) %>%
+    dplyr::left_join(sites_order, by = "site") %>%
+    dplyr::arrange(id,order) %>%
     dplyr::group_by(id) %>%
     dplyr::filter(!all(time == sort(time)))
 
 
 
-  ## NEED TO REDO
   suppressMessages(max_obs_age_knownagefish <- new_ch_df %>%
-    dplyr::left_join(aux_age_df, by = "id") %>%
-    dplyr::left_join(data.frame(site = s4t_config$sites_names,obs_max_a = obs_max_a)) %>%
+    dplyr::left_join(aux_age_df_abbr[,c("id","ageclass","obs_time")], by = "id") %>%
     dplyr::group_by(id) %>%
     dplyr::filter(any(!is.na(ageclass))) %>%
     tidyr::fill(ageclass,obs_time) %>%
+    dplyr::left_join(data.frame(site = s4t_config$sites_names,set_max_a = set_max_a)) %>%
+
     dplyr::mutate(first_obs = min_not_zero(time),
               last_obs = max(time),
-              obs_age = dplyr::first(ageclass),
+              age_at_obs = dplyr::first(ageclass),
               obs_time = dplyr::first(obs_time),
-              diff_time_obs = last_obs - obs_time,
-              in_dataobs_max_age = obs_age + diff_time_obs) %>%
-    dplyr::filter(in_dataobs_max_age > obs_max_a))
+              obs_time_max_a = obs_time + (min(obs_min_time) - 1) + set_max_a - age_at_obs,
+              # set_obs_time = dplyr::first(obs_time)  - obs_min_time + 1,
+              age_at_time = age_at_obs + (time - obs_time)#,
+              # diff_time_obs = last_obs - (obs_time - obs_min_time + 1),
+              # in_dataobs_max_age = obs_age + diff_time_obs
+              ) %>%
+    dplyr::filter(age_at_time > set_max_a)
+  )
 
 
-  # suppressMessages(holdovers_indirecttransition <- new_ch_df %>% # by recap site
-  #                    dplyr::left_join(data.frame(site = s4t_config$sites_names,holdover = colSums(s4t_config$holdover_config))) %>%
-  #                    dplyr::group_by(id) %>%
-  #                    dplyr::arrange(id,time) %>%
-  #                    dplyr::mutate(time_diff = time - dplyr::lag(time)) %>%
-  #                    dplyr::mutate(time_diff = ifelse(is.na(time_diff),0,time_diff)) %>%
-  #                    dplyr::filter(any(time_diff > 0 & holdover == 0)))
+  site_path <- s4t_config$site_path
+  holdover_config <- s4t_config$holdover_config
+  sites_config <- s4t_config$sites_config
+  rowSums(s4t_config$holdover_config)
+
+  # holdover_config[site_path[[1]],site_path[[1]]]
+
+  # sapply(site_path,function(x) (as.matrix(holdover_config[x,x])))
+
+  tmp_holdover_info <- sapply(site_path,function(x) colSums(as.matrix(holdover_config[x,x])))
+
+  can_holdover <- matrix(FALSE,nrow = nrow(holdover_config),
+                         ncol = ncol(holdover_config),
+                         dimnames = list(rownames(holdover_config),rownames(holdover_config)))
+
+  for (j in 1:(nrow(can_holdover) - 1)) {
+    for (k in 2:ncol(can_holdover)) {
+      if (k %in% site_path[[j]]) {
+        k_index <- which(site_path[[j]] == k); k
+        tmp <- sum(tmp_holdover_info[[j]][1:k_index])
+        # print(paste0("j: ",j," k: ",k," holdover == ",tmp))
+        can_holdover[j,k] <- tmp > 0
+      }
+    }
+  }
+  can_holdover_df <- can_holdover %>%
+    as.data.frame() %>%
+    dplyr::mutate(Site_j = rownames(can_holdover)) %>%
+    tidyr::pivot_longer(cols = 1:ncol(can_holdover),names_to = "Site_k",values_to = "can_holdover")
+
+  suppressMessages(identify_potential_holdovers <- new_ch_df %>% # by recap site
+                     dplyr::left_join(data.frame(site = s4t_config$sites_names,holdover = colSums(s4t_config$holdover_config))) %>%
+                     dplyr::left_join(sites_order, by = "site") %>%
+                     dplyr::group_by(id) %>%
+                     dplyr::arrange(id,order) %>%
+                     dplyr::mutate(time_diff = time - dplyr::lag(time)) %>%
+                     dplyr::mutate(time_diff = ifelse(is.na(time_diff),0,time_diff)) %>%
+                     dplyr::filter(any(time_diff > 0 & holdover == 0))
+                   )
+
+  problematic_holdovers <- identify_potential_holdovers %>%
+    dplyr::mutate(Site_j = dplyr::lag(site),
+                  Site_k = site) %>%
+    dplyr::filter(!is.na(Site_j)) %>%
+    dplyr::left_join(can_holdover_df, by = c("Site_j","Site_k")) %>%
+    dplyr::filter(can_holdover == FALSE) %>%
+    dplyr::mutate(time = time + (obs_min_time - 1))
 
 
 
@@ -937,7 +956,8 @@ s4t_ch <- function(ch_df,
                               nocaptures_insitetime = nocaptures_insitetime,
                               zombie_individuals = zombie_individuals,
                               reversemovement = reversemovement,
-                              max_obs_age_knownagefish = max_obs_age_knownagefish)
+                              max_obs_age_knownagefish = max_obs_age_knownagefish,
+                              problematic_holdovers = problematic_holdovers)
 
   message(paste0("Error log:"))
 
@@ -949,6 +969,10 @@ s4t_ch <- function(ch_df,
                  length(unique(zombie_individuals$id))))
 
   message(paste0("Gap in observation times that exceed max difference in ages N = ",nrow(timedifferenceincaptures)))
+
+  message(paste0("Holdovers observed between sites with only direct transitions N = ",nrow(problematic_holdovers)))
+
+  # problematic_holdovers
 
   # reversemovement
   message(paste0("Reverse movements N = ",length(unique(reversemovement$id))))
@@ -978,7 +1002,7 @@ s4t_ch <- function(ch_df,
 }
 
 # to fix the "no visible binding for global variable" note:
-site <- id <- time <- removed <- dups <- ord <- id_site <-
+site <- id <- time <- removed <- dups <- order <- id_site <-
   last_obs <- first_obs <- diff_time_obs <- observations <-
   removed_site <- ageclass <- obs_time <- obs_max_age <- time <-
   obs_age <- in_dataobs_max_age <- NULL
@@ -1018,8 +1042,21 @@ marginalize_ch <- function(s4t_ch) {
 }
 
 
+
+#' Clean the capture history of a space4time capture history object
+#'
+#' @description
+#' A short description...
+#'
+#' @param s4t_ch a `s4t_ch` object.
+#' @returns a `clean_s4t_ch` object.
+#' @details
+#' Additional details...
+#'
+#'
+#' @export
 clean_s4t_ch_obs <- function(s4t_ch) {
-  s4t_ch$potential_error_log$timedifferenceincaptures
+  # s4t_ch$potential_error_log$timedifferenceincaptures
 
   # repeatobservations = repeatobservations,
   # timedifferenceincaptures = timedifferenceincaptures,
@@ -1033,9 +1070,33 @@ clean_s4t_ch_obs <- function(s4t_ch) {
     dplyr::mutate(drop_obs = FALSE)
   all_aux <- s4t_ch$obs_data$all_aux
 
-  # repeat observations
+  ## repeat observations
 
-  message("not implemented repeatobservation removal yet")
+  message("Note: Cleaning method for repeat observations not implemented yet")
+
+  identify_repeat_obs <- ch_df %>%
+    dplyr::group_by(id,site) %>%
+    dplyr::mutate(N = n()) %>%
+    dplyr::filter(N > 1) %>%
+    dplyr::arrange(by = time) %>%
+    dplyr::summarize(first_site_time_obs = dplyr::first(time))
+
+  repeat_ids <- unique(identify_repeat_obs$id)
+  if (length(repeat_ids) > 0 ) {
+    # message("Note: Cleaning method for repeat observations is untested")
+
+    for (i in 1:nrow(identify_repeat_obs)) {
+      ch_df[ch_df$id == identify_repeat_obs$id[i] &
+              ch_df$site == identify_repeat_obs$site[i] &
+              ch_df$time > identify_repeat_obs$first_site_time_obs[i] ,]
+
+      ch_df$drop_obs[ch_df$id == identify_repeat_obs$id[i] &
+                       ch_df$site == identify_repeat_obs$site[i] &
+                       ch_df$time > identify_repeat_obs$first_site_time_obs[i]] <- TRUE
+    }
+  }
+
+
 
 
   ## timedifferenceincaptures
@@ -1063,7 +1124,35 @@ clean_s4t_ch_obs <- function(s4t_ch) {
   ## zombie_individuals
   zombie_individuals <- s4t_ch$potential_error_log$zombie_individuals
 
-  message("not implemented zombie removal yet")
+  if (nrow(zombie_individuals) > 0) {
+    zombie_ids <- unique(zombie_individuals$id)
+    for (i in 1:length(zombie_ids)) {
+      tmp_ind <- ch_df[ch_df$id == zombie_ids[i],]; tmp_ind
+
+      info_ind <- as.data.frame(zombie_individuals[zombie_individuals$id == zombie_ids[i],]); info_ind
+
+      removed_site <- dplyr::first(info_ind$removed[which(info_ind$removed != "FALSE")])
+
+      removed_site_ord <- info_ind$order[info_ind$site == removed_site]
+
+      sites_past_removal <- info_ind$site[info_ind$order > removed_site_ord]
+
+      for (j in sites_past_removal) {
+        if (j %in% names(s4t_ch$s4t_config$sites_to_pool)) {
+          j <- c(j,s4t_ch$s4t_config$sites_to_pool[[j]])
+        }
+        ch_df[ch_df$id == zombie_ids[i] &
+                ch_df$site %in% j,]
+
+        ch_df$drop_obs[ch_df$id == zombie_ids[i] &
+                         ch_df$site %in% j] <- TRUE
+
+      }
+
+
+    }
+
+  }
 
 
   ## reversemovement
@@ -1076,18 +1165,24 @@ clean_s4t_ch_obs <- function(s4t_ch) {
 
       info_ind <- as.data.frame(reversemovement[reversemovement$id == revmove_ids[i],]); info_ind
 
-
+      # info_ind %>%
+      #   dplyr::arrange(by = time) %>%
+      #
+      #
+      # out_of_order_site <-
 
       # identify the last time the individual was observed, and drop that observation
-      last_obs_site <- info_ind[which.max(info_ind$time),"site"]; last_obs_site
+      last_obs_site <- tmp_ind[which(tmp_ind$time == max(tmp_ind$time)),"site"]; last_obs_site
 
 
       ch_df[ch_df$id == revmove_ids[i] &
-              ch_df$site == last_obs_site,]
+              ch_df$site %in% last_obs_site &
+            ch_df$time == max(tmp_ind$time),]
 
-      # if the observation exceeds the max time difference, drop that observation
+      # drop observations
       ch_df$drop_obs[ch_df$id == revmove_ids[i] &
-                       ch_df$site == last_obs_site] <- TRUE
+                       ch_df$site %in% last_obs_site &
+                       ch_df$time == max(tmp_ind$time)] <- TRUE
 
 
 
@@ -1099,7 +1194,57 @@ clean_s4t_ch_obs <- function(s4t_ch) {
   ## timedifferenceincaptures
   max_obs_age_knownagefish <- s4t_ch$potential_error_log$max_obs_age_knownagefish
 
-  message("not implemented max_obs_age_knownagefish removal yet")
+  if (nrow(max_obs_age_knownagefish) > 0) {
+    for (i in 1:nrow(timedifferenceincaptures)) {
+      tmp_ind <- ch_df[ch_df$id == max_obs_age_knownagefish$id[i],]; tmp_ind
+
+      first_obs <- min(tmp_ind$time); first_obs
+      time_diff <- timedifferenceincaptures$diff_time_obs[i]; time_diff
+
+      #
+      ch_df[ch_df$id == max_obs_age_knownagefish$id[i] &
+              (ch_df$time) >  max_obs_age_knownagefish$obs_time_max_a[i],]
+
+      # if the observation exceeds the max obs time for the observed age, drop that observation
+      ch_df$drop_obs[ch_df$id == max_obs_age_knownagefish$id[i] &
+                       (ch_df$time) >  max_obs_age_knownagefish$obs_time_max_a[i]] <- TRUE
+
+    }
+
+  }
+
+
+  ## problematic_holdovers
+  problematic_holdovers <- s4t_ch$potential_error_log$problematic_holdovers
+
+  if (nrow(problematic_holdovers) > 0) {
+    for (i in 1:nrow(problematic_holdovers)) {
+      tmp_ind <- ch_df[ch_df$id == problematic_holdovers$id[i],]; tmp_ind
+
+      problematic_holdovers[i,]
+
+
+      tmp_site <- problematic_holdovers$site[i]; tmp_site
+
+      if (tmp_site %in% names(s4t_ch$s4t_config$sites_to_pool)) {
+        tmp_site <- c(tmp_site,s4t_ch$s4t_config$sites_to_pool[[tmp_site]])
+      }
+
+      ch_df[ch_df$id == problematic_holdovers$id[i] &
+              ch_df$site %in% tmp_site &
+              ch_df$time >= problematic_holdovers$time[i],]
+
+      # if the observation exceeds the max time difference, drop that observation
+      ch_df$drop_obs[ch_df$id == problematic_holdovers$id[i] &
+                       ch_df$site %in% tmp_site &
+                       ch_df$time >= problematic_holdovers$time[i]] <- TRUE
+
+
+
+    }
+
+  }
+
 
 
   dropped_ch_df <- ch_df %>%
@@ -1127,6 +1272,8 @@ clean_s4t_ch_obs <- function(s4t_ch) {
   return(clean_s4t_ch)
 }
 
+n <- N <- drop_obs <- age_at_obs <- age_at_time <-
+  holdover <- Site_j <- time_diff <- NULL
 
 # validate_s4t_ch <- function(s4t_ch) {
 #   # not up to date

@@ -9,8 +9,9 @@
 \arguments{
 \item{x}{\code{clean_s4t_ch} object from \code{clean_s4t_ch()}}
 
-\item{...}{passed to \code{print.data.frame()}}
+\item{...}{passed to \code{print.tibble()}}
 }
 \description{
-print summary of \code{clean_s4t_ch} object
+Returns the observations of individuals that had observations dropped
+for data cleaning.
 }
