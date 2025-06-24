@@ -210,35 +210,92 @@ print.s4t_config <- function(x, ...) {
   stopifnot(is(x,"s4t_config"))
 
   cat("Site and age transition configuration object\n")
-  cat("There are N = ",length(s4t_config$sites_names)," with N = ",
-      sum(s4t_config$holdover_config)," sites with holdovers\n",sep="")
-  cat("Sites: ",paste0(s4t_config$sites_names,collapse = ", "),"\n",sep="")
+  cat("\nThere are N = ",length(x$sites_names)," with N = ",
+      sum(x$holdover_config)," sites with holdovers\n",sep="")
+  cat("\nSites: ",paste0(x$sites_names,collapse = ", "),"\n",sep="")
 
-  cat("Sites with holdovers: ",
-      paste0(s4t_config$sites_names[which(rowSums(s4t_config$holdover_config)) > 0],collapse = ", "),
+  cat("\nSites with holdovers: ",
+      paste0(x$sites_names[which(rowSums(x$holdover_config) > 0)],collapse = ", "),
       "\n",
       sep="")
 
-  if (!is.null(s4t_config$sites_to_pool)) {
-    cat("Sites pooled:\n")
-    for (i in 1:length(s4t_config$sites_to_pool)) {
-      cat(names(s4t_config$sites_to_pool)[i]," include: ",paste0(s4t_config$sites_to_pool[[i]],collapse =", "),"\n",
+  if (!is.null(x$sites_to_pool)) {
+    cat("\nSites pooled:\n")
+    for (i in 1:length(x$sites_to_pool)) {
+      cat(names(x$sites_to_pool)[i]," include: ",paste0(x$sites_to_pool[[i]],collapse =", "),"\n",
           sep = "")
     }
 
   }
 
-  cat("Site -> site:\n")
+  cat("\nSite -> site:\n")
 
-  cat(paste0(rownames(s4t_config$sites_config)," -> ",
-             apply(s4t_config$sites_config,1,function(x) colnames(s4t_config$sites_config)[which(x == 1)]),
+  cat(paste0(rownames(x$sites_config)," -> ",
+             apply(x$sites_config,1,function(y) ifelse(length(colnames(x$sites_config)[which(y == 1)]) == 1,
+                                                       colnames(x$sites_config)[which(y == 1)],
+                                                       ""
+                                                       )
+                   ),
              "\n",collapse = "")
       )
 
 
 
-  cat("Age range per site:\n")
-  cat(paste0(s4t_config$sites_names,": ",s4t_config$obs_min_a,"-",s4t_config$obs_max_a,"\n",collapse = ", "))
+  cat("\nAge range per site:\n")
+  cat(paste0(x$sites_names,": ",x$obs_min_a,"-",x$obs_max_a,"\n",collapse = ""))
 
   return(invisible(NULL))
 }
+
+
+
+#' Print summary of `s4t_ch` object
+#'
+#' Print summary of `s4t_ch` object.
+#'
+#'
+#' @param x `s4t_ch` object
+#' @param ... passed to `print()`
+#'
+#'
+print.s4t_ch <- function(x, ...) {
+  stopifnot(is(x,"s4t_ch"))
+
+  cat("Capture history object\n")
+  cat("\nThere are N = ",length(x$sites_names)," with N = ",
+      sum(x$holdover_config)," sites with holdovers\n",sep="")
+  cat("\nSites: ",paste0(x$sites_names,collapse = ", "),"\n",sep="")
+
+  cat("\nSites with holdovers: ",
+      paste0(x$sites_names[which(rowSums(x$holdover_config) > 0)],collapse = ", "),
+      "\n",
+      sep="")
+
+  if (!is.null(x$sites_to_pool)) {
+    cat("\nSites pooled:\n")
+    for (i in 1:length(x$sites_to_pool)) {
+      cat(names(x$sites_to_pool)[i]," include: ",paste0(x$sites_to_pool[[i]],collapse =", "),"\n",
+          sep = "")
+    }
+
+  }
+
+  cat("\nSite -> site:\n")
+
+  cat(paste0(rownames(x$sites_config)," -> ",
+             apply(x$sites_config,1,function(y) ifelse(length(colnames(x$sites_config)[which(y == 1)]) == 1,
+                                                       colnames(x$sites_config)[which(y == 1)],
+                                                       ""
+             )
+             ),
+             "\n",collapse = "")
+  )
+
+
+
+  cat("\nAge range per site:\n")
+  cat(paste0(x$sites_names,": ",x$obs_min_a,"-",x$obs_max_a,"\n",collapse = ""))
+
+  return(invisible(NULL))
+}
+

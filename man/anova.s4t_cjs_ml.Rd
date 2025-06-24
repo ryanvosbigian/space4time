@@ -21,7 +21,7 @@ freedom) and reduced model.
 Compute analysis of variance table.
 }
 \examples{
-#' \dontrun{
+\dontrun{
 sim.dat <- sim_simple_s4t_ch(N = 2000)
 m1 <- fit_s4t_cjs_ml(p_formula = ~ t,
                      theta_formula = ~ a1 * a2 * s * j,
