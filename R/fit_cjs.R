@@ -704,24 +704,46 @@ format_s4t_cjs <- function(p_formula,
 #' Fit space-for-time mark-recapture model in likelihood framework
 #'
 #' @description
-#' Uses optim to fit the age-specific space-for-time model.
+#' Fits the time- and age-specific space-for-time mark-recapture
+#'     model using maximum likelihood.
 #'
-#' @param p_formula an object of class "formula" for the formula for detection probabilities.
-#' @param theta_formula an object of class "formula" for the formula for transition probabilities.
-#' @param ageclass_formula an object of class "formula" for the ageclass sub-model
-#' @param cov_p a `data.frame` or `list` of `data.frame`'s containing the covariates for p. See details.
-#' @param cov_theta a `data.frame` or `list` of `data.frame`'s containing the covariates for theta. See details.
+#' @param p_formula a formula for detection probabilities using default indices
+#'     (a1, a2, s, t, j, k, r, and g) or covariates.
+#' @param theta_formula a formula for transition probabilities using default indices
+#'     (a1, a2, s, t, j, k, r, and g) or covariates.
+#' @param ageclass_formula a formula for the effect structure of the age-class
+#'     sub-model.
+#' @param cov_p a `data.frame` or `list` of `data.frame`'s containing the covariates
+#'     for p `a1,a2,j,k,s,t,r,g` indices. See details.
+#' @param cov_theta a `data.frame` or `list` of `data.frame`'s containing the covariates
+#'     for theta `a1,a2,j,k,s,t,r,g` indices. See details.#' @param groups a `character` vector containing the names of the covariates that comprise the groups.
+#'     Default is no groups (`groups = NULL`).
 #' @param groups a `character` vector containing the names of the covariates that comprise the groups.
 #' @param s4t_ch a `s4t_ch` object
-#' @param ndeps a `numeric` value .....
-#' @param lmm an `integer` of ....
-#' @param maxit an `integer` of the max....
-#' @param fixed_age a `logical` object that determines whether the ageclass model will be run
-#'     as a separate model (TRUE) or whether it is estimated along with the CJS model (FALSE).
+#' @param ndeps a `numeric` value passed to `optim`. See `optim` documentation.
+#' @param lmm an `integer` value passed to `optim`. See `optim` documentation.
+#' @param maxit an `integer` value passed to optim. See `optim` documentation.
+#' @param fixed_age a `logical` value that determines whether the age-class model will be run
+#'     as a separate model (`TRUE`) or whether it is estimated along with the mark-recapture model (`FALSE`).
 #'
-#' @returns a `s4t_cjs` object.
+#' @returns a `s4t_cjs_ml` object.
+#'
+#' @details
+#' Additional details...
+#'
+#'
+#'
 #' @examples
-#' # don't run
+#' \dontrun{
+#' sim.dat <- sim_simple_s4t_ch(N = 2000)
+#' m1 <- fit_s4t_cjs_ml(p_formula = ~ t,
+#'                      theta_formula = ~ a1 * a2 * s * j,
+#'                      ageclass_formula = ~ FL,
+#'                      fixed_age = TRUE,
+#'                      s4t_ch = sim.dat$s4t_ch)
+#' }
+#'
+#'
 #'
 #' @export
 fit_s4t_cjs_ml <- function(p_formula,theta_formula,
@@ -1153,8 +1175,8 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                   estimate, lcl,ucl,estimate_logitscale,se_logitscale)
 
   s4t_cjs <- list(estimated_parameters = estimated_parameters,
-                  overall_surv = ext_overall_surv,
-                  cohort_surv = ext_cohort_surv,
+                  apparent_surv = ext_overall_surv,
+                  cohort_transitions = ext_cohort_surv,
                   res = res,
                   AIC = res$value + 2 * length(res$par),
                   nll = res$value, k = length(res$par),
@@ -1200,15 +1222,19 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 #' Fit space-for-time mark-recapture model in Bayesian framework
 #'
 #' @description
-#' Uses Stan to fit the age-specific space-for-time model.
+#' Fits the time- and age-specific space-for-time mark-recapture
+#'     model in a Bayesian framework using Stan.
 #'
-#' @param p_formula an object of class "formula" for the formula for detection probabilities.
-#' @param theta_formula an object of class "formula" for the formula for transition probabilities.
-#' @param ageclass_formula an object of class "formula" for the ageclass sub-model
+#' @param p_formula a formula for detection probabilities using default indices
+#'     (a1, a2, s, t, j, k, r, and g) or covariates.
+#' @param theta_formula a formula for transition probabilities using default indices
+#'     (a1, a2, s, t, j, k, r, and g) or covariates.
+#' @param ageclass_formula a formula for the effect structure of the age-class
+#'     sub-model.
 #' @param cov_p a `data.frame` or `list` of `data.frame`'s containing the covariates
-#'     for p `j,k,s,t,r,g` indices. See details.
-#' @param cov_theta a `data.frame` or `list` of `data.frame`'s containing the covariates for theta
-#'     `j,k,s,t,r,g` indices. See details.
+#'     for p `a1,a2,j,k,s,t,r,g` indices. See details.
+#' @param cov_theta a `data.frame` or `list` of `data.frame`'s containing the covariates
+#'     for theta `a1,a2,j,k,s,t,r,g` indices. See details.
 #' @param groups a `character` vector containing the names of the covariates that comprise the groups.
 #' @param s4t_ch a `s4t_ch` object
 #' @param chains an `integer` of the number of chains to run.
@@ -1220,7 +1246,14 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 #'
 #' @returns a `s4t_cjs_rstan` object.
 #' @examples
-#' # don't run
+#' \dontrun{
+#' sim.dat <- sim_simple_s4t_ch(N = 2000)
+#' m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+#'                         theta_formula = ~ a1 * a2 * s * j,
+#'                         ageclass_formula = ageclass ~ FL,
+#'                         fixed_age = TRUE,
+#'                         s4t_ch = sim.dat$s4t_ch)
+#' }
 #'
 #' @export
 fit_s4t_cjs_rstan <- function(p_formula,
@@ -1918,8 +1951,8 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
 
   s4t_cjs_rstan <- list(estimated_parameters = estimated_parameters,
-                        overall_surv = ext_overall_surv,
-                        cohort_surv = ext_cohort_surv,
+                        apparent_surv = ext_overall_surv,
+                        cohort_transitions = ext_cohort_surv,
                         res = res,
                         call = match.call(),
                         fit = list(p_formula = p_formula,

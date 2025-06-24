@@ -2,23 +2,36 @@
 % Please edit documentation in R/predict.R
 \name{predict.s4t_ageclass_model}
 \alias{predict.s4t_ageclass_model}
-\title{Predict method for fit_ageclass fits}
+\title{Model predictions from fitted \code{fit_ageclass} objects}
 \usage{
 \method{predict}{s4t_ageclass_model}(object, newdata, type = c("prob", "class", "cum.prob"), ...)
 }
 \arguments{
 \item{object}{a \code{s4t_ageclass_model} object}
 
-\item{newdata}{add description.}
+\item{newdata}{A data frame object in the same format as aux_age_df
+(see documentation for \code{s4t_ch}) containing data to predict age-class.
+If omitted, the fitted values for the \code{aux_age_df} data in the s4t_ch
+from the fitted model object are returned.}
 
-\item{type}{a \code{character} of one of the three option \code{prob}, \code{class},
-or \code{cum.prob}}
+\item{type}{The prediciton type. A \code{character} of one of the three option
+\code{prob}, \code{class}, or \code{cum.prob}. \code{prob} returns a matrix of the probabilities,
+\code{class} returns a vector of the mostly likely age-class (highest probability),
+\code{cum.prob} returns the cumulative probabilities as a matrix (probability that the
+individual is a particular age-class or lower).}
 
-\item{...}{not used}
+\item{...}{not used (needed for generic consistency)}
 }
 \value{
 depends on the type.
 }
 \description{
-add description
+Model predictions from fitted \code{fit_ageclass} objects.
+}
+\examples{
+sim.dat <- sim_simple_s4t_ch(N = 2000)
+m1 <- fit_ageclass(ageclass_formula = ~ FL
+                   s4t_ch = sim.dat$s4t_ch)
+predict(m1,type = "prob")
+
 }

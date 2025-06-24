@@ -2,20 +2,27 @@
 % Please edit documentation in R/plot_ageclass.R
 \name{plot.s4t_ageclass_model}
 \alias{plot.s4t_ageclass_model}
-\title{Plot confusion matrix for fit_ageclass fits}
+\title{Plot confusion matrix for fit_ageclass objects}
 \usage{
-\method{plot}{s4t_ageclass_model}(x, param, ...)
+\method{plot}{s4t_ageclass_model}(x, ...)
 }
 \arguments{
-\item{x}{a \code{s4t_ageclass_model} object}
+\item{x}{a \code{s4t_ageclass_cjs} object}
 
-\item{param}{not used.}
-
-\item{...}{Not used.}
+\item{...}{Other arguments. Not used (needed for generic consistency).}
 }
 \value{
-ggplot2 style figure
+a \code{ggplot} figure showing the confusion matrix of the model fit.
 }
 \description{
-add description. Currently only does confusion matrix.
+Plot confusion matrix for \code{fit_ageclass} objects
+}
+\examples{
+sim.dat <- sim_simple_s4t_ch(N = 2000)
+m1 <- fit_ageclass(ageclass_formula = ~ FL
+                   s4t_ch = sim.dat$s4t_ch)
+plot(m1)
+
+
+
 }

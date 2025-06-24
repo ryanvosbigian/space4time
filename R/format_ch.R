@@ -462,17 +462,42 @@ new_s4t_ch <- function(obs_ch,
 }
 
 
-#' Create capture history object
+#' Create space-for-time mark-recapture capture history object
 #'
 #' @description
-#' A short description...
+#' Create space-for-time mark-recapture capture history object.
 #'
-#' @param ch_df `data.frame` object containing each capture. See LINK VIGNETTE and details.
-#' @param aux_age_df `data.frame` containing auxiliary data for each individual. See LINK VIGNETTE and details.
+#' @param ch_df `data.frame` object containing a row for each capture event. See details.
+#' @param aux_age_df `data.frame` containing auxiliary data for each individual. See details.
 #' @param s4t_config a `s4t_config` object created using `s4t_config()`,
 #'     `linear_s4t_config`, or `simplebranch_s4t_config`.
+#'
 #' @details
-#' Additional details...
+#' The capture history data (`ch_df`) must be a `data.frame` (or coercible
+#'     to a `data.frame`) with exactly four columns named `id`, `site`,
+#'     `time`, and `removed`. Each row is a release and recapture (or observation)
+#'     event. The `id` column is the unique identifier for each individual.
+#'     The `site` column is the site name, which must correspond to the names
+#'     in the `s4t_config` object. The `time` column must either be an integer
+#'     for the time period or a Date. If it is a date, it will be converted to
+#'     years. The last column is a `logical`(i.e. `TRUE` or `FALSE`) that indicates
+#'     whether individuals were removed (i.e. retained) at the event.
+#'
+#' The auxiliary and age data (`aux_age_df`) must be a `data.frame` (or coercible
+#'     to a `data.frame`) that must contain at least three columns named `id`,
+#'     `obs_time`, and `ageclass`. Additional columns can be included
+#'     that contain data on individuals. The `id` column is the unique identifier
+#'     for individuals, `obs_time` is the integer time period (or Date) when the
+#'     individual was first observed or when the `ageclass` of the individual
+#'     was observed. `ageclass` is the integer age of the individual.
+#'     If the `ageclass` was not observed, then `ageclass = NA`, but
+#'     `obs_time` must be filled in. `obs_time` should correspond to the time period
+#'     of the auxiliary data.
+#'
+#' Note that individual covariates can be included in the `s4t_cjs_ml` and `s4t_cjs_rstan`
+#'     models. These covariates are included in the `aux_age_df` data.
+#'
+#'
 #' @examples
 #'
 #' ch_df <- data.frame(id = c(1,1,1,
@@ -520,6 +545,7 @@ new_s4t_ch <- function(obs_ch,
 #'
 #'
 #' @export
+#'
 s4t_ch <- function(ch_df,
                    aux_age_df,
                    s4t_config) {

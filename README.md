@@ -29,22 +29,20 @@ library(space4time)
 set.seed(1)
 
 # simulate data required to make capture history
-sim.dat <- simulate_data(N = 800)
+sim.dat <- sim_simple_s4t_ch(N = 800)
 
 # to make the capture history, need data in a specific format.
 
 # the observations of individuals need to be in a data.frame, with
 # the columns "id", "site", "time", and "removed" (no other columns are used)
-head(sim.dat$ch_df)
-#> # A tibble: 6 × 4
-#>      id site   time removed
-#>   <dbl> <chr> <dbl> <lgl>  
-#> 1     1 1         2 FALSE  
-#> 2     1 2         3 FALSE  
-#> 3     2 1         1 FALSE  
-#> 4     2 2         1 FALSE  
-#> 5     3 1         1 FALSE  
-#> 6     3 2         2 FALSE
+head(sim.dat$s4t_ch$obs_data$ch_df)
+#>   id site time removed
+#> 1  1    1    2   FALSE
+#> 2  1    2    3   FALSE
+#> 3  2    1    1   FALSE
+#> 4  2    2    1   FALSE
+#> 5  3    1    1   FALSE
+#> 6  3    2    2   FALSE
 
 # id is the individual ID. Converted to a character type.
 # site is the name of the site the individual was observed at
@@ -53,14 +51,14 @@ head(sim.dat$ch_df)
 #         was removed at that site (i.e. capture but not released)
 
 # the data on the age of the individuals 
-head(sim.dat$aux_age_df)
-#>      id obs_time   FL ageclass
-#> [1,]  1        2 -2.8       NA
-#> [2,]  2        1 -1.5        2
-#> [3,]  3        1  0.9       NA
-#> [4,]  4        1  4.9        3
-#> [5,]  5        2 -3.6        1
-#> [6,]  6        1  4.8        3
+head(sim.dat$s4t_ch$obs_data$all_aux)
+#>   obs_time   FL ageclass
+#> 1        2 -2.8       NA
+#> 2        1 -1.5        2
+#> 3        1  0.9       NA
+#> 4        1  4.9        3
+#> 5        2 -3.6        1
+#> 6        1  4.8        3
 # the required columns are "id", "obs_time", and "ageclass"
 # id is the individual id. Note that all individuals must be included
 # obs_time is the time when the age of the individuals was observed. Or,
@@ -69,67 +67,8 @@ head(sim.dat$aux_age_df)
 # Other columns can be used in the ageclass submodel or for 
 #           individual based covariates. NAs are not allowed.
 
-
-# the names of the sites
-print(sim.dat$sites_names)
-#> [1] "1" "2" "3"
-
-# the minimum age individuals can be at each site
-print(sim.dat$min_a)
-#> [1] 1 1 1
-
-# the maximum age individuals can be at each site
-print(sim.dat$max_a)
-#> [1] 3 3 3
-
-# sites_config describes the configuration of the sites. Where the row indicates
-# the site an individual can move from, and column indicates the site
-# an individual moves to. If individuals can move from one site to another,
-# than that position in the matrix is 1, otherwise it is 0. 
-# Here: individuals can move from site 1 to site 2, and from site 2 to site 3.
-print(sim.dat$sites_config)
-#>   1 2 3
-#> 1 0 1 0
-#> 2 0 0 1
-#> 3 0 0 0
-# The rows and columns must be in the same order of sites as sites_names. 
-# Here, the names are used in the rows and column names.
-# The only limitation for site configuration is that from any site, individuals
-# can only move to one site. 
-
-# sites_config describes the configuration of which sites individuals can
-# holdover (wait at least one time period) before moving. It uses the same
-# format sites_config, where rows indicate the site an individual is moving
-# from and column is the site it is moving to. 
-# Here: individuals can holdover between sites 1 and 2, but not between
-# sites 2 and 3. 
-print(sim.dat$holdover_config)
-#>   1 2 3
-#> 1 0 1 0
-#> 2 0 0 0
-#> 3 0 0 0
-
-
-# using this information, the capture history is created:
-ch <- s4t_cjs_ch(
-      ch_df = sim.dat$ch_df,
-      aux_age_df = sim.dat$aux_age_df,
-      min_a = sim.dat$min_a,
-      max_a = sim.dat$max_a,
-      sites_names = sim.dat$sites_names,
-      sites_config = sim.dat$sites_config,
-      holdover_config = sim.dat$holdover_config
-    )
-#> Potential error log:
-#> Number of individuals encountered more than once at a site: 0
-#> Number of individuals with a gap in observation times that exceed difference 
-#> in minimum and maximum ages: 0
-#> Number of site/time combinations with less than 10 observations: 1
-#> Number of site/time combinations with no observations: 0
-#> Number of 'zombies' (individuals observed after being removed): 0
-#> Number of individuals with reverse movements: 0
-#> Number of known age individuals with observed ages greater than max_a: 0
-
+# Also need to make the s4t_config object, which describes the sites arrangement,
+# and the ages that individuals can be.
 
 # Fitting the model.
 # p_formula = ~ t : detection probability varies by time (note that
@@ -155,16 +94,16 @@ m1 <- fit_s4t_cjs_rstan(
       theta_formula = ~ a1 * a2 * s * j,
       ageclass_formula = ~ FL,
       fixed_age = TRUE,
-      s4t_ch = ch,
+      s4t_ch = sim.dat$s4t_ch,
       chains = 2,
       warmup = 200,
       iter = 600
     )
 #> 
-#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft6d' NOW (CHAIN 1).
+#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.001426 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 14.26 seconds.
+#> Chain 1: Gradient evaluation took 0.0013 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 13 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -181,15 +120,15 @@ m1 <- fit_s4t_cjs_rstan(
 #> Chain 1: Iteration: 560 / 600 [ 93%]  (Sampling)
 #> Chain 1: Iteration: 600 / 600 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 23.408 seconds (Warm-up)
-#> Chain 1:                52.029 seconds (Sampling)
-#> Chain 1:                75.437 seconds (Total)
+#> Chain 1:  Elapsed Time: 19.786 seconds (Warm-up)
+#> Chain 1:                36.958 seconds (Sampling)
+#> Chain 1:                56.744 seconds (Total)
 #> Chain 1: 
 #> 
-#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft6d' NOW (CHAIN 2).
+#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 2).
 #> Chain 2: 
-#> Chain 2: Gradient evaluation took 0.004928 seconds
-#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 49.28 seconds.
+#> Chain 2: Gradient evaluation took 0.001512 seconds
+#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 15.12 seconds.
 #> Chain 2: Adjust your expectations accordingly!
 #> Chain 2: 
 #> Chain 2: 
@@ -206,14 +145,14 @@ m1 <- fit_s4t_cjs_rstan(
 #> Chain 2: Iteration: 560 / 600 [ 93%]  (Sampling)
 #> Chain 2: Iteration: 600 / 600 [100%]  (Sampling)
 #> Chain 2: 
-#> Chain 2:  Elapsed Time: 29.696 seconds (Warm-up)
-#> Chain 2:                57.351 seconds (Sampling)
-#> Chain 2:                87.047 seconds (Total)
+#> Chain 2:  Elapsed Time: 22.833 seconds (Warm-up)
+#> Chain 2:                36.527 seconds (Sampling)
+#> Chain 2:                59.36 seconds (Total)
 #> Chain 2:
 
 
 # plot the transition probabilities:
-plotTheta(m1)
+plotTransitions(m1)
 ```
 
 <img src="man/figures/README-example-1.png" width="100%" />

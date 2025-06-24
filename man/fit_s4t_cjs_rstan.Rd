@@ -20,17 +20,20 @@ fit_s4t_cjs_rstan(
 )
 }
 \arguments{
-\item{p_formula}{an object of class "formula" for the formula for detection probabilities.}
+\item{p_formula}{a formula for detection probabilities using default indices
+(a1, a2, s, t, j, k, r, and g) or covariates.}
 
-\item{theta_formula}{an object of class "formula" for the formula for transition probabilities.}
+\item{theta_formula}{a formula for transition probabilities using default indices
+(a1, a2, s, t, j, k, r, and g) or covariates.}
 
-\item{ageclass_formula}{an object of class "formula" for the ageclass sub-model}
+\item{ageclass_formula}{a formula for the effect structure of the age-class
+sub-model.}
 
 \item{cov_p}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates
-for p \verb{j,k,s,t,r,g} indices. See details.}
+for p \verb{a1,a2,j,k,s,t,r,g} indices. See details.}
 
-\item{cov_theta}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates for theta
-\verb{j,k,s,t,r,g} indices. See details.}
+\item{cov_theta}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates
+for theta \verb{a1,a2,j,k,s,t,r,g} indices. See details.}
 
 \item{groups}{a \code{character} vector containing the names of the covariates that comprise the groups.}
 
@@ -51,9 +54,17 @@ as a separate model (TRUE) or whether it is estimated along with the CJS model (
 a \code{s4t_cjs_rstan} object.
 }
 \description{
-Uses Stan to fit the age-specific space-for-time model.
+Fits the time- and age-specific space-for-time mark-recapture
+model in a Bayesian framework using Stan.
 }
 \examples{
-# don't run
+\dontrun{
+sim.dat <- sim_simple_s4t_ch(N = 2000)
+m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+                        theta_formula = ~ a1 * a2 * s * j,
+                        ageclass_formula = ageclass ~ FL,
+                        fixed_age = TRUE,
+                        s4t_ch = sim.dat$s4t_ch)
+}
 
 }

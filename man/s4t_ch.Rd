@@ -2,23 +2,45 @@
 % Please edit documentation in R/format_ch.R
 \name{s4t_ch}
 \alias{s4t_ch}
-\title{Create capture history object}
+\title{Create space-for-time mark-recapture capture history object}
 \usage{
 s4t_ch(ch_df, aux_age_df, s4t_config)
 }
 \arguments{
-\item{ch_df}{\code{data.frame} object containing each capture. See LINK VIGNETTE and details.}
+\item{ch_df}{\code{data.frame} object containing a row for each capture event. See details.}
 
-\item{aux_age_df}{\code{data.frame} containing auxiliary data for each individual. See LINK VIGNETTE and details.}
+\item{aux_age_df}{\code{data.frame} containing auxiliary data for each individual. See details.}
 
 \item{s4t_config}{a \code{s4t_config} object created using \code{s4t_config()},
 \code{linear_s4t_config}, or \code{simplebranch_s4t_config}.}
 }
 \description{
-A short description...
+Create space-for-time mark-recapture capture history object.
 }
 \details{
-Additional details...
+The capture history data (\code{ch_df}) must be a \code{data.frame} (or coercible
+to a \code{data.frame}) with exactly four columns named \code{id}, \code{site},
+\code{time}, and \code{removed}. Each row is a release and recapture (or observation)
+event. The \code{id} column is the unique identifier for each individual.
+The \code{site} column is the site name, which must correspond to the names
+in the \code{s4t_config} object. The \code{time} column must either be an integer
+for the time period or a Date. If it is a date, it will be converted to
+years. The last column is a \code{logical}(i.e. \code{TRUE} or \code{FALSE}) that indicates
+whether individuals were removed (i.e. retained) at the event.
+
+The auxiliary and age data (\code{aux_age_df}) must be a \code{data.frame} (or coercible
+to a \code{data.frame}) that must contain at least three columns named \code{id},
+\code{obs_time}, and \code{ageclass}. Additional columns can be included
+that contain data on individuals. The \code{id} column is the unique identifier
+for individuals, \code{obs_time} is the integer time period (or Date) when the
+individual was first observed or when the \code{ageclass} of the individual
+was observed. \code{ageclass} is the integer age of the individual.
+If the \code{ageclass} was not observed, then \code{ageclass = NA}, but
+\code{obs_time} must be filled in. \code{obs_time} should correspond to the time period
+of the auxiliary data.
+
+Note that individual covariates can be included in the \code{s4t_cjs_ml} and \code{s4t_cjs_rstan}
+models. These covariates are included in the \code{aux_age_df} data.
 }
 \examples{
 

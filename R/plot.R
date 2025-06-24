@@ -2,32 +2,50 @@
 
 
 
-#' Plot s4t_cjs or s4t_cjs_rstan object results
+#' Plot transition probability estimates from fitted `s4t_cjs_ml` or `s4t_cjs_rstan`objects
 #'
-#' add description
+#' @description
+#' Plot transition probability estimates (which include movement and survival
+#'     probabilities) from fitted `s4t_cjs_ml` or `s4t_cjs_rstan`objects.
+#'     If the package `geomtextpath` is installed, the figure is more visually appealing.
+#'
+#'
 #' @export
 #'
 #' @param x a `s4t_cjs` or `s4t_cjs_rstan` object
 #' @param textsize an integer for the font size to pass to `geomtextpath::geom_textsegment()`
-#' @param ... not used
-#' @returns a ggplot2 type figure of the transition probabilities
-plotTheta <- function(x,textsize = 3, ...) {
+#' @param ... passed to `dplyr::filter()` for selecting particular survivals. Filters
+#'     apparent survivals from `s4t_cjs_ml$apparent_surv` or `s4t_cjs_rstan$apparent_surv`
+#' @returns a `ggplot2` figure showing estimated transition probabilities.
+#'
+#' @examples
+#' \dontrun{
+#'  sim.dat <- sim_simple_s4t_ch(N = 2000)
+#'  m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+#'                          theta_formula = ~ a1 * a2 * s * j,
+#'                          ageclass_formula = ageclass ~ FL,
+#'                          fixed_age = TRUE,
+#'                          s4t_ch = sim.dat$s4t_ch)
+#' plotTransitions(m1)
+#' }
+#'
+plotTransitions <- function(x,textsize = 3, ...) {
   if (!is(x,"s4t_cjs_ml") & !is(x,"s4t_cjs_rstan")) stop("x must be class s4t_cjs or s4t_cjs_rstan")
 
-  cohort_surv <- as.data.frame(x$cohort_surv)
+  cohort_transitions <- as.data.frame(x$cohort_transitions)
 
-  # if ("mean" %in% colnames(cohort_surv)) {
-  #   cohort_surv$estimate <- cohort_surv$mean
+  # if ("mean" %in% colnames(cohort_transitions)) {
+  #   cohort_transitions$estimate <- cohort_transitions$mean
   # }
 
   if (is(x,"s4t_cjs_rstan")) {
-    cohort_surv$estimate <- cohort_surv$mean
+    cohort_transitions$estimate <- cohort_transitions$mean
   } else {
-    cohort_surv$estimate <- cohort_surv$estimate
+    cohort_transitions$estimate <- cohort_transitions$estimate
   }
 
   # suggest geomtextpath and then use geom_textsegment if available
-  p <- cohort_surv %>%
+  p <- cohort_transitions %>%
     as.data.frame() %>%
     dplyr::mutate(site_diff = as.integer(as.character(k)) - as.integer(as.character(j)),
            age_diff = as.integer(as.character(a2)) - as.integer(as.character(a1)),
@@ -78,29 +96,46 @@ plotTheta <- function(x,textsize = 3, ...) {
 
 
 
-#' Plot s4t_cjs or s4t_cjs_rstan object results
+#' Plot apparent survival estimates from fitted `s4t_cjs_ml` or `s4t_cjs_rstan`objects
 #'
-#' add description
+#' @description
+#' Plot apparent survival estimates from fitted `s4t_cjs_ml` or `s4t_cjs_rstan`objects.
+#'     If the package `geomtextpath` is installed, the figure is more visually appealing.
+#'
+#'
 #' @export
 #'
 #' @param x a `s4t_cjs` or `s4t_cjs_rstan` object
 #' @param textsize an integer for the font size to pass to `geomtextpath::geom_textsegment()`
-#' @param ... not used
-#' @returns a ggplot2 type figure of the apparent survivals
+#' @param ... passed to `dplyr::filter()` for selecting particular survivals. Filters
+#'     apparent survivals from `s4t_cjs_ml$apparent_surv` or `s4t_cjs_rstan$apparent_surv`
+#' @returns a `ggplot2` figure showing estimated apparent survival
+#'
+#' @examples
+#' \dontrun{
+#'  sim.dat <- sim_simple_s4t_ch(N = 2000)
+#'  m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+#'                          theta_formula = ~ a1 * a2 * s * j,
+#'                          ageclass_formula = ageclass ~ FL,
+#'                          fixed_age = TRUE,
+#'                          s4t_ch = sim.dat$s4t_ch)
+#' plotSurvival(m1)
+#' }
+#'
 plotSurvival <- function(x,textsize = 3, ...) {
 
   if (!is(x,"s4t_cjs_ml") & !is(x,"s4t_cjs_rstan")) stop("x must be class s4t_cjs or s4t_cjs_rstan")
 
-  overall_surv <- as.data.frame(x$overall_surv)
+  apparent_surv <- as.data.frame(x$apparent_surv)
 
   if (is(x,"s4t_cjs_rstan")) {
-    overall_surv$estimate <- overall_surv$mean
+    apparent_surv$estimate <- apparent_surv$mean
   } else {
-    overall_surv$estimate <- overall_surv$estimate
+    apparent_surv$estimate <- apparent_surv$estimate
   }
 
   # suggest geomtextpath and then use geom_textsegment if available
-  p <- overall_surv %>%
+  p <- apparent_surv %>%
     as.data.frame() %>%
     dplyr::mutate(site_diff = as.integer(as.character(k)) - as.integer(as.character(j)),
                   # age_diff = as.integer(as.character(a2)) - as.integer(as.character(a1)),

@@ -1,10 +1,29 @@
 
-#' summary of s4t_cjs_ml object
+#' Summarize a fitted model object
 #'
-#' @param object A s4t_cjs_ml object
-#' @param ... Not used
-#' @returns estimated parameters table and AIC
+#' @description
+#' Summarize a fitted `s4t_cjs_ml` object.
+#'
+#'
+#' @param object a `s4t_cjs_ml` object
+#' @param ... Other arguments. Not used (needed for generic consistency).
+#' @returns A list with several fitted model quantities to create
+#'     summaries when printing, including estimated parameters AIC.
+#'
+#'
+#' @examples
+#' \dontrun{
+#' sim.dat <- sim_simple_s4t_ch(N = 2000)
+#' m1 <- fit_s4t_cjs_ml(p_formula = ~ t,
+#'                       theta_formula = ~ a1 * a2 * s * j,
+#'                       ageclass_formula = ~ FL,
+#'                       fixed_age = TRUE,
+#'                       s4t_ch = sim.dat$s4t_ch)
+#' summary(m1)
+#' }
+#'
 #' @export
+#'
 summary.s4t_cjs_ml <- function(object, ...) {
   # print(object$estimated_parameters,digits = 4)
   # print(data.frame(AIC = round(object$AIC,2)))
@@ -36,19 +55,38 @@ summary.s4t_cjs_ml <- function(object, ...) {
 }
 
 
-#' summary of s4t_cjs_rstan object
+#' Summary method for `s4t_cjs_rstan` objects
 #'
 #' @description
-#' Calls `summary,stanfit-method`.
+#' Summarize the distributions of the estimated parameters and derived quantities
+#'     regarding MCMC sampling. Calls `summary,stanfit-method`.
 #'
 #'
-#' @param object A s4t_cjs_rstan object.
-#' @param pars regular expressions
-#' @param probs a numerical vector of quantiles of interest.
+#' @param object A `s4t_cjs_rstan` object.
+#' @param pars A `character` value that returns parameters that match using regular expressions.
+#'     Defaults to all parameters.
+#' @param probs a numerical vector of quantiles of interest. Default is
+#'     `c(0.025, 0.25, 0.50, 0.75, 0.975)`
 #' @param ... Additional arguments to pass to `summary,stanfit-method`.
 #'
-#' @returns Returns a named list with ...
+#' @returns Returns a named list with elements `summary` and `c_summary`, which contain
+#'     the summaries for all chains merged and individual chains, respectively. See
+#'     `summary,stanfit-method` documentation for more details.
+#'
+#' @examples
+#' \dontrun{
+#'  sim.dat <- sim_simple_s4t_ch(N = 2000)
+#'  m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+#'                          theta_formula = ~ a1 * a2 * s * j,
+#'                          ageclass_formula = ageclass ~ FL,
+#'                          fixed_age = TRUE,
+#'                          s4t_ch = sim.dat$s4t_ch)
+#' summary(m1)
+#' }
+#'
+#'
 #' @export
+#'
 summary.s4t_cjs_rstan <- function(object,
                                   pars = NULL,
                                   probs = c(0.025, 0.25, 0.50, 0.75, 0.975),
@@ -75,13 +113,45 @@ summary.s4t_cjs_rstan <- function(object,
   # return(invisible(s))
 }
 
-#' summary of s4t_ageclass_cjs object
+
+#' Summarize a fitted model object
 #'
-#' @param object A s4t_ageclass_cjs object
-#' @param ... Not used
-#' @returns estimated parameters table and AIC
+#' @description
+#' Summarize a fitted `s4t_ageclass_cjs` object.
+#'
+#'
+#' @param object a `s4t_ageclass_cjs` object
+#' @param ... Other arguments. Not used (needed for generic consistency).
+#' @returns A list with several fitted model quantities to create
+#'     summaries when printing, including estimated parameters AIC.
+#'
+#'
+#' @examples
+#' \dontrun{
+#' sim.dat <- sim_simple_s4t_ch(N = 2000)
+#' m1 <- fit_ageclass(ageclass_formula = ~ FL
+#'                    s4t_ch = sim.dat$s4t_ch)
+#' summary(m1)
+#' }
+#'
+#'
 #' @export
 summary.s4t_ageclass_model <- function(object, ...) {
+
+  coefficients <- object$estimated_parameters$estimate
+
+  summary_list <- list(
+    call = object$call,
+    terms = object$estimated_parameters$parameter,
+    coefficients = coefficients,
+    AIC = object$AIC,
+    vcov = object$vcov
+  )
+
+  new_summary_list <- structure(summary_list, class = paste("summary", class(object), sep = "."))
+  new_summary_list
+
+
   print(object$estimated_parameters,digits = 4)
   # data.frame(AIC = object$AIC)
   print(data.frame(AIC = round(object$AIC,2)))
@@ -89,14 +159,34 @@ summary.s4t_ageclass_model <- function(object, ...) {
 }
 
 
-#' ANOVA table for mark-recapture model fits
+#' Compute likelihood ratio tests of two fitted model objects
 #'
 #' @description
 #' Compute analysis of variance table.
 #'
 #' @param object object of class `s4t_cjs_ml`
-#' @param ... object of class `s4t_cjs_ml`
-#' @returns An object of class `anova` inheriting form class `data.frame` ???
+#' @param ... object of class `s4t_cjs_ml` (for generic consistency)
+#' @returns Returns a data frame with the difference in degrees of freedom,
+#'     test statistic (chi-squared), and p-value for the likelihood ratio tests
+#'     between the full (assumed to be the model with the largest degrees of
+#'     freedom) and reduced model.
+#'
+#' @examples
+#' \dontrun{
+#' sim.dat <- sim_simple_s4t_ch(N = 2000)
+#' m1 <- fit_s4t_cjs_ml(p_formula = ~ t,
+#'                      theta_formula = ~ a1 * a2 * s * j,
+#'                      ageclass_formula = ~ FL,
+#'                      fixed_age = TRUE,
+#'                      s4t_ch = sim.dat$s4t_ch)
+#' m2 <- fit_s4t_cjs_ml(p_formula = ~ t * a1 * a2,
+#'                      theta_formula = ~ a1 * a2 * s * j,
+#'                      ageclass_formula = ~ FL,
+#'                      fixed_age = TRUE,
+#'                      s4t_ch = sim.dat$s4t_ch)
+#' anova(m1, m2)
+#' }
+#'
 #'
 #' @export
 anova.s4t_cjs_ml <- function(object, ...) {
@@ -160,16 +250,29 @@ anova.s4t_cjs_ml <- function(object, ...) {
   structure(anova_summary, class = c(paste("anova", class(object), sep = "."), "data.frame"))
 }
 
-#' AIC table for ageclass model fits
+#' Compute likelihood ratio tests of two fitted model objects
 #'
 #' @description
 #' Compute analysis of variance table.
 #'
-#' @param object object of class `s4t_ageclass_model`
-#' @param ... object of class `s4t_ageclass_model`
-#' @returns An object of class `anova` inheriting from class `data.frame` ??
+#' @param object object of class `s4t_ageclass_model` created using `fit_ageclass()`
+#' @param ... object of class `s4t_ageclass_model` (for generic consistency)
+#' @returns Returns a data frame with the difference in degrees of freedom,
+#'     test statistic (chi-squared), and p-value for the likelihood ratio tests
+#'     between the full (assumed to be the model with the largest degrees of
+#'     freedom) and reduced model.
 #'
-#' @export
+#' @examples
+#' \dontrun{
+#' sim.dat <- sim_simple_s4t_ch(N = 2000)
+#' m1 <- fit_ageclass(ageclass_formula = ~ FL + obs_time,
+#'                    s4t_ch = sim.dat$s4t_ch)
+#' m2 <- fit_ageclass(ageclass_formula = ~ FL + I(FL^2) + obs_time,
+#'                    s4t_ch = sim.dat$s4t_ch)
+#' anova(m1, m2)
+#' }
+#'
+#'
 anova.s4t_ageclass_model <- function(object, ...) {
   mCall <- match.call(expand.dots = TRUE)
   dots <- list(...)
@@ -233,7 +336,7 @@ anova.s4t_ageclass_model <- function(object, ...) {
 
 
 
-#' Compute and return AIC of fitted model objects
+#' Compute AIC of fitted model objects
 #'
 #' @description
 #' Compute AIC of one or more fitted `s4t_cjs_ml` model objects
@@ -246,6 +349,22 @@ anova.s4t_ageclass_model <- function(object, ...) {
 #'     corresponding AIC. If more than one is provided, it returns a `data.frame`
 #'     with rows corresponding to the objects and columns representing
 #'     the number of parameters estimated (`df`), and the AIC
+#'
+#' @examples
+#' \dontrun{
+#' sim.dat <- sim_simple_s4t_ch(N = 2000)
+#' m1 <- fit_s4t_cjs_ml(p_formula = ~ t,
+#'                      theta_formula = ~ a1 * a2 * s * j,
+#'                      ageclass_formula = ~ FL,
+#'                      fixed_age = TRUE,
+#'                      s4t_ch = sim.dat$s4t_ch)
+#' m2 <- fit_s4t_cjs_ml(p_formula = ~ t * a1 * a2,
+#'                      theta_formula = ~ a1 * a2 * s * j,
+#'                      ageclass_formula = ~ FL,
+#'                      fixed_age = TRUE,
+#'                      s4t_ch = sim.dat$s4t_ch)
+#' AIC(m1, m2)
+#' }
 #'
 #' @export
 AIC.s4t_cjs_ml <- function(object, ..., k = 2) {
@@ -276,7 +395,19 @@ AIC.s4t_cjs_ml <- function(object, ..., k = 2) {
 #'     with rows corresponding to the objects and columns representing
 #'     the number of parameters estimated (`df`), and the AIC
 #'
+#'
+#' @examples
+#' \dontrun{
+#' sim.dat <- sim_simple_s4t_ch(N = 2000)
+#' m1 <- fit_ageclass(ageclass_formula = ~ FL + obs_time,
+#'                    s4t_ch = sim.dat$s4t_ch)
+#' m2 <- fit_ageclass(ageclass_formula = ~ FL + I(FL^2) + obs_time,
+#'                    s4t_ch = sim.dat$s4t_ch)
+#' AIC(m1, m2)
+#' }
+#'
 #' @export
+#'
 AIC.s4t_ageclass_model <- function(object, ..., k = 2) {
   object_list <- list(object, ...)
   if (length(object_list) == 1) {
@@ -292,15 +423,32 @@ AIC.s4t_ageclass_model <- function(object, ..., k = 2) {
 }
 
 
-#' Extract s4t_ageclass_model object from s4t_cjs_rstan or s4t_cjs_ml
+#' Extract `s4t_ageclass_model` object from a `s4t_cjs_rstan` or `s4t_cjs_ml` object
 #'
-#' Add description
+#' @description
+#' Extract `s4t_ageclass_model` object from a `s4t_cjs_rstan` or `s4t_cjs_ml` object
+#'     that was fit using `fixed_age = TRUE`, where the age-class sub-model
+#'     was fit separately and the age-class probabilities were incorporated
+#'     into the mark-recapture model.
+#'
 #'
 #' @export
-#' @param object a s4t_cjs_rstan or s4t_cjs_ml object
-#' @returns a s4t_ageclass_model object
+#'
+#' @param object a `s4t_cjs_rstan` or `s4t_cjs_ml` object
+#' @returns a `s4t_ageclass_model` object
+#'
+#' @examples
+#' \dontrun{
+#' sim.dat <- sim_simple_s4t_ch(N = 2000)
+#' m1 <- fit_s4t_cjs_ml(p_formula = ~ t,
+#'                      theta_formula = ~ a1 * a2 * s * j,
+#'                      ageclass_formula = ~ FL,
+#'                      fixed_age = TRUE,
+#'                      s4t_ch = sim.dat$s4t_ch)
+#' extract_ageclass_fit(m1)
+#' }
 extract_ageclass_fit <- function(object) {
-  if (object$call$fixed_age == FALSE) {
+  if (object$fit$fixed_age$fixed_age == FALSE) {
     stop("Cannot extract ageclass fit when ageclass\n is integrated into the mark-recapture model.")
   }
   object$fit$fixed_age$ageclass_fit

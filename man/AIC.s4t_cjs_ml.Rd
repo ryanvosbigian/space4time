@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_summary.R
 \name{AIC.s4t_cjs_ml}
 \alias{AIC.s4t_cjs_ml}
-\title{Compute and return AIC of fitted model objects}
+\title{Compute AIC of fitted model objects}
 \usage{
 \method{AIC}{s4t_cjs_ml}(object, ..., k = 2)
 }
@@ -22,4 +22,21 @@ the number of parameters estimated (\code{df}), and the AIC
 }
 \description{
 Compute AIC of one or more fitted \code{s4t_cjs_ml} model objects
+}
+\examples{
+\dontrun{
+sim.dat <- sim_simple_s4t_ch(N = 2000)
+m1 <- fit_s4t_cjs_ml(p_formula = ~ t,
+                     theta_formula = ~ a1 * a2 * s * j,
+                     ageclass_formula = ~ FL,
+                     fixed_age = TRUE,
+                     s4t_ch = sim.dat$s4t_ch)
+m2 <- fit_s4t_cjs_ml(p_formula = ~ t * a1 * a2,
+                     theta_formula = ~ a1 * a2 * s * j,
+                     ageclass_formula = ~ FL,
+                     fixed_age = TRUE,
+                     s4t_ch = sim.dat$s4t_ch)
+AIC(m1, m2)
+}
+
 }

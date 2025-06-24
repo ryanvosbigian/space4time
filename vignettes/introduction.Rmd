@@ -32,55 +32,55 @@ The development of this model was motivated by migrating juvenile steelhead, whi
 To demonstrate the format that data need to be in to be read, we will simulate data using a built-in function
 
 ```{r simulate data}
-sim.dat <- simulate_data(N = 800)
+sim.dat <- sim_simple_s4t_ch(N = 800)
 ```
 
 
-This returns a list. The key pieces of data of interest are
+This returns a capture history object (`s4t_ch`). The key pieces of data of interest are
 
 The capture history data:
 
 ```{r echo= FALSE}
-knitr::kable(head(sim.dat$ch_df))
+knitr::kable(head(sim.dat$s4t_ch$ch_df))
 ```
 
 
 Individual auxiliary data:
 
 ```{r echo= FALSE}
-knitr::kable(head(sim.dat$aux_age_df))
+knitr::kable(head(sim.dat$s4t_ch$aux_age_df))
 ```
 
 
 `sites_config`:
 
 ```{r echo= FALSE}
-knitr::kable(sim.dat$sites_config)
+knitr::kable(sim.dat$s4t_ch$s4t_config$sites_config)
 ```
 
 `holdover_config`:
 
 ```{r echo= FALSE}
-knitr::kable(sim.dat$holdover_config)
+knitr::kable(sim.dat$s4t_ch$s4t_config$holdover_config)
 ```
 
 `sites_names`:
 
 ```{r echo= FALSE}
-knitr::kable(sim.dat$sites_names)
+knitr::kable(sim.dat$s4t_ch$s4t_config$sites_names)
 ```
 
 
 `min_a`:
 
 ```{r echo= FALSE}
-knitr::kable(sim.dat$min_a)
+knitr::kable(sim.dat$s4t_ch$s4t_config$min_a)
 ```
 
 
 `max_a`:
 
 ```{r echo= FALSE}
-knitr::kable(sim.dat$max_a)
+knitr::kable(sim.dat$s4t_ch$s4t_config$max_a)
 ```
 

@@ -1,14 +1,25 @@
 
 
-#' Fit ageclass model using ordinal regression
+#' Fit age-class model using ordinal regression
 #'
-#' add description
+#' @description
+#' Fit age-class ordinal regression model with logit link and
+#'     flexible threshold parameters.
+#'
 #'
 #' @export
-#' @param age_formula a `formula` object
+#' @param age_formula a one- or two-sided `formula` describing the effect
+#'     structure of the model.
 #' @param s4t_ch a `s4t_ch` object
-#' @returns a fitted `s4t_ageclass_model` object
-fit_ageclass <- function(age_formula  = ~ 1,
+#' @returns a fitted `s4t_ageclass_model` object that contains the estimated
+#'     parameters, AIC, negative log likelihood, and call.
+#'
+#' @examples
+#' sim.dat <- sim_simple_s4t_ch()
+#' m <- fit_ageclass(ageclass ~ FL + obs_time,s4t_ch = sim.dat$s4t_ch)
+#' summary(m)
+#'
+fit_ageclass <- function(age_formula = ageclass ~ 1,
                          s4t_ch) {
 
   # validate_s4t_ch(s4t_ch)

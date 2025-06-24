@@ -2,18 +2,31 @@
 % Please edit documentation in R/fit_summary.R
 \name{summary.s4t_cjs_ml}
 \alias{summary.s4t_cjs_ml}
-\title{summary of s4t_cjs_ml object}
+\title{Summarize a fitted model object}
 \usage{
 \method{summary}{s4t_cjs_ml}(object, ...)
 }
 \arguments{
-\item{object}{A s4t_cjs_ml object}
+\item{object}{a \code{s4t_cjs_ml} object}
 
-\item{...}{Not used}
+\item{...}{Other arguments. Not used (needed for generic consistency).}
 }
 \value{
-estimated parameters table and AIC
+A list with several fitted model quantities to create
+summaries when printing, including estimated parameters AIC.
 }
 \description{
-summary of s4t_cjs_ml object
+Summarize a fitted \code{s4t_cjs_ml} object.
+}
+\examples{
+\dontrun{
+sim.dat <- sim_simple_s4t_ch(N = 2000)
+m1 <- fit_s4t_cjs_ml(p_formula = ~ t,
+                      theta_formula = ~ a1 * a2 * s * j,
+                      ageclass_formula = ~ FL,
+                      fixed_age = TRUE,
+                      s4t_ch = sim.dat$s4t_ch)
+summary(m1)
+}
+
 }

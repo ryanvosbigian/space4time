@@ -51,16 +51,14 @@ test_that("s4t_ch can be made from simulated data", {
                                 min_a =c(1,1,1),
                                 max_a = c(3,3,3))
 
-  sim.dat <- simulate_data(N = 2000,
-                           max_obs_year = 2
-  )
 
 
-  expect_no_error(suppressMessages(s4t_ch(
-    ch_df = sim.dat$ch_df,
-    aux_age_df = sim.dat$aux_age_df,
-    site_arr
-  )))
+
+  expect_no_error(suppressMessages(
+    sim.dat <- sim_simple_s4t_ch(N = 2000,
+                                 max_obs_year = 2
+    )
+  ))
 
 })
 

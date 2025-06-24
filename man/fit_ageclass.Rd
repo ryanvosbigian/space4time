@@ -2,18 +2,27 @@
 % Please edit documentation in R/fit_ageclass.R
 \name{fit_ageclass}
 \alias{fit_ageclass}
-\title{Fit ageclass model using ordinal regression}
+\title{Fit age-class model using ordinal regression}
 \usage{
-fit_ageclass(age_formula = ~1, s4t_ch)
+fit_ageclass(age_formula = ageclass ~ 1, s4t_ch)
 }
 \arguments{
-\item{age_formula}{a \code{formula} object}
+\item{age_formula}{a one- or two-sided \code{formula} describing the effect
+structure of the model.}
 
 \item{s4t_ch}{a \code{s4t_ch} object}
 }
 \value{
-a fitted \code{s4t_ageclass_model} object
+a fitted \code{s4t_ageclass_model} object that contains the estimated
+parameters, AIC, negative log likelihood, and call.
 }
 \description{
-add description
+Fit age-class ordinal regression model with logit link and
+flexible threshold parameters.
+}
+\examples{
+sim.dat <- sim_simple_s4t_ch()
+m <- fit_ageclass(ageclass ~ FL + obs_time,s4t_ch = sim.dat$s4t_ch)
+summary(m)
+
 }

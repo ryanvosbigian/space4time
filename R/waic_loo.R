@@ -1,7 +1,8 @@
 
 #' Efficient approximate leave-one-out cross-validation (LOO)
 #'
-#' add description
+#'
+#'
 #' @export
 #'
 #' @importFrom loo loo

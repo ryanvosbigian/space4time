@@ -2,18 +2,29 @@
 % Please edit documentation in R/fit_summary.R
 \name{summary.s4t_ageclass_model}
 \alias{summary.s4t_ageclass_model}
-\title{summary of s4t_ageclass_cjs object}
+\title{Summarize a fitted model object}
 \usage{
 \method{summary}{s4t_ageclass_model}(object, ...)
 }
 \arguments{
-\item{object}{A s4t_ageclass_cjs object}
+\item{object}{a \code{s4t_ageclass_cjs} object}
 
-\item{...}{Not used}
+\item{...}{Other arguments. Not used (needed for generic consistency).}
 }
 \value{
-estimated parameters table and AIC
+A list with several fitted model quantities to create
+summaries when printing, including estimated parameters AIC.
 }
 \description{
-summary of s4t_ageclass_cjs object
+Summarize a fitted \code{s4t_ageclass_cjs} object.
+}
+\examples{
+\dontrun{
+sim.dat <- sim_simple_s4t_ch(N = 2000)
+m1 <- fit_ageclass(ageclass_formula = ~ FL
+                   s4t_ch = sim.dat$s4t_ch)
+summary(m1)
+}
+
+
 }

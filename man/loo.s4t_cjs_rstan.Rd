@@ -15,5 +15,5 @@
 a \verb{ADD DETAILS} object
 }
 \description{
-add description
+Efficient approximate leave-one-out cross-validation (LOO)
 }

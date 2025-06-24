@@ -1,16 +1,28 @@
 
-#' Plot confusion matrix for fit_ageclass fits
+#' Plot confusion matrix for fit_ageclass objects
 #'
-#' add description. Currently only does confusion matrix.
+#' @description
+#' Plot confusion matrix for `fit_ageclass` objects
+#'
 #'
 #' @export
 #'
-#' @param x a `s4t_ageclass_model` object
-#' @param param not used.
-#' @param ... Not used.
-#' @returns ggplot2 style figure
-plot.s4t_ageclass_model <- function(x, param,...) {
-
+#' @param x a `s4t_ageclass_cjs` object
+#' @param ... Other arguments. Not used (needed for generic consistency).
+#' @returns a `ggplot` figure showing the confusion matrix of the model fit.
+#'
+#'
+#' @examples
+#' sim.dat <- sim_simple_s4t_ch(N = 2000)
+#' m1 <- fit_ageclass(ageclass_formula = ~ FL
+#'                    s4t_ch = sim.dat$s4t_ch)
+#' plot(m1)
+#'
+#'
+#'
+#' @export
+plot.s4t_ageclass_model <- function(x, ...) {
+  # param
 
   # check that param is a character and length 1
 

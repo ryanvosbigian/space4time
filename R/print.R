@@ -193,4 +193,52 @@ print.clean_s4t_ch <- function(x, ...) {
   # return(invisible(NULL))
 }
 
+
+
 drop_obs <- NULL
+
+#' Print summary of `s4t_config` object
+#'
+#' Print summary of `s4t_config` object.
+#'
+#' @export
+#' @param x `s4t_config` object
+#' @param ... passed to `print()`
+#'
+#' @export
+print.s4t_config <- function(x, ...) {
+  stopifnot(is(x,"s4t_config"))
+
+  cat("Site and age transition configuration object\n")
+  cat("There are N = ",length(s4t_config$sites_names)," with N = ",
+      sum(s4t_config$holdover_config)," sites with holdovers\n",sep="")
+  cat("Sites: ",paste0(s4t_config$sites_names,collapse = ", "),"\n",sep="")
+
+  cat("Sites with holdovers: ",
+      paste0(s4t_config$sites_names[which(rowSums(s4t_config$holdover_config)) > 0],collapse = ", "),
+      "\n",
+      sep="")
+
+  if (!is.null(s4t_config$sites_to_pool)) {
+    cat("Sites pooled:\n")
+    for (i in 1:length(s4t_config$sites_to_pool)) {
+      cat(names(s4t_config$sites_to_pool)[i]," include: ",paste0(s4t_config$sites_to_pool[[i]],collapse =", "),"\n",
+          sep = "")
+    }
+
+  }
+
+  cat("Site -> site:\n")
+
+  cat(paste0(rownames(s4t_config$sites_config)," -> ",
+             apply(s4t_config$sites_config,1,function(x) colnames(s4t_config$sites_config)[which(x == 1)]),
+             "\n",collapse = "")
+      )
+
+
+
+  cat("Age range per site:\n")
+  cat(paste0(s4t_config$sites_names,": ",s4t_config$obs_min_a,"-",s4t_config$obs_max_a,"\n",collapse = ", "))
+
+  return(invisible(NULL))
+}

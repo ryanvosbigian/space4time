@@ -2,16 +2,30 @@
 % Please edit documentation in R/fit_summary.R
 \name{extract_ageclass_fit}
 \alias{extract_ageclass_fit}
-\title{Extract s4t_ageclass_model object from s4t_cjs_rstan or s4t_cjs_ml}
+\title{Extract \code{s4t_ageclass_model} object from a \code{s4t_cjs_rstan} or \code{s4t_cjs_ml} object}
 \usage{
 extract_ageclass_fit(object)
 }
 \arguments{
-\item{object}{a s4t_cjs_rstan or s4t_cjs_ml object}
+\item{object}{a \code{s4t_cjs_rstan} or \code{s4t_cjs_ml} object}
 }
 \value{
-a s4t_ageclass_model object
+a \code{s4t_ageclass_model} object
 }
 \description{
-Add description
+Extract \code{s4t_ageclass_model} object from a \code{s4t_cjs_rstan} or \code{s4t_cjs_ml} object
+that was fit using \code{fixed_age = TRUE}, where the age-class sub-model
+was fit separately and the age-class probabilities were incorporated
+into the mark-recapture model.
+}
+\examples{
+\dontrun{
+sim.dat <- sim_simple_s4t_ch(N = 2000)
+m1 <- fit_s4t_cjs_ml(p_formula = ~ t,
+                     theta_formula = ~ a1 * a2 * s * j,
+                     ageclass_formula = ~ FL,
+                     fixed_age = TRUE,
+                     s4t_ch = sim.dat$s4t_ch)
+extract_ageclass_fit(m1)
+}
 }

@@ -169,18 +169,36 @@ predictTheta.s4t_cjs_rstan <- function(object,newdata = NULL,lcl = 0.025,
 }
 
 
-#' Predict method for fit_ageclass fits
+#' Model predictions from fitted `fit_ageclass` objects
 #'
-#' add description
+#' @description
+#' Model predictions from fitted `fit_ageclass` objects.
+#'
 #'
 #' @export
 #'
 #' @param object a `s4t_ageclass_model` object
-#' @param newdata add description.
-#' @param type a `character` of one of the three option `prob`, `class`,
-#'    or `cum.prob`
-#' @param ... not used
+#' @param newdata A data frame object in the same format as aux_age_df
+#'     (see documentation for `s4t_ch`) containing data to predict age-class.
+#'     If omitted, the fitted values for the `aux_age_df` data in the s4t_ch
+#'     from the fitted model object are returned.
+#' @param type The prediciton type. A `character` of one of the three option
+#'    `prob`, `class`, or `cum.prob`. `prob` returns a matrix of the probabilities,
+#'    `class` returns a vector of the mostly likely age-class (highest probability),
+#'    `cum.prob` returns the cumulative probabilities as a matrix (probability that the
+#'    individual is a particular age-class or lower).
+#' @param ... not used (needed for generic consistency)
+#'
 #' @returns depends on the type.
+#'
+#' @export
+#'
+#' @examples
+#' sim.dat <- sim_simple_s4t_ch(N = 2000)
+#' m1 <- fit_ageclass(ageclass_formula = ~ FL
+#'                    s4t_ch = sim.dat$s4t_ch)
+#' predict(m1,type = "prob")
+#'
 predict.s4t_ageclass_model <- function(object, newdata,
                                  type = c("prob","class","cum.prob"),
                                  ...) {
@@ -220,9 +238,6 @@ predict.s4t_ageclass_model <- function(object, newdata,
     cum.prob <- t(apply(prob,1,function(x) cumsum(x)))
     return(cum.prob)
   }
-
-
-
 
 
 }

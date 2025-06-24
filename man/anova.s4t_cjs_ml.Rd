@@ -2,18 +2,39 @@
 % Please edit documentation in R/fit_summary.R
 \name{anova.s4t_cjs_ml}
 \alias{anova.s4t_cjs_ml}
-\title{ANOVA table for mark-recapture model fits}
+\title{Compute likelihood ratio tests of two fitted model objects}
 \usage{
 \method{anova}{s4t_cjs_ml}(object, ...)
 }
 \arguments{
 \item{object}{object of class \code{s4t_cjs_ml}}
 
-\item{...}{object of class \code{s4t_cjs_ml}}
+\item{...}{object of class \code{s4t_cjs_ml} (for generic consistency)}
 }
 \value{
-An object of class \code{anova} inheriting form class \code{data.frame} ???
+Returns a data frame with the difference in degrees of freedom,
+test statistic (chi-squared), and p-value for the likelihood ratio tests
+between the full (assumed to be the model with the largest degrees of
+freedom) and reduced model.
 }
 \description{
 Compute analysis of variance table.
+}
+\examples{
+#' \dontrun{
+sim.dat <- sim_simple_s4t_ch(N = 2000)
+m1 <- fit_s4t_cjs_ml(p_formula = ~ t,
+                     theta_formula = ~ a1 * a2 * s * j,
+                     ageclass_formula = ~ FL,
+                     fixed_age = TRUE,
+                     s4t_ch = sim.dat$s4t_ch)
+m2 <- fit_s4t_cjs_ml(p_formula = ~ t * a1 * a2,
+                     theta_formula = ~ a1 * a2 * s * j,
+                     ageclass_formula = ~ FL,
+                     fixed_age = TRUE,
+                     s4t_ch = sim.dat$s4t_ch)
+anova(m1, m2)
+}
+
+
 }

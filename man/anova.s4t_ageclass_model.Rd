@@ -2,18 +2,33 @@
 % Please edit documentation in R/fit_summary.R
 \name{anova.s4t_ageclass_model}
 \alias{anova.s4t_ageclass_model}
-\title{AIC table for ageclass model fits}
+\title{Compute likelihood ratio tests of two fitted model objects}
 \usage{
 \method{anova}{s4t_ageclass_model}(object, ...)
 }
 \arguments{
-\item{object}{object of class \code{s4t_ageclass_model}}
+\item{object}{object of class \code{s4t_ageclass_model} created using \code{fit_ageclass()}}
 
-\item{...}{object of class \code{s4t_ageclass_model}}
+\item{...}{object of class \code{s4t_ageclass_model} (for generic consistency)}
 }
 \value{
-An object of class \code{anova} inheriting from class \code{data.frame} ??
+Returns a data frame with the difference in degrees of freedom,
+test statistic (chi-squared), and p-value for the likelihood ratio tests
+between the full (assumed to be the model with the largest degrees of
+freedom) and reduced model.
 }
 \description{
 Compute analysis of variance table.
+}
+\examples{
+#' \dontrun{
+sim.dat <- sim_simple_s4t_ch(N = 2000)
+m1 <- fit_ageclass(ageclass_formula = ~ FL + obs_time,
+                   s4t_ch = sim.dat$s4t_ch)
+m2 <- fit_ageclass(ageclass_formula = ~ FL + I(FL^2) + obs_time,
+                   s4t_ch = sim.dat$s4t_ch)
+anova(m1, m2)
+}
+
+
 }

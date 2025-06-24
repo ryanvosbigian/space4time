@@ -23,3 +23,14 @@ the number of parameters estimated (\code{df}), and the AIC
 \description{
 Compute AIC of one or more fitted \code{s4t_ageclass_model} model objects
 }
+\examples{
+\dontrun{
+sim.dat <- sim_simple_s4t_ch(N = 2000)
+m1 <- fit_ageclass(ageclass_formula = ~ FL + obs_time,
+                   s4t_ch = sim.dat$s4t_ch)
+m2 <- fit_ageclass(ageclass_formula = ~ FL + I(FL^2) + obs_time,
+                   s4t_ch = sim.dat$s4t_ch)
+AIC(m1, m2)
+}
+
+}

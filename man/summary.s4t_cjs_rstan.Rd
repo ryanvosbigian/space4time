@@ -2,22 +2,40 @@
 % Please edit documentation in R/fit_summary.R
 \name{summary.s4t_cjs_rstan}
 \alias{summary.s4t_cjs_rstan}
-\title{summary of s4t_cjs_rstan object}
+\title{Summary method for \code{s4t_cjs_rstan} objects}
 \usage{
 \method{summary}{s4t_cjs_rstan}(object, pars = NULL, probs = c(0.025, 0.25, 0.5, 0.75, 0.975), ...)
 }
 \arguments{
-\item{object}{A s4t_cjs_rstan object.}
+\item{object}{A \code{s4t_cjs_rstan} object.}
 
-\item{pars}{regular expressions}
+\item{pars}{A \code{character} value that returns parameters that match using regular expressions.
+Defaults to all parameters.}
 
-\item{probs}{a numerical vector of quantiles of interest.}
+\item{probs}{a numerical vector of quantiles of interest. Default is
+\code{c(0.025, 0.25, 0.50, 0.75, 0.975)}}
 
 \item{...}{Additional arguments to pass to \verb{summary,stanfit-method}.}
 }
 \value{
-Returns a named list with ...
+Returns a named list with elements \code{summary} and \code{c_summary}, which contain
+the summaries for all chains merged and individual chains, respectively. See
+\verb{summary,stanfit-method} documentation for more details.
 }
 \description{
-Calls \verb{summary,stanfit-method}.
+Summarize the distributions of the estimated parameters and derived quantities
+regarding MCMC sampling. Calls \verb{summary,stanfit-method}.
+}
+\examples{
+\dontrun{
+ sim.dat <- sim_simple_s4t_ch(N = 2000)
+ m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+                         theta_formula = ~ a1 * a2 * s * j,
+                         ageclass_formula = ageclass ~ FL,
+                         fixed_age = TRUE,
+                         s4t_ch = sim.dat$s4t_ch)
+summary(m1)
+}
+
+
 }
