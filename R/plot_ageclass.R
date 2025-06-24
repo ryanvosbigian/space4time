@@ -14,7 +14,7 @@
 #'
 #' @examples
 #' sim.dat <- sim_simple_s4t_ch(N = 2000)
-#' m1 <- fit_ageclass(ageclass_formula = ~ FL
+#' m1 <- fit_ageclass(age_formula = ~ FL,
 #'                    s4t_ch = sim.dat$s4t_ch)
 #' plot(m1)
 #'
@@ -27,16 +27,16 @@ plot.s4t_ageclass_model <- function(x, ...) {
   # check that param is a character and length 1
 
   info_ageclass <- ageclass_call(age_formula = x$call$age_formula,
-                                 obs_aux = x$s4t_ch$ch$obs_aux,#max_a = max(x$s4t_ch$ch_info$set_max_a),
+                                 obs_aux = x$s4t_ch$ch$all_aux,#max_a = max(x$s4t_ch$ch_info$set_max_a),
                                  ll = FALSE)
 
   prob <- ageclass_nll(par = x$res$par,
-                       max_a = max(x$s4t_ch$ch_info$set_max_a),
+                       max_a = max(x$s4t_ch$s4t_config$set_max_a),
                        mod_mat_a_beta = info_ageclass$mod_mat_a_beta,
                        ll = FALSE)
 
-  min_a <- x$s4t_ch$ch_info$observed_relative_min_max$min_obs_age
-  max_a <-  x$s4t_ch$ch_info$observed_relative_min_max$max_obs_age
+  min_a <- min(x$s4t_ch$ch_info$observed_relative_min_max$obs_min_a)
+  max_a <-  max(x$s4t_ch$ch_info$observed_relative_min_max$obs_max_a)
 
   age_cols <- paste0("Age",min_a:(ncol(prob) + min_a - 1))
 
@@ -44,7 +44,7 @@ plot.s4t_ageclass_model <- function(x, ...) {
 
   pred_age <- apply(prob,MARGIN = 1,which.max) + min_a - 1
 
-  compare_obs_pred <- x$s4t_ch$ch$obs_aux %>%
+  compare_obs_pred <- x$s4t_ch$ch$all_aux %>%
     cbind(prob) %>%
     cbind(pred_ageclass = pred_age) %>%
     as.data.frame() %>%

@@ -19,7 +19,7 @@ Plot confusion matrix for \code{fit_ageclass} objects
 }
 \examples{
 sim.dat <- sim_simple_s4t_ch(N = 2000)
-m1 <- fit_ageclass(ageclass_formula = ~ FL
+m1 <- fit_ageclass(age_formula = ~ FL,
                    s4t_ch = sim.dat$s4t_ch)
 plot(m1)
 

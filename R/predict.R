@@ -195,7 +195,7 @@ predictTheta.s4t_cjs_rstan <- function(object,newdata = NULL,lcl = 0.025,
 #'
 #' @examples
 #' sim.dat <- sim_simple_s4t_ch(N = 2000)
-#' m1 <- fit_ageclass(ageclass_formula = ~ FL
+#' m1 <- fit_ageclass(age_formula = ~ FL,
 #'                    s4t_ch = sim.dat$s4t_ch)
 #' predict(m1,type = "prob")
 #'
@@ -209,7 +209,7 @@ predict.s4t_ageclass_model <- function(object, newdata,
   stopifnot(is(object,"s4t_ageclass_model"))
 
   if (missing(newdata)) {
-    newdata <- object$s4t_ch$ch$obs_aux
+    newdata <- object$s4t_ch$ch$all_aux
   }
 
   info_ageclass <- ageclass_call(age_formula = object$call$age_formula,
@@ -217,12 +217,12 @@ predict.s4t_ageclass_model <- function(object, newdata,
                                  ll = FALSE)
 
   prob <- ageclass_nll(par = object$res$par,
-                       max_a = max(object$s4t_ch$ch_info$set_max_a),
+                       max_a = max(object$s4t_ch$s4t_config$set_max_a),
                        mod_mat_a_beta = info_ageclass$mod_mat_a_beta,
                        ll = FALSE)
 
-  min_a <- object$s4t_ch$ch_info$observed_relative_min_max$min_obs_age
-  max_a <-  object$s4t_ch$ch_info$observed_relative_min_max$max_obs_age
+  min_a <- min(object$s4t_ch$ch_info$observed_relative_min_max$obs_min_a)
+  max_a <-  max(object$s4t_ch$ch_info$observed_relative_min_max$obs_max_a)
 
   age_cols <- paste0("Age",min_a:(ncol(prob) + min_a - 1))
 
