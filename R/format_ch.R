@@ -1102,7 +1102,7 @@ clean_s4t_ch_obs <- function(s4t_ch) {
 
   identify_repeat_obs <- ch_df %>%
     dplyr::group_by(id,site) %>%
-    dplyr::mutate(N = n()) %>%
+    dplyr::mutate(N = dplyr::n()) %>%
     dplyr::filter(N > 1) %>%
     dplyr::arrange(by = time) %>%
     dplyr::summarize(first_site_time_obs = dplyr::first(time))
