@@ -278,12 +278,14 @@ plotCH <- function(x, ...) {
 #' add description
 #' @export
 #'
+#' @importFrom rstan traceplot
+#'
 #' @param object a `s4t_cjs_rstan` object
 #' @param pars a `character` object that parses parameters using regular
 #'      expressions
 #' @param ... not used
 #' @returns a ggplot2 object of traceplots
-traceplot2 <- function(object,
+traceplot.s4t_cjs_rstan <- function(object,
                       pars = NULL,
                       ...) {
   stopifnot(is(object,"s4t_cjs_rstan"))
