@@ -460,7 +460,7 @@ new_s4t_ch <- function(obs_ch,
                                cov_theta = cov_theta),
                  potential_error_log = potential_error_log
   )
-  class(s4t_ch) = "s4t_cjs_ch"
+  class(s4t_ch) = "s4t_ch"
 
   return(s4t_ch)
 }
@@ -475,8 +475,10 @@ new_s4t_ch <- function(obs_ch,
 #' @param aux_age_df `data.frame` containing auxiliary data for each individual. See details.
 #' @param s4t_config a `s4t_config` object created using `s4t_config()`,
 #'     `linear_s4t_config`, or `simplebranch_s4t_config`.
-#' @param cov_df a `data.frame` or `list` of `data.frame`'s containing the covariates
-#'     for theta and p `a1,a2,j,k,s,t,r,g` indices. See details.
+#' @param cov_p a `data.frame` or `list` of `data.frame`'s containing the covariates
+#'     for p `a1,a2,j,k,s,t,r,g` indices. See details.
+#' @param cov_theta a `data.frame` or `list` of `data.frame`'s containing the covariates
+#'     for theta  `a1,a2,j,k,s,t,r,g` indices. See details.
 #'
 #' @details
 #' The capture history data (`ch_df`) must be a `data.frame` (or coercible

@@ -283,25 +283,25 @@ print.s4t_config <- function(x, ...) {
 #'
 #' @param x `s4t_ch` object
 #' @param ... passed to `print()`
-#'
+#' @export
 #'
 print.s4t_ch <- function(x, ...) {
   stopifnot(is(x,"s4t_ch"))
 
   cat("Capture history object\n")
-  cat("\nThere are N = ",length(x$sites_names)," with N = ",
+  cat("\nThere are N = ",length(x$s4t_config$sites_names)," with N = ",
       sum(x$holdover_config)," sites with holdovers\n",sep="")
-  cat("\nSites: ",paste0(x$sites_names,collapse = ", "),"\n",sep="")
+  cat("\nSites: ",paste0(x$s4t_config$sites_names,collapse = ", "),"\n",sep="")
 
   cat("\nSites with holdovers: ",
-      paste0(x$sites_names[which(rowSums(x$holdover_config) > 0)],collapse = ", "),
+      paste0(x$s4t_config$sites_names[which(rowSums(x$s4t_config$holdover_config) > 0)],collapse = ", "),
       "\n",
       sep="")
 
   if (!is.null(x$sites_to_pool)) {
     cat("\nSites pooled:\n")
-    for (i in 1:length(x$sites_to_pool)) {
-      cat(names(x$sites_to_pool)[i]," include: ",paste0(x$sites_to_pool[[i]],collapse =", "),"\n",
+    for (i in 1:length(x$s4t_config$sites_to_pool)) {
+      cat(names(x$s4t_config$sites_to_pool)[i]," include: ",paste0(x$s4t_config$sites_to_pool[[i]],collapse =", "),"\n",
           sep = "")
     }
 
@@ -309,9 +309,9 @@ print.s4t_ch <- function(x, ...) {
 
   cat("\nSite -> site:\n")
 
-  cat(paste0(rownames(x$sites_config)," -> ",
-             apply(x$sites_config,1,function(y) ifelse(length(colnames(x$sites_config)[which(y == 1)]) == 1,
-                                                       colnames(x$sites_config)[which(y == 1)],
+  cat(paste0(rownames(x$s4t_config$sites_config)," -> ",
+             apply(x$s4t_config$sites_config,1,function(y) ifelse(length(colnames(x$s4t_config$sites_config)[which(y == 1)]) == 1,
+                                                       colnames(x$s4t_config$sites_config)[which(y == 1)],
                                                        ""
              )
              ),
@@ -321,7 +321,8 @@ print.s4t_ch <- function(x, ...) {
 
 
   cat("\nAge range per site:\n")
-  cat(paste0(x$sites_names,": ",x$obs_min_a,"-",x$obs_max_a,"\n",collapse = ""))
+  cat(paste0(x$s4t_config$sites_names,": ",x$ch_info$observed_relative_min_max$obs_min_a,
+             "-",x$ch_info$observed_relative_min_max$obs_max_a,"\n",collapse = ""))
 
   return(invisible(NULL))
 }

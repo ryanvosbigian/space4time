@@ -165,8 +165,6 @@ add_covariates <- function(cov_df,s4t_ch) {
 #' @description
 #' A short description...
 #'
-#' @param cov_df a `data.frame` or `list` of `data.frame`'s containing the covariates
-#'     for theta and p `a1,a2,j,k,s,t,r,g` indices. See details.
 #' @param s4t_ch a `s4t_ch` object.
 #' @returns a `s4t_ch` object with covariates added
 #' @details
