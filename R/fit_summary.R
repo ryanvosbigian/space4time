@@ -8,7 +8,7 @@
 #' @param object a `s4t_cjs_ml` object
 #' @param ... Other arguments. Not used (needed for generic consistency).
 #' @returns A list with several fitted model quantities to create
-#'     summaries when printing, including estimated parameters AIC.
+#'     summaries when printing, including estimated parameters and AIC.
 #'
 #'
 #' @examples

@@ -103,6 +103,8 @@ new_s4t_ch <- function(obs_ch,
                        s4t_config,
                        observed_relative_min_max,
                        potential_error_log,
+                       cov_p = NULL,
+                       cov_theta = NULL,
                        call) {
 
   sites_config <- s4t_config$sites_config
@@ -454,6 +456,8 @@ new_s4t_ch <- function(obs_ch,
                                 init_relsite_list = init_relsite_list,# batches_list
                                 init_rel_j = init_rel_j,
                                 init_rel_times = init_rel_times),
+                 cov_df = list(cov_p = cov_p,
+                               cov_theta = cov_theta),
                  potential_error_log = potential_error_log
   )
   class(s4t_ch) = "s4t_cjs_ch"
@@ -471,6 +475,8 @@ new_s4t_ch <- function(obs_ch,
 #' @param aux_age_df `data.frame` containing auxiliary data for each individual. See details.
 #' @param s4t_config a `s4t_config` object created using `s4t_config()`,
 #'     `linear_s4t_config`, or `simplebranch_s4t_config`.
+#' @param cov_df a `data.frame` or `list` of `data.frame`'s containing the covariates
+#'     for theta and p `a1,a2,j,k,s,t,r,g` indices. See details.
 #'
 #' @details
 #' The capture history data (`ch_df`) must be a `data.frame` (or coercible
@@ -493,6 +499,8 @@ new_s4t_ch <- function(obs_ch,
 #'     If the `ageclass` was not observed, then `ageclass = NA`, but
 #'     `obs_time` must be filled in. `obs_time` should correspond to the time period
 #'     of the auxiliary data.
+#'
+#'
 #'
 #' Note that individual covariates can be included in the `s4t_cjs_ml` and `s4t_cjs_rstan`
 #'     models. These covariates are included in the `aux_age_df` data.
@@ -548,7 +556,9 @@ new_s4t_ch <- function(obs_ch,
 #'
 s4t_ch <- function(ch_df,
                    aux_age_df,
-                   s4t_config) {
+                   s4t_config,
+                   cov_p = NULL,
+                   cov_theta = NULL) {
 
   ## Consider changing some of these to messages that result in an error after the whole thing is run
 
@@ -1020,6 +1030,8 @@ s4t_ch <- function(ch_df,
              s4t_config = s4t_config,
              observed_relative_min_max = observed_relative_min_max,
              potential_error_log = potential_error_log,
+             cov_p = cov_p,
+             cov_theta = cov_theta,
              call = call) # need to add stuff to relate age class and time to actual ages and years
 
   # potential_error_log

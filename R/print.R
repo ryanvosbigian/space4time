@@ -170,7 +170,7 @@ print.s4t_cjs_rstan <- function(x,
   }
 }
 
-#' print summary of `clean_s4t_ch` object
+#' Print summary of `clean_s4t_ch` object
 #'
 #' Returns the observations of individuals that had observations dropped
 #'     for data cleaning.
@@ -196,6 +196,33 @@ print.clean_s4t_ch <- function(x, ...) {
 
 
 drop_obs <- NULL
+
+
+
+#' Print summary of `cov_s4t_ch` object
+#'
+#' Returns the indices
+#'
+#'
+#' @param x `s4t_ch` object
+#' @param ... passed to `print.tibble()`
+#'
+#' @export
+print.cov_s4t_ch <- function(x, ...) {
+  stopifnot(is(x,"cov_s4t_ch"))
+
+  cat("Indices (and covariates) for state transitions:\n")
+  x$indices_theta %>%
+    as.data.frame() %>%
+    print(,...)
+
+  cat("\nIndices (and covariates) for detection probability:\n")
+  x$indices_p_obs %>%
+    as.data.frame() %>%
+    print(,...)
+
+  return(invisible(NULL))
+}
 
 #' Print summary of `s4t_config` object
 #'

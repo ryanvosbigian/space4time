@@ -66,7 +66,7 @@ model_mat_info <- function(form,
 format_s4t_cjs <- function(p_formula,
                            theta_formula,
                            ageclass_formula,
-                           cov_p = NULL, cov_theta = NULL,groups = NULL,
+                           groups = NULL,
                            s4t_ch) {
 
 
@@ -414,7 +414,7 @@ format_s4t_cjs <- function(p_formula,
                   r = factor(r),
                   g = factor(g))
 
-
+  cov_p <- s4t_ch$cov_df$cov_p
 
   if (!is.null(cov_p)) {
     if (is(cov_p,"list")) {
@@ -467,7 +467,7 @@ format_s4t_cjs <- function(p_formula,
   ## now with thetas
 
   # cov_theta <- data.frame(t = as.character(1:4),cov = rnorm(4))
-
+  cov_theta <- s4t_ch$cov_df$cov_theta
 
   if (!is.null(cov_theta)) {
     if (is(cov_theta,"list")) {
@@ -689,6 +689,8 @@ format_s4t_cjs <- function(p_formula,
               indices_theta = indices_theta,
               mod_mat_p = mod_mat_p,
               indices_p_obs = indices_p_obs,
+              indices_p_obs_original =  indices_p_obs_original,
+              indices_theta_original = indices_theta_original,
               ageclass_data = ageclass_data,
               ageclassdat_L = ageclassdat_L,
               ageclassdat_M = ageclassdat_M,
@@ -713,12 +715,8 @@ format_s4t_cjs <- function(p_formula,
 #'     (a1, a2, s, t, j, k, r, and g) or covariates.
 #' @param ageclass_formula a formula for the effect structure of the age-class
 #'     sub-model.
-#' @param cov_p a `data.frame` or `list` of `data.frame`'s containing the covariates
-#'     for p `a1,a2,j,k,s,t,r,g` indices. See details.
-#' @param cov_theta a `data.frame` or `list` of `data.frame`'s containing the covariates
-#'     for theta `a1,a2,j,k,s,t,r,g` indices. See details.#' @param groups a `character` vector containing the names of the covariates that comprise the groups.
-#'     Default is no groups (`groups = NULL`).
 #' @param groups a `character` vector containing the names of the covariates that comprise the groups.
+#'     Default is no groups (`groups = NULL`).
 #' @param s4t_ch a `s4t_ch` object
 #' @param ndeps a `numeric` value passed to `optim`. See `optim` documentation.
 #' @param lmm an `integer` value passed to `optim`. See `optim` documentation.
@@ -748,7 +746,6 @@ format_s4t_cjs <- function(p_formula,
 #' @export
 fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                              ageclass_formula,
-                             cov_p = NULL, cov_theta = NULL,
                              groups = NULL,
                              s4t_ch,
                              ndeps = 1e-3,
@@ -758,7 +755,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 
   format_cjs <- format_s4t_cjs(p_formula =p_formula, theta_formula = theta_formula,
                                ageclass_formula = ageclass_formula,
-                               cov_p = cov_p,cov_theta = cov_theta,groups = groups,s4t_ch = s4t_ch)
+                               groups = groups,s4t_ch = s4t_ch)
 
 
   max_t_recap <- format_cjs$max_t_recap
@@ -1231,10 +1228,6 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 #'     (a1, a2, s, t, j, k, r, and g) or covariates.
 #' @param ageclass_formula a formula for the effect structure of the age-class
 #'     sub-model.
-#' @param cov_p a `data.frame` or `list` of `data.frame`'s containing the covariates
-#'     for p `a1,a2,j,k,s,t,r,g` indices. See details.
-#' @param cov_theta a `data.frame` or `list` of `data.frame`'s containing the covariates
-#'     for theta `a1,a2,j,k,s,t,r,g` indices. See details.
 #' @param groups a `character` vector containing the names of the covariates that comprise the groups.
 #' @param s4t_ch a `s4t_ch` object
 #' @param chains an `integer` of the number of chains to run.
@@ -1259,7 +1252,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
 fit_s4t_cjs_rstan <- function(p_formula,
                                    theta_formula,
                                    ageclass_formula,
-                                   cov_p = NULL, cov_theta = NULL,groups = NULL,
+                                   groups = NULL,
                                    s4t_ch,
                                    chains = 3,
                                    warmup = 500,
@@ -1273,8 +1266,6 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
   call <- list(p_formula = p_formula,
                theta_formula = theta_formula,
-               cov_p = cov_p,
-               cov_theta = cov_theta,
                groups =groups,
                s4t_ch = s4t_ch,
                chains = chains,
@@ -1285,7 +1276,6 @@ fit_s4t_cjs_rstan <- function(p_formula,
 
   format_cjs <- format_s4t_cjs(p_formula =p_formula, theta_formula = theta_formula,
                                ageclass_formula = ageclass_formula,
-                               cov_p = cov_p,cov_theta = cov_theta,
                                groups = groups,
                                s4t_ch = s4t_ch)
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/print.R
 \name{print.clean_s4t_ch}
 \alias{print.clean_s4t_ch}
-\title{print summary of \code{clean_s4t_ch} object}
+\title{Print summary of \code{clean_s4t_ch} object}
 \usage{
 \method{print}{clean_s4t_ch}(x, ...)
 }

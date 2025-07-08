@@ -8,8 +8,6 @@ fit_s4t_cjs_rstan(
   p_formula,
   theta_formula,
   ageclass_formula,
-  cov_p = NULL,
-  cov_theta = NULL,
   groups = NULL,
   s4t_ch,
   chains = 3,
@@ -28,12 +26,6 @@ fit_s4t_cjs_rstan(
 
 \item{ageclass_formula}{a formula for the effect structure of the age-class
 sub-model.}
-
-\item{cov_p}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates
-for p \verb{a1,a2,j,k,s,t,r,g} indices. See details.}
-
-\item{cov_theta}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates
-for theta \verb{a1,a2,j,k,s,t,r,g} indices. See details.}
 
 \item{groups}{a \code{character} vector containing the names of the covariates that comprise the groups.}
 

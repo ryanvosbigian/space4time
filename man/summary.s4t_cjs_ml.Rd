@@ -13,7 +13,7 @@
 }
 \value{
 A list with several fitted model quantities to create
-summaries when printing, including estimated parameters AIC.
+summaries when printing, including estimated parameters and AIC.
 }
 \description{
 Summarize a fitted \code{s4t_cjs_ml} object.

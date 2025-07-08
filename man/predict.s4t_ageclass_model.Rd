@@ -14,16 +14,16 @@
 If omitted, the fitted values for the \code{aux_age_df} data in the s4t_ch
 from the fitted model object are returned.}
 
-\item{type}{The prediciton type. A \code{character} of one of the three option
-\code{prob}, \code{class}, or \code{cum.prob}. \code{prob} returns a matrix of the probabilities,
-\code{class} returns a vector of the mostly likely age-class (highest probability),
-\code{cum.prob} returns the cumulative probabilities as a matrix (probability that the
-individual is a particular age-class or lower).}
+\item{type}{The prediction type. A \code{character} of one of the three option
+\code{prob}, \code{class}, or \code{cum.prob}.}
 
 \item{...}{not used (needed for generic consistency)}
 }
 \value{
-depends on the type.
+Depends on the type. \code{type = "prob"} returns a matrix of the probabilities,
+\code{type = "class"} returns a vector of the mostly likely age-class (highest probability),
+\code{type = "cum.prob"} returns the cumulative probabilities as a matrix (probability that the
+individual is at least a particular age-class).
 }
 \description{
 Model predictions from fitted \code{fit_ageclass} objects.

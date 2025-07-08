@@ -182,14 +182,14 @@ predictTheta.s4t_cjs_rstan <- function(object,newdata = NULL,lcl = 0.025,
 #'     (see documentation for `s4t_ch`) containing data to predict age-class.
 #'     If omitted, the fitted values for the `aux_age_df` data in the s4t_ch
 #'     from the fitted model object are returned.
-#' @param type The prediciton type. A `character` of one of the three option
-#'    `prob`, `class`, or `cum.prob`. `prob` returns a matrix of the probabilities,
-#'    `class` returns a vector of the mostly likely age-class (highest probability),
-#'    `cum.prob` returns the cumulative probabilities as a matrix (probability that the
-#'    individual is a particular age-class or lower).
+#' @param type The prediction type. A `character` of one of the three option
+#'    `prob`, `class`, or `cum.prob`.
 #' @param ... not used (needed for generic consistency)
 #'
-#' @returns depends on the type.
+#' @returns Depends on the type. `type = "prob"` returns a matrix of the probabilities,
+#'    `type = "class"` returns a vector of the mostly likely age-class (highest probability),
+#'    `type = "cum.prob"` returns the cumulative probabilities as a matrix (probability that the
+#'    individual is at least a particular age-class).
 #'
 #' @export
 #'

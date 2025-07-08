@@ -8,8 +8,6 @@ fit_s4t_cjs_ml(
   p_formula,
   theta_formula,
   ageclass_formula,
-  cov_p = NULL,
-  cov_theta = NULL,
   groups = NULL,
   s4t_ch,
   ndeps = 0.001,
@@ -28,14 +26,8 @@ fit_s4t_cjs_ml(
 \item{ageclass_formula}{a formula for the effect structure of the age-class
 sub-model.}
 
-\item{cov_p}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates
-for p \verb{a1,a2,j,k,s,t,r,g} indices. See details.}
-
-\item{cov_theta}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates
-for theta \verb{a1,a2,j,k,s,t,r,g} indices. See details.#' @param groups a \code{character} vector containing the names of the covariates that comprise the groups.
+\item{groups}{a \code{character} vector containing the names of the covariates that comprise the groups.
 Default is no groups (\code{groups = NULL}).}
-
-\item{groups}{a \code{character} vector containing the names of the covariates that comprise the groups.}
 
 \item{s4t_ch}{a \code{s4t_ch} object}
 
