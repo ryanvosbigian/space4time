@@ -8,9 +8,6 @@ extract_covariates(s4t_ch)
 }
 \arguments{
 \item{s4t_ch}{a \code{s4t_ch} object.}
-
-\item{cov_df}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates
-for theta and p \verb{a1,a2,j,k,s,t,r,g} indices. See details.}
 }
 \value{
 a \code{s4t_ch} object with covariates added

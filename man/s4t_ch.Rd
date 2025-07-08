@@ -14,8 +14,11 @@ s4t_ch(ch_df, aux_age_df, s4t_config, cov_p = NULL, cov_theta = NULL)
 \item{s4t_config}{a \code{s4t_config} object created using \code{s4t_config()},
 \code{linear_s4t_config}, or \code{simplebranch_s4t_config}.}
 
-\item{cov_df}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates
-for theta and p \verb{a1,a2,j,k,s,t,r,g} indices. See details.}
+\item{cov_p}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates
+for p \verb{a1,a2,j,k,s,t,r,g} indices. See details.}
+
+\item{cov_theta}{a \code{data.frame} or \code{list} of \code{data.frame}'s containing the covariates
+for theta  \verb{a1,a2,j,k,s,t,r,g} indices. See details.}
 }
 \description{
 Create space-for-time mark-recapture capture history object.
