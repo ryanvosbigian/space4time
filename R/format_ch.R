@@ -95,6 +95,131 @@ process_ch <- function(obs_ch,obs_aux,removed_sites,sites = NULL) {
 }
 
 
+
+faster_process_ch <- function(obs_ch,obs_aux,removed_sites,sites = NULL) {
+  obs_ch <- as.matrix(obs_ch)
+  # obs_aux <- as.matrix(obs_aux)
+  # obs_ch <- sim.dat$obs_ch
+  # obs_lengthyear <- sim.dat$obs_lengthyear
+  max_t <- max(obs_ch)
+
+  # (max_t + 1)*(max_t + 1 - 1) * (max_t + 1 - 2)
+
+  tot_entries_m <- sum(apply(obs_ch, MARGIN = 1,FUN = function(x) sum(x != 0) - 1))
+
+  additional_aux_var <- setdiff(colnames(obs_aux),c("id","obs_time","ageclass"))
+
+  # # m_matrix <- matrix(0,nrow = tot_entries_m, ncol = 8)
+  # colnames(m_matrix) <- c("j","k","s","t","r","g","obs_time","ageclass")
+  # # l_matrix <- matrix(0,nrow = nrow(obs_ch),ncol = 6)
+  # colnames(l_matrix) <- c("j","s","r","g","obs_time","ageclass")
+
+
+  m_aux_df <- as.data.frame(matrix(0,nrow = tot_entries_m, ncol = 2 + length(additional_aux_var)))
+  colnames(m_aux_df) <- c("obs_time","ageclass",additional_aux_var)
+  l_aux_df <- as.data.frame(matrix(0,nrow = nrow(obs_ch),ncol = 2 + length(additional_aux_var)))
+  colnames(l_aux_df) <- c("obs_time","ageclass",additional_aux_var)
+
+  # # placeholder, so 1 for now
+  # m_matrix[,"g"] <- 1
+  # l_matrix[,"g"] <- 1
+
+  # m_array <- matrix(0,dim = c(i = entries_m, j= ncol(obs_ch),k = ncol(obs_ch), )
+
+
+  l_matrix <- apply(obs_ch,MARGIN = 1,FUN = function(ch) {
+    last_obs <- sum(ch != 0)
+    last_site <- which(ch != 0)[last_obs]
+    c(j = last_site,
+      s = ch[last_site],
+      r = which.min.not.zero(ch),
+      g = 1,
+      obs_time = NA,
+      ageclass = NA)
+  }
+  )
+  l_matrix <- t(l_matrix)
+  colnames(l_matrix) <- c("j","s","r","g","obs_time","ageclass")
+
+  l_matrix[,"obs_time"] <- obs_aux$obs_time
+  l_matrix[,"ageclass"] <- obs_aux$ageclass
+
+  l_aux_df[,"obs_time"] <- obs_aux$obs_time
+  l_aux_df[,"ageclass"] <- obs_aux$ageclass
+  l_aux_df[,additional_aux_var] <- obs_aux[,additional_aux_var]
+
+
+
+  iterate_m_entries <- apply(obs_ch, MARGIN = 1,FUN = function(x) sum(x != 0) - 1)
+  iterate_m_entries_drop0 <- iterate_m_entries[iterate_m_entries > 0]
+
+  recap.num <- unlist(sapply(iterate_m_entries_drop0, FUN = function(x) 1:x))
+
+  iterate_m_ids <- rep(1:nrow(obs_ch),times = iterate_m_entries)
+  iterate_m <- cbind(id = iterate_m_ids,
+                     recap.num = recap.num)
+
+  tmp_m_matrix <- apply(iterate_m,MARGIN = 1,
+        FUN = function(x) {
+          ch <- obs_ch[x[1],]
+
+          r <- which.min.not.zero(ch)
+
+          first_site <- which(ch != 0)[1]
+          all_site <- which(ch != 0)
+
+
+          j = all_site[x[2]]
+          k = all_site[x[2] + 1]
+
+          matrix(c(j = j,
+            k = k,
+            s = ch[j],
+            t = ch[k],
+            r = r,
+            g = 1,
+            obs_time = NA,
+            ageclass = NA,
+            id = x[1]),
+            nrow = 1,
+            ncol = 9)
+        }
+        )
+  tmp_m_matrix <- t(tmp_m_matrix)
+  colnames(tmp_m_matrix) <- c("j","k","s","t","r","g","obs_time","ageclass","id")
+
+  tmp_m_matrix[,"obs_time"] <- obs_aux$obs_time[tmp_m_matrix[,"id"]]
+  tmp_m_matrix[,"ageclass"] <- obs_aux$ageclass[tmp_m_matrix[,"id"]]
+
+  m_aux_df[,"obs_time"] <- obs_aux$obs_time[tmp_m_matrix[,"id"]]
+  m_aux_df[,"ageclass"] <- obs_aux$ageclass[tmp_m_matrix[,"id"]]
+  for (j in 1:length(additional_aux_var)) {
+    m_aux_df[,additional_aux_var[j]] <- obs_aux[tmp_m_matrix[,"id"],
+                                                additional_aux_var[j]]
+
+  }
+
+  m_matrix <- tmp_m_matrix[,c(1:8)]
+
+
+  colnames(m_matrix) <- c("j","k","s","t","r","g","obs_time","ageclass")
+
+
+
+
+
+  # only removing removed individuals from the l_matrix, not the m_matrix.
+  # need to add warning if individuals are released back into the system.
+
+  # dropping removed individuals (only keeping individuals )
+  l_matrix <- l_matrix[removed_sites == 0,]
+  l_aux_df <- l_aux_df[removed_sites == 0,]
+
+  return(list(obs_ch,m_matrix, l_matrix,as.data.frame(m_aux_df),as.data.frame(l_aux_df), obs_aux))
+
+}
+
+
 new_s4t_ch <- function(obs_ch,
                        obs_aux,
                        all_aux,
@@ -116,7 +241,7 @@ new_s4t_ch <- function(obs_ch,
 
 
 
-  ch <- process_ch(mat_obs_ch,obs_aux,removed_sites)
+  ch <- faster_process_ch(mat_obs_ch,obs_aux,removed_sites)
   m_matrix <- ch[[2]]
   l_matrix <- ch[[3]]
 
@@ -747,7 +872,7 @@ s4t_ch <- function(ch_df,
 
       check <- new_ch_df %>%
         dplyr::group_by(id,site) %>%
-        dplyr::summarize(dups = dplyr::n()) %>%
+        dplyr::mutate(dups = dplyr::n()) %>%
         dplyr::filter(dups > 1)
 
       if (nrow(check) > 0) message("Issue with pooling")

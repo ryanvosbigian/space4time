@@ -199,9 +199,11 @@ s4t_config <- function(sites_names,
       # tmp_seqal <- apply(tmp_sconfig,MARGIN = 1,FUN = function(x) length(unique(x)))
 
       tmp_hconfig <- holdover_config[which(sites_names %in% sites_to_pool[[i]] | sites_names == tmp_sitename),]
-      tmp_heqal <- apply(tmp_hconfig,MARGIN = 1,FUN = function(x) length(unique(x)))
+      # tmp_heqal <- apply(tmp_hconfig,MARGIN = 1,FUN = function(x) length(unique(x)))
 
-      if (any(tmp_heqal != 1)) {
+      tmp_heqal <- apply(tmp_hconfig,MARGIN = 1,FUN = function(x) which(x == 1))
+
+      if (any(tmp_heqal[1] != tmp_heqal)) {
         stop(paste0("Cannot pool sites with different holdovers: ",tmp_sitename," with: ",
                     paste0(sites_to_pool[[i]],collapse = ", ")))
       }
