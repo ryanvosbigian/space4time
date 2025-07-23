@@ -240,8 +240,12 @@ new_s4t_ch <- function(obs_ch,
   # obs_aux <- as.matrix(obs_aux)
 
 
+  # message("Starting process_ch")
 
-  ch <- faster_process_ch(mat_obs_ch,obs_aux,removed_sites)
+  ch <- faster_process_ch(obs_ch = mat_obs_ch,obs_aux = obs_aux,removed_sites)
+
+  # message("Finished process_ch")
+
   m_matrix <- ch[[2]]
   l_matrix <- ch[[3]]
 
@@ -308,7 +312,7 @@ new_s4t_ch <- function(obs_ch,
   }
   site_1stin_path
 
-
+  # message("checkpoint 1")
 
   # first_obs <- apply(obs_ch,MARGIN = 1,FUN = function(x) which(x != 0)[1])
   first_obs <- apply(obs_ch[,1:(ncol(obs_ch)-1)],MARGIN = 1,FUN = function(x) which.min.not.zero(x)[1])
@@ -323,6 +327,9 @@ new_s4t_ch <- function(obs_ch,
   init_relsite_list <- list()
 
   first_sites <- which(colSums(sites_config) == 0)
+
+
+  # message("checkpoint 1.b")
 
   for (j in 1:nrow(sites_config)) {
 
@@ -345,7 +352,7 @@ new_s4t_ch <- function(obs_ch,
       }
 
 
-      if (length(intersect(r,init_relsite)) == length(r) &
+      if (length(unique(intersect(r,init_relsite))) == length(unique(r)) &
           explored == TRUE){
 
         keep_going <- FALSE
@@ -359,14 +366,14 @@ new_s4t_ch <- function(obs_ch,
         tmp_r4 <- intersect(r,first_sites)
 
         # loop through all the r's that are not a first site to explore it further
-        app <- c()
+        app_tmp <- c()
         if (length(tmp_r3) > 0) {
           for (i in 1:length(tmp_r3)) {
-            app <-  c(app,which(sites_config[,tmp_r3[i]] == 1))
+            app_tmp <-  c(app,which(sites_config[,tmp_r3[i]] == 1))
           }
         }
 
-        r <- (sort(c(tmp_r1,tmp_r4,app))) # unique
+        r <- (sort(c(tmp_r1,tmp_r4,app_tmp))) # unique
 
 
       }
@@ -377,11 +384,12 @@ new_s4t_ch <- function(obs_ch,
 
     init_relsite_list[[j]] <- r
 
-
+    # message(paste0("checkpoint 1.c: j = ",j))
 
   } # end for loop
   init_relsite_list
 
+  # message("checkpoint 2")
 
   n_sites <- ncol(sites_config)
 
@@ -443,6 +451,7 @@ new_s4t_ch <- function(obs_ch,
   max_t_recap
 
 
+  # message("checkpoint 3")
   ## Determines the minimum and maximum age for each site-time.
   # This is needed, because otherwise, the likelihood will include
   # transitions between ages that are not possible.
@@ -534,7 +543,7 @@ new_s4t_ch <- function(obs_ch,
     }
   }
 
-
+  # message("checkpoint 4")
 
 
   recap_sites <- which(colSums(sites_config) > 0)
@@ -586,6 +595,8 @@ new_s4t_ch <- function(obs_ch,
                  potential_error_log = potential_error_log
   )
   class(s4t_ch) = "s4t_ch"
+
+  # message("checkpoint 5")
 
   return(s4t_ch)
 }
@@ -793,8 +804,8 @@ s4t_ch <- function(ch_df,
 
   aux_age_df <- as.data.frame(aux_age_df)
   # use these to recover time classes and age classes
-  obs_min_time <- min_not_zero(c(ch_df$time,aux_age_df$obs_time))
-  obs_max_time <- max(c(ch_df$time,aux_age_df$obs_time),na.rm = TRUE)
+  obs_min_time <- min_not_zero(ch_df$time) # only use CH data. not aux_age_df$obs_time)
+  obs_max_time <- max(c(ch_df$time),na.rm = TRUE) #  only use CH data , not aux_age_df$obs_time
 
 
 
@@ -957,9 +968,19 @@ s4t_ch <- function(ch_df,
     message(paste0("Dropping IDs in ch_df that are not in aux_age_df, n = ",length(ids_not_in_aux)))
   }
 
+
+  keep_id_df <- data.frame(id = ids_inboth, keep_ids = TRUE)
+
+
   new_ch_aux_df <- wide_new_ch_df %>%
-    dplyr::filter(id %in% ids_inboth) %>%
+    dplyr::left_join(keep_id_df, by = "id") %>%
+    dplyr::filter(!is.na(keep_ids)) %>%
+    dplyr::select(-keep_ids) %>%
     dplyr::left_join(aux_age_df_abbr, by = "id")
+
+  # new_ch_aux_df <- wide_new_ch_df %>%
+  #   dplyr::filter(id %in% ids_inboth) %>%
+  #   dplyr::left_join(aux_age_df_abbr, by = "id")
 
   # drop id column
   obs_ch <- as.matrix(new_ch_aux_df[,2:ncol(wide_new_ch_df)])
@@ -977,7 +998,10 @@ s4t_ch <- function(ch_df,
   # is each individual recorded at each site once (not more than once)
 
   suppressMessages(repeatobservations <- new_ch_df %>%
-                     dplyr::filter(id %in% ids_inboth) %>%
+                     dplyr::left_join(keep_id_df, by = "id") %>%
+                     dplyr::filter(!is.na(keep_ids)) %>%
+                     dplyr::select(-keep_ids) %>%
+                     # dplyr::filter(id %in% ids_inboth) %>%
                      dplyr::group_by(id,site) %>%
                      dplyr::summarize(id_site = dplyr::n()) %>%
                      dplyr::filter(id_site > 1))
@@ -985,7 +1009,10 @@ s4t_ch <- function(ch_df,
   suppressMessages(timedifferenceincaptures <- new_ch_df %>%
     dplyr::left_join(data.frame(site = s4t_config$sites_names,obs_max_a = obs_max_a,
                                 obs_min_a = obs_min_a)) %>%
-    dplyr::filter(id %in% ids_inboth) %>%
+      dplyr::left_join(keep_id_df, by = "id") %>%
+      dplyr::filter(!is.na(keep_ids)) %>%
+      dplyr::select(-keep_ids) %>%
+    # dplyr::filter(id %in% ids_inboth) %>%
     dplyr::group_by(id) %>%
     dplyr::mutate(first_obs = min_not_zero(time),
               last_obs = max(time),
@@ -994,7 +1021,10 @@ s4t_ch <- function(ch_df,
 
 
   suppressMessages(tmp_summary_dat <- new_ch_df %>%
-    dplyr::filter(id %in% ids_inboth) %>%
+                     dplyr::left_join(keep_id_df, by = "id") %>%
+                     dplyr::filter(!is.na(keep_ids)) %>%
+                     dplyr::select(-keep_ids) %>%
+    # dplyr::filter(id %in% ids_inboth) %>%
     dplyr::group_by(site,time) %>%
     dplyr::summarize(observations = dplyr::n()) %>%
     dplyr::mutate(time = factor(time)))
@@ -1017,7 +1047,10 @@ s4t_ch <- function(ch_df,
 
 
   suppressWarnings(suppressMessages(zombie_individuals <- new_ch_df %>%
-    dplyr::filter(id %in% ids_inboth) %>%
+                                      dplyr::left_join(keep_id_df, by = "id") %>%
+                                      dplyr::filter(!is.na(keep_ids)) %>%
+                                      dplyr::select(-keep_ids) %>%
+    # dplyr::filter(id %in% ids_inboth) %>%
     dplyr::filter(site %in% sites_order$site) %>%
     dplyr::left_join(sites_order, by = "site") %>%
     dplyr::group_by(id) %>%
@@ -1122,7 +1155,7 @@ s4t_ch <- function(ch_df,
                               max_obs_age_knownagefish = max_obs_age_knownagefish,
                               problematic_holdovers = problematic_holdovers)
 
-  message(paste0("Error log:"))
+  message(paste0("\nError log:"))
 
   message(paste0("\nRepeat encounters at same site N = ",nrow(repeatobservations)))
 
@@ -1356,23 +1389,26 @@ clean_s4t_ch_obs <- function(s4t_ch) {
   }
 
 
-  ## timedifferenceincaptures
+  ## max_obs_age_knownagefish
   max_obs_age_knownagefish <- s4t_ch$potential_error_log$max_obs_age_knownagefish
 
   if (nrow(max_obs_age_knownagefish) > 0) {
-    for (i in 1:nrow(timedifferenceincaptures)) {
+    for (i in 1:nrow(max_obs_age_knownagefish)) {
       tmp_ind <- ch_df[ch_df$id == max_obs_age_knownagefish$id[i],]; tmp_ind
 
-      first_obs <- min(tmp_ind$time); first_obs
-      time_diff <- timedifferenceincaptures$diff_time_obs[i]; time_diff
+      first_obs <- min(tmp_ind$time) - s4t_ch$ch_info$observed_relative_min_max$obs_min_time + 1; first_obs
+      obs_time <- max_obs_age_knownagefish$obs_time[i]; obs_time
+      tmp_set_max_a <-max_obs_age_knownagefish$set_max_a[i]
+      tmp_ageclass <-max_obs_age_knownagefish$ageclass[i]
+
 
       #
       ch_df[ch_df$id == max_obs_age_knownagefish$id[i] &
-              (ch_df$time) >  max_obs_age_knownagefish$obs_time_max_a[i],]
+              tmp_set_max_a < tmp_ageclass + (ch_df$time - obs_time),]
 
       # if the observation exceeds the max obs time for the observed age, drop that observation
       ch_df$drop_obs[ch_df$id == max_obs_age_knownagefish$id[i] &
-                       (ch_df$time) >  max_obs_age_knownagefish$obs_time_max_a[i]] <- TRUE
+                       tmp_set_max_a < tmp_ageclass + (ch_df$time - obs_time)] <- TRUE
 
     }
 
