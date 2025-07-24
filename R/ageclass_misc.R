@@ -75,7 +75,9 @@ ageclass_nll <- function(par,
     alpha[a] <- par[paste0("a_alpha_",a)]
   }
   # This is probably bad practice. Could exponentiate it
-  alpha[2:(new_max_a-1)] <- abs(alpha[2:(new_max_a-1)])
+  alpha[2:(new_max_a - 1)] <- abs(alpha[2:(new_max_a-1)])
+
+
 
   # beta <- par[grepl("^a_beta",par)]
 
@@ -121,6 +123,22 @@ ageclass_nll <- function(par,
     utils::head(pi); utils::tail(pi)
     print(par)
     stop("negative pi")
+  }
+
+  # ensures that none of the values are zero (for ll only)
+  if (ll == TRUE & any(pi == 0)) {
+    pi <- t(apply(pi,MARGIN = 1,
+                FUN = function(pi_row) {
+                  if (any(pi_row == 0)) {
+                    which(pi_row == 0)
+                    tmp_pi_row <- pi_row
+                    tmp_pi_row[which(pi_row  <= 1e-16)] <- 1e-16
+                    tmp_pi_row[which(pi_row  > 1e-16)] <- tmp_pi_row[which(pi_row  > 1e-16)] -
+                      1e-16*(sum(pi_row  <= 1e-16)/sum(pi_row  > 1e-16))
+                    return(tmp_pi_row)
+                  }
+                  return(pi_row)
+                }))
   }
 
 

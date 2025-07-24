@@ -54,6 +54,9 @@ fit_ageclass <- function(age_formula = ageclass ~ 1,
                    hessian = TRUE,
                    control = list(maxit = 500))
 
+  # inits[1:16] <- c(-0.99,1.008,1.004,1.0005,-.82,0.099,0.098,.098,.099,.0986,.04,.03,-.14,
+  # -.078,.02,-.11)
+
   # hes <- numDeriv::hessian(ageclass_nll,age_res$par,
   #              max_a = s4t_ch$ch_info$max_a,
   #              mod_mat_a_beta = ageclass_data$mod_mat_a_beta,
