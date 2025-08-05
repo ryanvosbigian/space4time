@@ -321,8 +321,9 @@ new_s4t_ch <- function(obs_ch,
 
   # which(sim.dat$obs_ch[,1])
 
-  n_init_relsite <- length(sort(unique(first_obs)))# sum(colSums(sites) == 0)
-  init_relsite <- sort(unique(first_obs)) # which(colSums(sites) == 0)
+
+  init_relsite <- which(colSums(sites_config) == 0) # sort(unique(first_obs)) #
+  n_init_relsite <- length(init_relsite)# sum(colSums(sites) == 0)
 
   init_relsite_list <- list()
 
@@ -373,7 +374,7 @@ new_s4t_ch <- function(obs_ch,
           }
         }
 
-        r <- (sort(c(tmp_r1,tmp_r4,app_tmp))) # unique
+        r <- unique(sort(c(tmp_r1,tmp_r4,app_tmp))) # unique
 
 
       }
@@ -459,7 +460,12 @@ new_s4t_ch <- function(obs_ch,
   # determine first captures
   first_cap_j  <- apply(obs_ch[,1:(ncol(obs_ch)-1)],MARGIN = 1,
                         FUN = function(x) which(x != 0)[1])
-
+  tmp_first_cap_diff <- setdiff(unique(first_cap_j),init_relsite)
+  if (length(tmp_first_cap_diff) > 0) {
+    warning(paste0("First observation of some (N=",sum(first_cap_j %in% tmp_first_cap_diff),") individuals are in recap sites: ",
+                   paste0(s4t_config$sites_names[tmp_first_cap_diff],collapse = ", ")))
+  }
+  # warning()
 
   init_rel_j <- sort(unique(first_cap_j))
   min_init_rel <- rep(0,length = length(init_rel_j)) # is this right??
@@ -530,9 +536,9 @@ new_s4t_ch <- function(obs_ch,
 
         existing_val_min_tmp <- min_ageclass_mat[k,s]
 
-        min_ageclass_mat[k,s] <- min(c(min_age_sk,
-                                       existing_val_min_tmp),na.rm = TRUE)
-
+        suppressWarnings(min_ageclass_mat[k,s] <- min(c(min_age_sk,
+                                       existing_val_min_tmp),na.rm = TRUE))
+        if (is.infinite(min_ageclass_mat[k,s])) min_ageclass_mat[k,s] <- NA
 
         # max values are simple, just given
         max_ageclass_mat[k,s] <- set_max_a[k]
@@ -1095,6 +1101,16 @@ s4t_ch <- function(ch_df,
     dplyr::filter(age_at_time > set_max_a)
   )
 
+  init_relsite <- which(colSums(s4t_config$sites_config) == 0)
+  init_relsite_names <- names(init_relsite)
+
+
+  suppressMessages(missing_init_release_site <- new_ch_df %>%
+                     dplyr::mutate(init_relsite = ifelse(site %in% init_relsite_names,TRUE,FALSE)) %>%
+    dplyr::arrange(id,order) %>%
+    dplyr::group_by(id) %>%
+    dplyr::filter(!any(init_relsite)))
+
 
   site_path <- s4t_config$site_path
   holdover_config <- s4t_config$holdover_config
@@ -1153,7 +1169,8 @@ s4t_ch <- function(ch_df,
                               zombie_individuals = zombie_individuals,
                               reversemovement = reversemovement,
                               max_obs_age_knownagefish = max_obs_age_knownagefish,
-                              problematic_holdovers = problematic_holdovers)
+                              problematic_holdovers = problematic_holdovers,
+                              missing_init_release_site = missing_init_release_site)
 
   message(paste0("\nError log:"))
 
@@ -1175,6 +1192,11 @@ s4t_ch <- function(ch_df,
 
   message(paste0("Known age individuals with ages greater than max age N = ",
                  length(unique(max_obs_age_knownagefish$id))))
+
+  # missing_init_release_site
+
+  message(paste0("Individuals with missing initial release site N = ",
+                 length(unique(missing_init_release_site$id))))
 
   message("\nPotential errors:")
 
@@ -1447,6 +1469,40 @@ clean_s4t_ch_obs <- function(s4t_ch) {
   }
 
 
+
+  ## missing_init_release_site
+  missing_init_release_site <- s4t_ch$potential_error_log$missing_init_release_site
+
+  drop_ids_missing_inits <- unique(missing_init_release_site$id)
+  ch_df$drop_obs[ch_df$id %in% drop_ids_missing_inits] <- TRUE
+
+  # if (nrow(problematic_holdovers) > 0) {
+  #   for (i in 1:nrow(problematic_holdovers)) {
+  #     tmp_ind <- ch_df[ch_df$id == problematic_holdovers$id[i],]; tmp_ind
+  #
+  #     problematic_holdovers[i,]
+  #
+  #
+  #     tmp_site <- problematic_holdovers$site[i]; tmp_site
+  #
+  #     if (tmp_site %in% names(s4t_ch$s4t_config$sites_to_pool)) {
+  #       tmp_site <- c(tmp_site,s4t_ch$s4t_config$sites_to_pool[[tmp_site]])
+  #     }
+  #
+  #     ch_df[ch_df$id == problematic_holdovers$id[i] &
+  #             ch_df$site %in% tmp_site &
+  #             ch_df$time >= problematic_holdovers$time[i],]
+  #
+  #     # if the observation exceeds the max time difference, drop that observation
+  #     ch_df$drop_obs[ch_df$id == problematic_holdovers$id[i] &
+  #                      ch_df$site %in% tmp_site &
+  #                      ch_df$time >= problematic_holdovers$time[i]] <- TRUE
+  #
+  #
+  #
+  #   }
+  #
+  # }
 
   dropped_ch_df <- ch_df %>%
     as.data.frame() %>%
