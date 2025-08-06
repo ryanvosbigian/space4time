@@ -469,14 +469,29 @@ model {
   for (i in unknownage_l) {
     int diff_age = l_matrix[i,2] - l_matrix[i,5];
 
-    // vector[max_a_overall - diff_age] pi_age1 = fixed_ageclass_l[i,(diff_age+1):max_a_overall]';
-    vector[max_a_overall - diff_age] pi_age1 = fixed_ageclass_l[i,(1):(max_a_overall - diff_age)]';
-    vector[max_a_overall] pi_age2 = append_row(rep_vector(0.0,diff_age),pi_age1)  ./ sum(pi_age1);
-    // vector[max_a_overall] pi_age3 = pi_age2 ./ sum(pi_age2);
+    // need to change what is below in the case of diff_age being less than 0.
+    // old below
+
+    // vector[max_a_overall - diff_age] pi_age1 = fixed_ageclass_l[i,(1):(max_a_overall - diff_age)]';
+    // vector[max_a_overall] pi_age2 = append_row(rep_vector(0.0,diff_age),pi_age1)  ./ sum(pi_age1);
+
+
+    // new below
+    int tmp_a_end = min({max_a_overall - diff_age, max_a_overall}); // insures that pi_age1 will be at max lgth max_a
+    int tmp_a_start = 1 + abs(min({0,diff_age})); // returns 1 if diff age is greater than 0. if diff_age is negative,
+    vector[tmp_a_end - tmp_a_start + 1] pi_age1 = fixed_ageclass_l[i,(tmp_a_start):(tmp_a_end)]'; // insures that pi_age1 will not be greater than max_a
+
+    //
+    int tmp_append_start = max({0,diff_age}); // returns 0 if diff_age is less than 0
+    int tmp_append_end = abs(min({0,diff_age})); // returns 0 if diff_age is more than 0
+    vector[max_a_overall] pi_age2 = append_row(
+                                               append_row(rep_vector(0.0,tmp_append_start),
+                                                          pi_age1),
+                                               rep_vector(0.0,tmp_append_end)
+                                              )  ./ sum(pi_age1);
 
 
 
-    // vector[max_a_overall] lik1 = to_vector(chi_array[l_matrix[i,1],l_matrix[i,2],l_matrix[i,3],l_matrix[i,4],1:max_a_overall]);
     // was chi_array[j,s,b,g,a1] -> chi_array[g,j,b, MATRIX: s, a1]
     row_vector[max_a_overall] lik1 = chi_array[l_matrix[i,4],l_matrix[i,1],l_matrix[i,3],l_matrix[i,2],1:max_a_overall];
 
@@ -574,8 +589,27 @@ model {
     vector[max_a_overall] tmp_p_obs2 = append_row(tmp_p_obs1,
               rep_vector(0.0,diff_s_t));
 
-    vector[max_a_overall - diff_age] pi_age1 = fixed_ageclass_m[i,(1):(max_a_overall - diff_age)]';
-    vector[max_a_overall] pi_age2 = append_row(rep_vector(0.0,diff_age),pi_age1) ./ sum(pi_age1);
+
+    // need to change this so that diff_age can be less than 1
+    // old
+    // vector[max_a_overall - diff_age] pi_age1 = fixed_ageclass_m[i,(1):(max_a_overall - diff_age)]';
+    // vector[max_a_overall] pi_age2 = append_row(rep_vector(0.0,diff_age),pi_age1) ./ sum(pi_age1);
+
+    // new below
+    int tmp_a_end = min({max_a_overall - diff_age, max_a_overall}); // insures that pi_age1 will be at max lgth max_a
+    int tmp_a_start = 1 + abs(min({0,diff_age})); // returns 1 if diff age is greater than 0. if diff_age is negative,
+    vector[tmp_a_end - tmp_a_start + 1] pi_age1 = fixed_ageclass_m[i,(tmp_a_start):(tmp_a_end)]'; // insures that pi_age1 will not be greater than max_a
+
+    //
+    int tmp_append_start = max({0,diff_age}); // returns 0 if diff_age is less than 0
+    int tmp_append_end = abs(min({0,diff_age})); // returns 0 if diff_age is more than 0
+    vector[max_a_overall] pi_age2 = append_row(
+                                               append_row(rep_vector(0.0,tmp_append_start),
+                                                          pi_age1),
+                                               rep_vector(0.0,tmp_append_end)
+                                              )  ./ sum(pi_age1);
+
+
     // vector[max_a_overall] pi_age3 = pi_age2  ./ sum(pi_age2);
 
     // this may cause some errors. may need to put this in an ifelse statement
@@ -939,10 +973,20 @@ generated quantities {
   for (i in unknownage_l) {
     int diff_age = l_matrix[i,2] - l_matrix[i,5];
 
-    // vector[max_a_overall - diff_age] pi_age1 = fixed_ageclass_l[i,(diff_age+1):max_a_overall]';
-    vector[max_a_overall - diff_age] pi_age1 = fixed_ageclass_l[i,(1):(max_a_overall - diff_age)]';
-    vector[max_a_overall] pi_age2 = append_row(rep_vector(0.0,diff_age),pi_age1)  ./ sum(pi_age1);
-    // vector[max_a_overall] pi_age3 = pi_age2 ./ sum(pi_age2);
+    // determine pi_age2 vector
+    int tmp_a_end = min({max_a_overall - diff_age, max_a_overall}); // insures that pi_age1 will be at max lgth max_a
+    int tmp_a_start = 1 + abs(min({0,diff_age})); // returns 1 if diff age is greater than 0. if diff_age is negative,
+    vector[tmp_a_end - tmp_a_start + 1] pi_age1 = fixed_ageclass_l[i,(tmp_a_start):(tmp_a_end)]'; // insures that pi_age1 will not be greater than max_a
+
+    //
+    int tmp_append_start = max({0,diff_age}); // returns 0 if diff_age is less than 0
+    int tmp_append_end = abs(min({0,diff_age})); // returns 0 if diff_age is more than 0
+    vector[max_a_overall] pi_age2 = append_row(
+                                               append_row(rep_vector(0.0,tmp_append_start),
+                                                          pi_age1),
+                                               rep_vector(0.0,tmp_append_end)
+                                              )  ./ sum(pi_age1);
+
 
 
 
@@ -1043,8 +1087,21 @@ generated quantities {
     vector[max_a_overall] tmp_p_obs2 = append_row(tmp_p_obs1,
               rep_vector(0.0,diff_s_t));
 
-    vector[max_a_overall - diff_age] pi_age1 = fixed_ageclass_m[i,(1):(max_a_overall - diff_age)]';
-    vector[max_a_overall] pi_age2 = append_row(rep_vector(0.0,diff_age),pi_age1) ./ sum(pi_age1);
+
+    // determine pi_age2 vector
+    int tmp_a_end = min({max_a_overall - diff_age, max_a_overall}); // insures that pi_age1 will be at max lgth max_a
+    int tmp_a_start = 1 + abs(min({0,diff_age})); // returns 1 if diff age is greater than 0. if diff_age is negative,
+    vector[tmp_a_end - tmp_a_start + 1] pi_age1 = fixed_ageclass_m[i,(tmp_a_start):(tmp_a_end)]'; // insures that pi_age1 will not be greater than max_a
+
+    //
+    int tmp_append_start = max({0,diff_age}); // returns 0 if diff_age is less than 0
+    int tmp_append_end = abs(min({0,diff_age})); // returns 0 if diff_age is more than 0
+    vector[max_a_overall] pi_age2 = append_row(
+                                               append_row(rep_vector(0.0,tmp_append_start),
+                                                          pi_age1),
+                                               rep_vector(0.0,tmp_append_end)
+                                              )  ./ sum(pi_age1);
+
     // vector[max_a_overall] pi_age3 = pi_age2  ./ sum(pi_age2);
 
     // this may cause some errors. may need to put this in an ifelse statement

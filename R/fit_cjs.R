@@ -1373,14 +1373,30 @@ fit_s4t_cjs_rstan <- function(p_formula,
     # currently just the ML fit
     ageclass_fit <- fit_ageclass(age_formula = ageclass_formula,s4t_ch = s4t_ch)
 
+    mod_mat_a_beta_L <- matrix(0,
+                               nrow = nrow(ageclassdat_L$mod_mat_a_beta),
+                               ncol = ncol(ageclassdat$mod_mat_a_beta))
+    colnames(mod_mat_a_beta_L) <- colnames(ageclassdat$mod_mat_a_beta)
+
+    mod_mat_a_beta_L[,colnames(ageclassdat_L$mod_mat_a_beta)] <- ageclassdat_L$mod_mat_a_beta[,colnames(ageclassdat_L$mod_mat_a_beta)]
+
+
+    mod_mat_a_beta_M <- matrix(0,
+                               nrow = nrow(ageclassdat_M$mod_mat_a_beta),
+                               ncol = ncol(ageclassdat$mod_mat_a_beta))
+    colnames(mod_mat_a_beta_M) <- colnames(ageclassdat$mod_mat_a_beta)
+
+    mod_mat_a_beta_M[,colnames(ageclassdat_M$mod_mat_a_beta)] <- ageclassdat_M$mod_mat_a_beta[,colnames(ageclassdat_M$mod_mat_a_beta)]
+
+
     fixed_ageclass_l <- ageclass_nll(par = ageclass_fit$res$par,
                                      max_a = max(set_max_a),
-                                     mod_mat_a_beta = ageclassdat_L$mod_mat_a_beta,
+                                     mod_mat_a_beta = mod_mat_a_beta_L,# ageclassdat_L$mod_mat_a_beta,
                                      ll = FALSE)
 
     fixed_ageclass_m <- ageclass_nll(par = ageclass_fit$res$par,
                                      max_a = max(set_max_a),
-                                     mod_mat_a_beta = ageclassdat_M$mod_mat_a_beta,
+                                     mod_mat_a_beta = mod_mat_a_beta_M, #ageclassdat_M$mod_mat_a_beta,
                                      ll = FALSE)
 
 
@@ -1688,7 +1704,6 @@ fit_s4t_cjs_rstan <- function(p_formula,
     # RUN RES
     input_data[["fixed_ageclass_l"]] <- fixed_ageclass_l
     input_data[["fixed_ageclass_m"]] <- fixed_ageclass_m
-
 
 
     res <- rstan::sampling(stanmodels$s4t_cjs_fixedage_draft7,

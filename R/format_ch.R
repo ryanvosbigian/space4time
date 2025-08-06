@@ -541,7 +541,9 @@ new_s4t_ch <- function(obs_ch,
         if (is.infinite(min_ageclass_mat[k,s])) min_ageclass_mat[k,s] <- NA
 
         # max values are simple, just given
-        max_ageclass_mat[k,s] <- set_max_a[k]
+        max_ageclass_mat[k,s] <- ifelse(is.na(min_ageclass_mat[k,s]),
+                                        NA,
+                                        set_max_a[k])
 
 
       }
