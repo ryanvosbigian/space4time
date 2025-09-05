@@ -134,7 +134,7 @@ predictTheta.s4t_cjs_rstan <- function(object,newdata = NULL,lcl = 0.025,
   indices_cohort_surv <- object$fit$input_data$indices_cohort_surv
   indices_theta <- object$fit$input_data$indices_theta
 
-  theta_dims <- apply(indices_theta,2,max)[c("a1","a2","s","j","b","g")]
+  theta_dims <- apply(indices_theta,2,max)[c("a1","a2","s","j","r","g")]
 
   indices_theta <- object$fit$input_data$indices_theta
 

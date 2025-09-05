@@ -4,11 +4,11 @@
 \alias{fit_ageclass}
 \title{Fit age-class model using ordinal regression}
 \usage{
-fit_ageclass(age_formula = ageclass ~ 1, s4t_ch)
+fit_ageclass(age_formula = ~1, s4t_ch)
 }
 \arguments{
 \item{age_formula}{a one- or two-sided \code{formula} describing the effect
-structure of the model.}
+structure of the model. Note that obs_time is treated as factor}
 
 \item{s4t_ch}{a \code{s4t_ch} object}
 }
@@ -19,6 +19,11 @@ parameters, AIC, negative log likelihood, and call.
 \description{
 Fit age-class ordinal regression model with logit link and
 flexible threshold parameters.
+}
+\details{
+To enforce obs_time to be treated as a continuous variable, the formula
+can be written as: \code{age_formula = ~ I(numeric(obs_time))}, or
+another variable for time can be included in auxiliary data.
 }
 \examples{
 sim.dat <- sim_simple_s4t_ch()

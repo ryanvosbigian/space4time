@@ -130,7 +130,7 @@ format_s4t_cjs <- function(p_formula,
 
     s4t_ch$ch$m_matrix[,"g"] <- tmp_groups$g
 
-    group_names <- apply(distinct_groups_df[,groups],MARGIN = 1,FUN = function(x) paste0(x, collapse = "_"))
+    group_names <- sapply(distinct_groups_df[,groups],FUN = function(x) paste0(x, collapse = "_"))
   } else {
     N_groups <- 1
     group_id <- as.factor(rep(1,nrow(s4t_ch$ch$all_aux)))
@@ -451,8 +451,9 @@ format_s4t_cjs <- function(p_formula,
   }
 
 
-  if (ncol(indices_p_obs_original) > 9) {
+  if (ncol(indices_p_obs_original) > 8) {
     tmp_indices_p_obs <- cbind(tmp_indices_p_obs,indices_p_obs_original[,9:ncol(indices_p_obs_original)])
+    colnames(tmp_indices_p_obs) <- colnames(indices_p_obs_original)
   } else {
     tmp_indices_p_obs <- tmp_indices_p_obs
   }
@@ -503,8 +504,9 @@ format_s4t_cjs <- function(p_formula,
 
   }
 
-  if (ncol(indices_theta_original) > 9) {
+  if (ncol(indices_theta_original) > 8) {
     tmp_indices_theta <- cbind(tmp_indices_theta,indices_theta_original[,9:ncol(indices_theta_original)])
+    colnames(tmp_indices_theta) <- colnames(indices_theta_original)
   } else {
     tmp_indices_theta <- tmp_indices_theta
   }
@@ -537,19 +539,27 @@ format_s4t_cjs <- function(p_formula,
 
   ## dropping duplicate columns
   if (ncol(mod_mat_p) > 1) {
-    combos <- utils::combn(x = 1:ncol(mod_mat_p),m = 2)
-    aliasedcols <- apply(combos,MARGIN = 2,FUN = function(x) all(mod_mat_p[,x[1]] == mod_mat_p[,x[2]])
-    )
-
-    if (sum(aliasedcols) > 0) {
-      drop_cols <- combos[2,aliasedcols]
-
-      keep_cols <- c(1:ncol(mod_mat_p))[-drop_cols]
-
-      mod_mat_p <- mod_mat_p[,keep_cols]
-      p_par <- p_par[keep_cols]
-    }
+    tmp_columns <- apply(mod_mat_p,MARGIN = 2,FUN = function (x) paste0(x,collapse = ","))
+    keep_cols <- !duplicated(tmp_columns)
+    mod_mat_p <- mod_mat_p[,keep_cols]
+    p_par <- p_par[keep_cols]
   }
+
+  ## old version of the above
+  # if (ncol(mod_mat_p) > 1) {
+  #   combos <- utils::combn(x = 1:ncol(mod_mat_p),m = 2)
+  #   aliasedcols <- apply(combos,MARGIN = 2,FUN = function(x) all(mod_mat_p[,x[1]] == mod_mat_p[,x[2]])
+  #   )
+  #
+  #   if (sum(aliasedcols) > 0) {
+  #     drop_cols <- combos[2,aliasedcols]
+  #
+  #     keep_cols <- c(1:ncol(mod_mat_p))[-drop_cols]
+  #
+  #     mod_mat_p <- mod_mat_p[,keep_cols]
+  #     p_par <- p_par[keep_cols]
+  #   }
+  # }
 
   # remove linear dependent columns to make a full rank design matrix
   # following method from WeightIt package (make.full.rank fn)
@@ -588,19 +598,27 @@ format_s4t_cjs <- function(p_formula,
   ## dropping aliased/duplicate columns
 
   if (ncol(mod_mat_theta) > 1) {
-    combos <- utils::combn(x = 1:ncol(mod_mat_theta),m = 2)
-    aliasedcols <- apply(combos,MARGIN = 2,FUN = function(x) all(mod_mat_theta[,x[1]] == mod_mat_theta[,x[2]])
-    )
-
-    if (sum(aliasedcols) > 0) {
-      drop_cols <- combos[2,aliasedcols]
-
-      keep_cols <- c(1:ncol(mod_mat_theta))[-drop_cols]
-
-      mod_mat_theta <- mod_mat_theta[,keep_cols]
-      theta_par <- theta_par[keep_cols]
-    }
+    tmp_columns <- apply(mod_mat_theta,MARGIN = 2,FUN = function (x) paste0(x,collapse = ","))
+    keep_cols <- !duplicated(tmp_columns)
+    mod_mat_theta <- mod_mat_theta[,keep_cols]
+    theta_par <- theta_par[keep_cols]
   }
+
+  # old version of the above
+  # if (ncol(mod_mat_theta) > 1) {
+  #   combos <- utils::combn(x = 1:ncol(mod_mat_theta),m = 2)
+  #   aliasedcols <- apply(combos,MARGIN = 2,FUN = function(x) all(mod_mat_theta[,x[1]] == mod_mat_theta[,x[2]])
+  #   )
+  #
+  #   if (sum(aliasedcols) > 0) {
+  #     drop_cols <- combos[2,aliasedcols]
+  #
+  #     keep_cols <- c(1:ncol(mod_mat_theta))[-drop_cols]
+  #
+  #     mod_mat_theta <- mod_mat_theta[,keep_cols]
+  #     theta_par <- theta_par[keep_cols]
+  #   }
+  # }
 
 
   # remove linear dependent columns to make a full rank design matrix
@@ -1188,7 +1206,8 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                              mod_mat_p = format_cjs$mod_mat_p,
                              indices_p_obs = format_cjs$indices_p_obs,
                              ageclass_data = ageclass_data,
-                             fixed_age = list(fixed_age = fixed_age)
+                             fixed_age = list(fixed_age = fixed_age),
+                             s4t_ch = s4t_ch
                   ),
                   original_units = list(indices_theta_original = indices_theta_original,
                                         indices_p_obs_original = indices_p_obs_original,
@@ -1285,6 +1304,9 @@ fit_s4t_cjs_rstan <- function(p_formula,
   set_max_a <- format_cjs$set_max_a
   max_a_overall <- max(set_max_a)
   N_groups <- format_cjs$N_groups
+
+  # m_matrix <- format_cjs$m_matrix
+
   tmp_obs_aux <-format_cjs$all_aux[!is.na(format_cjs$all_aux[,"ageclass"]),]
   ageclassdat <- ageclass_call(age_formula = ageclass_formula,
                                obs_aux = tmp_obs_aux
@@ -1348,7 +1370,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
   ageclassdat_L$obsageclass <- l_matrix_marg[,6]
 
   # marginalize m_matrix
-  tmp <- s4t_ch$ch$m_matrix[,1:8]
+  tmp <- format_cjs$m_matrix[,1:8]
   colnames(tmp) <-  paste0("M_",colnames(tmp))
 
   unique_identifier_m <- cbind(ageclassdat_M$mod_mat_a_beta,
@@ -1369,24 +1391,28 @@ fit_s4t_cjs_rstan <- function(p_formula,
   ageclassdat_M$mod_mat_a_beta <- as.matrix(marg_unique_id_m[,1:ncol(ageclassdat_M$mod_mat_a_beta)])
   ageclassdat_M$obsageclass <- m_matrix_marg[,8]
 
+
+
+  mod_mat_a_beta_L <- matrix(0,
+                             nrow = nrow(ageclassdat_L$mod_mat_a_beta),
+                             ncol = ncol(ageclassdat$mod_mat_a_beta))
+  colnames(mod_mat_a_beta_L) <- colnames(ageclassdat$mod_mat_a_beta)
+
+  mod_mat_a_beta_L[,colnames(ageclassdat_L$mod_mat_a_beta)] <- ageclassdat_L$mod_mat_a_beta[,colnames(ageclassdat_L$mod_mat_a_beta)]
+
+
+  mod_mat_a_beta_M <- matrix(0,
+                             nrow = nrow(ageclassdat_M$mod_mat_a_beta),
+                             ncol = ncol(ageclassdat$mod_mat_a_beta))
+  colnames(mod_mat_a_beta_M) <- colnames(ageclassdat$mod_mat_a_beta)
+
+  mod_mat_a_beta_M[,colnames(ageclassdat_M$mod_mat_a_beta)] <- ageclassdat_M$mod_mat_a_beta[,colnames(ageclassdat_M$mod_mat_a_beta)]
+
+
+
   if (fixed_age) {
     # currently just the ML fit
     ageclass_fit <- fit_ageclass(age_formula = ageclass_formula,s4t_ch = s4t_ch)
-
-    mod_mat_a_beta_L <- matrix(0,
-                               nrow = nrow(ageclassdat_L$mod_mat_a_beta),
-                               ncol = ncol(ageclassdat$mod_mat_a_beta))
-    colnames(mod_mat_a_beta_L) <- colnames(ageclassdat$mod_mat_a_beta)
-
-    mod_mat_a_beta_L[,colnames(ageclassdat_L$mod_mat_a_beta)] <- ageclassdat_L$mod_mat_a_beta[,colnames(ageclassdat_L$mod_mat_a_beta)]
-
-
-    mod_mat_a_beta_M <- matrix(0,
-                               nrow = nrow(ageclassdat_M$mod_mat_a_beta),
-                               ncol = ncol(ageclassdat$mod_mat_a_beta))
-    colnames(mod_mat_a_beta_M) <- colnames(ageclassdat$mod_mat_a_beta)
-
-    mod_mat_a_beta_M[,colnames(ageclassdat_M$mod_mat_a_beta)] <- ageclassdat_M$mod_mat_a_beta[,colnames(ageclassdat_M$mod_mat_a_beta)]
 
 
     fixed_ageclass_l <- ageclass_nll(par = ageclass_fit$res$par,
@@ -1675,15 +1701,15 @@ fit_s4t_cjs_rstan <- function(p_formula,
                      batches_list = init_relsite_list_mat,
                      site_path = site_path_mat,
 
-                     mod_mat_a_L_r = nrow(ageclassdat_L$mod_mat_a_beta),
-                     mod_mat_a_L_c = ncol(ageclassdat_L$mod_mat_a_beta),
-                     mod_mat_a_M_r = nrow(ageclassdat_M$mod_mat_a_beta),
-                     mod_mat_a_M_c = ncol(ageclassdat_M$mod_mat_a_beta),
+                     mod_mat_a_L_r = nrow(mod_mat_a_beta_L),
+                     mod_mat_a_L_c = ncol(mod_mat_a_beta_L),
+                     mod_mat_a_M_r = nrow(mod_mat_a_beta_M),
+                     mod_mat_a_M_c = ncol(mod_mat_a_beta_M),
 
                      N_obsageclass_L = nrow(ageclassdat_L$mod_mat_a_beta),
                      N_obsageclass_M = nrow(ageclassdat_M$mod_mat_a_beta),
-                     mod_mat_a_L = as.matrix(ageclassdat_L$mod_mat_a_beta[,-1]),
-                     mod_mat_a_M = as.matrix(ageclassdat_M$mod_mat_a_beta[,-1]),
+                     mod_mat_a_L = as.matrix(mod_mat_a_beta_L[,-1]),
+                     mod_mat_a_M = as.matrix(mod_mat_a_beta_M[,-1]),
                      obsageclass_L = ifelse(is.na(l_matrix_marg[,6]),0,l_matrix_marg[,6]),
                      obsageclass_M = ifelse(is.na(m_matrix_marg[,8]),0,m_matrix_marg[,8]),
 
@@ -1712,6 +1738,12 @@ fit_s4t_cjs_rstan <- function(p_formula,
                            warmup = warmup,
                            iter = iter,
                            ...)
+
+    # res <- rstan::stan("C:/Users/rvosbigian/OneDrive - University of Idaho/Post_masters/cjs_s4t/space4time/inst/stan/s4t_cjs_fixedage_draft7.stan",
+    #                        # pars = c("theta_params","p_params","overall_surv","cohort_surv","log_lik"), # ,"log_lik"
+    #                        data=input_data,chains = chains,
+    #                        warmup = warmup,
+    #                        iter = iter)
 
 
   } else {
@@ -1964,7 +1996,8 @@ fit_s4t_cjs_rstan <- function(p_formula,
                                    theta_formula = theta_formula,
                                    ageclass_formula = ageclass_formula,
                                    input_data = input_data,
-                                   fixed_age = NULL
+                                   fixed_age = NULL,
+                                   s4t_ch = s4t_ch
                         ),
                         original_units = list(indices_theta_original = indices_theta_original,
                                               indices_p_obs_original = indices_p_obs_original,

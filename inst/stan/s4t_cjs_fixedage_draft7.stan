@@ -559,12 +559,13 @@ model {
 
     summand_m[i] = log(lik1) * m_matrix[i,8];
 
-    // print("lik1: ",- log(lik1));
+    // // print("lik1: ",- log(lik1));
     // if (lik1 == 0) {
-    //   print("lik == 0");
+    //   print("lik == 0: ",i);
     //   print(m_matrix[i,]);
     //   print("p = ",tmp_p_obs2);
     //   print("lambda = ",lambda_array[m_matrix[i,6],m_matrix[i,1],m_matrix[i,2],m_matrix[i,4],m_matrix[i,5],m_matrix[i,3],k_age]);
+    //   print("age = ",k_age);
     // }
 
   }

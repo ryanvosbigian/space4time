@@ -9,17 +9,23 @@
 #'
 #' @export
 #' @param age_formula a one- or two-sided `formula` describing the effect
-#'     structure of the model.
+#'     structure of the model. Note that obs_time is treated as factor
 #' @param s4t_ch a `s4t_ch` object
 #' @returns a fitted `s4t_ageclass_model` object that contains the estimated
 #'     parameters, AIC, negative log likelihood, and call.
+#'
+#' @details
+#' To enforce obs_time to be treated as a continuous variable, the formula
+#'     can be written as: `age_formula = ~ I(numeric(obs_time))`, or
+#'     another variable for time can be included in auxiliary data.
+#'
 #'
 #' @examples
 #' sim.dat <- sim_simple_s4t_ch()
 #' m <- fit_ageclass(ageclass ~ FL + obs_time,s4t_ch = sim.dat$s4t_ch)
 #' summary(m)
 #'
-fit_ageclass <- function(age_formula = ageclass ~ 1,
+fit_ageclass <- function(age_formula =  ~ 1,
                          s4t_ch) {
 
   # validate_s4t_ch(s4t_ch)

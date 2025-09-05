@@ -4,14 +4,16 @@
 \alias{plotCov}
 \title{Effect plot for s4t_cjs_rstan object}
 \usage{
-plotCov(mod, param, ...)
+plotCov(mod, par_formula, conditional = TRUE, ...)
 }
 \arguments{
 \item{mod}{a \code{s4t_cjs_rstan} object}
 
-\item{param}{a \code{character} of the parameter}
+\item{par_formula}{a \code{character} of the parameter}
 
-\item{...}{not used at the moment}
+\item{conditional}{NOTE USED}
+
+\item{...}{Filters}
 }
 \value{
 a ggplot2 type figure of the transition probabilities

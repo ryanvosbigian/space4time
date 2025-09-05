@@ -1089,18 +1089,20 @@ s4t_ch <- function(ch_df,
     dplyr::filter(any(!is.na(ageclass))) %>%
     tidyr::fill(ageclass,obs_time) %>%
     dplyr::left_join(data.frame(site = s4t_config$sites_names,set_max_a = set_max_a)) %>%
+      dplyr::left_join(data.frame(site = s4t_config$sites_names,set_min_a = set_min_a)) %>%
 
     dplyr::mutate(first_obs = min_not_zero(time),
               last_obs = max(time),
               age_at_obs = dplyr::first(ageclass),
               obs_time = dplyr::first(obs_time),
               obs_time_max_a = obs_time + (min(obs_min_time) - 1) + set_max_a - age_at_obs,
+              obs_time_min_a = obs_time + (max(obs_min_time) - 1) + set_min_a - age_at_obs,
               # set_obs_time = dplyr::first(obs_time)  - obs_min_time + 1,
               age_at_time = age_at_obs + (time - obs_time)#,
               # diff_time_obs = last_obs - (obs_time - obs_min_time + 1),
               # in_dataobs_max_age = obs_age + diff_time_obs
               ) %>%
-    dplyr::filter(age_at_time > set_max_a)
+    dplyr::filter(age_at_time > set_max_a | age_at_time < set_min_a)
   )
 
   init_relsite <- which(colSums(s4t_config$sites_config) == 0)
@@ -1192,7 +1194,7 @@ s4t_ch <- function(ch_df,
   # reversemovement
   message(paste0("Reverse movements N = ",length(unique(reversemovement$id))))
 
-  message(paste0("Known age individuals with ages greater than max age N = ",
+  message(paste0("Known age individuals with ages outside of site-specific age-range N = ",
                  length(unique(max_obs_age_knownagefish$id))))
 
   # missing_init_release_site
@@ -1423,16 +1425,21 @@ clean_s4t_ch_obs <- function(s4t_ch) {
       first_obs <- min(tmp_ind$time) - s4t_ch$ch_info$observed_relative_min_max$obs_min_time + 1; first_obs
       obs_time <- max_obs_age_knownagefish$obs_time[i]; obs_time
       tmp_set_max_a <-max_obs_age_knownagefish$set_max_a[i]
+      tmp_set_min_a <-max_obs_age_knownagefish$set_min_a[i]
       tmp_ageclass <-max_obs_age_knownagefish$ageclass[i]
 
 
       #
-      ch_df[ch_df$id == max_obs_age_knownagefish$id[i] &
-              tmp_set_max_a < tmp_ageclass + (ch_df$time - obs_time),]
+      ch_df[ch_df$id == max_obs_age_knownagefish$id[i] &(
+              (tmp_set_max_a < tmp_ageclass + (ch_df$time - obs_time)) |
+                (tmp_set_min_a > tmp_ageclass + (ch_df$time - obs_time))
+              ),]
 
-      # if the observation exceeds the max obs time for the observed age, drop that observation
-      ch_df$drop_obs[ch_df$id == max_obs_age_knownagefish$id[i] &
-                       tmp_set_max_a < tmp_ageclass + (ch_df$time - obs_time)] <- TRUE
+      # if the observation exceeds the max (or min) obs time for the observed age, drop that observation
+      ch_df$drop_obs[ch_df$id == max_obs_age_knownagefish$id[i] & (
+                         (tmp_set_max_a < tmp_ageclass + (ch_df$time - obs_time)) |
+                           (tmp_set_min_a > tmp_ageclass + (ch_df$time - obs_time))
+                       )] <- TRUE
 
     }
 
@@ -1532,7 +1539,7 @@ clean_s4t_ch_obs <- function(s4t_ch) {
 }
 
 n <- N <- drop_obs <- age_at_obs <- age_at_time <-
-  holdover <- Site_j <- time_diff <- NULL
+  holdover <- Site_j <- time_diff <- keep_ids <- NULL
 
 # validate_s4t_ch <- function(s4t_ch) {
 #   # not up to date
