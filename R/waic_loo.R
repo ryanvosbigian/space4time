@@ -1,7 +1,9 @@
 
 #' Efficient approximate leave-one-out cross-validation (LOO)
 #'
-#'
+#' Computes the PSIS-LOO CV efficient approximate leave-one-out (LOO)
+#'     cross-validation for Bayesian models using Pareto smoothed importance sampling (PSIS).
+#'     See documentation for `loo::loo()`
 #'
 #' @export
 #'

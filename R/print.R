@@ -181,7 +181,7 @@ print.s4t_cjs_rstan <- function(x,
 #'
 #' @export
 print.clean_s4t_ch <- function(x, ...) {
-  stopifnot(is(x,"clean_s4t_ch"))
+  # stopifnot(is(x,"clean_s4t_ch"))
 
   x$intermediate_ch_df %>%
     as.data.frame() %>%

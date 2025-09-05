@@ -344,7 +344,8 @@ s4t_config <- function(sites_names,
 #' Create site configuration for simple linear arrangement
 #'
 #' @description
-#' Note that this can be used
+#' Create site configuration for a simple linear arrangement of sites, where there are no
+#'     branches.
 #'
 #' @param sites_names a character `vector` of the site names. Order indicates the
 #'  direction of movement.

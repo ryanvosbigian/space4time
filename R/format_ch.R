@@ -1270,7 +1270,7 @@ marginalize_ch <- function(s4t_ch) {
 #' Clean the capture history of a space4time capture history object
 #'
 #' @description
-#' A short description...
+#' Cleans the capture history of a space4time capture history object. See details.
 #'
 #' @param s4t_ch a `s4t_ch` object.
 #' @returns a `clean_s4t_ch` object.

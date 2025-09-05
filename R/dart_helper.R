@@ -47,22 +47,22 @@ process_site_config <- function(DART_config,configdate = Sys.Date()) {
       # tmp_code_lines[tmp_range[p-1]]
       tmpdate_range <- gsub("^.*range: ","",tmp_code_lines[tmp_range[r]])
 
-      tmp_startdate <- as.Date(str_split_i(tmpdate_range," ",1),format = "%d-%b-%y")
+      tmp_startdate <- as.Date(stringr::str_split_i(tmpdate_range," ",1),format = "%d-%b-%y")
 
       #
-      tmp_enddate <- ifelse(str_split_i(tmpdate_range," ",2) == "Present",as.Date(configdate),as.Date(str_split_i(tmpdate_range," ",2),format = "%d-%b-%y"))
+      tmp_enddate <- ifelse(stringr::str_split_i(tmpdate_range," ",2) == "Present",as.Date(configdate),as.Date(stringr::str_split_i(tmpdate_range," ",2),format = "%d-%b-%y"))
 
       next_closed_paran <- min(tmp_cloparanth[which(tmp_cloparanth-tmp_range[r] > 0)])
 
       tmp_array_lines <- tmp_code_lines[seq(tmp_range[r] + 2,next_closed_paran-1)]
 
-      arraynames <- str_split_i(tmp_array_lines,pattern = " : ",i = 3)
-      arraycodes <- str_split_i(tmp_array_lines,pattern = " : ",i = 4)
+      arraynames <- stringr::str_split_i(tmp_array_lines,pattern = " : ",i = 3)
+      arraycodes <- stringr::str_split_i(tmp_array_lines,pattern = " : ",i = 4)
 
-      releasecode1 <- str_split_i(tmp_array_lines,pattern = ": ",i = 1)
+      releasecode1 <- stringr::str_split_i(tmp_array_lines,pattern = ": ",i = 1)
       releasecode1 <- gsub(" ","",releasecode1)
 
-      releasecode2 <- str_split_i(tmp_array_lines,pattern = ":",i = 2)
+      releasecode2 <- stringr::str_split_i(tmp_array_lines,pattern = ":",i = 2)
 
       releasecode2 <- gsub(" ","",releasecode2)
 
@@ -86,8 +86,8 @@ process_site_config <- function(DART_config,configdate = Sys.Date()) {
 
       format_tmp_exception_lines <- gsub("^.*exception: ","",tmp_exception_lines)
 
-      tmp_date_start <- str_split_i(format_tmp_exception_lines," ",1)
-      tmp_date_end <- str_split_i(format_tmp_exception_lines," ",2)
+      tmp_date_start <- stringr::str_split_i(format_tmp_exception_lines," ",1)
+      tmp_date_end <- stringr::str_split_i(format_tmp_exception_lines," ",2)
 
 
       tmp_date_start <- as.Date(tmp_date_start,format = "%d-%b-%y")
@@ -95,12 +95,12 @@ process_site_config <- function(DART_config,configdate = Sys.Date()) {
 
       format2_tmp_exc_lines <- gsub(".*[{] | [}]","",format_tmp_exception_lines)
 
-      arraynames <- str_split_i(format2_tmp_exc_lines,pattern = " : ",i = 3)
-      arraycodes <- str_split_i(format2_tmp_exc_lines,pattern = " : ",i = 4)
+      arraynames <- stringr::str_split_i(format2_tmp_exc_lines,pattern = " : ",i = 3)
+      arraycodes <- stringr::str_split_i(format2_tmp_exc_lines,pattern = " : ",i = 4)
 
-      releasecode1 <- str_split_i(format2_tmp_exc_lines,pattern = ": ",i = 1)
+      releasecode1 <- stringr::str_split_i(format2_tmp_exc_lines,pattern = ": ",i = 1)
 
-      releasecode2 <- str_split_i(format2_tmp_exc_lines,pattern = ":",i = 2)
+      releasecode2 <- stringr::str_split_i(format2_tmp_exc_lines,pattern = ":",i = 2)
 
       releasecode2 <- gsub(" ","",releasecode2)
 
@@ -262,7 +262,7 @@ identify_barged_fish <- function(capture_data,parsed_df) {
 
       if (nrow(tmp_siteinfo) > 1) {
         tmp_siteinfo <- tmp_siteinfo %>%
-          filter(exception == TRUE)
+          dplyr::filter(exception == TRUE)
 
         if (nrow(tmp_siteinfo) == 1) {
           capture_data$removed[i] <- ifelse(tmp_siteinfo$releasecode1 == 'T',TRUE,FALSE)
@@ -333,7 +333,7 @@ read_DART_file <- function(filepath,aux_age_df,DART_config = "https://www.cbr.wa
   age_df <- aux_age_df
 
   # find first row:
-  skip_df = read.csv(files[[1]])
+  skip_df = utils::read.csv(files[[1]])
 
   skip = grep("[#]RelGrpStartDate",skip_df[,1])
 
@@ -346,7 +346,7 @@ read_DART_file <- function(filepath,aux_age_df,DART_config = "https://www.cbr.wa
   if (length(files) > 1) {
     for (i in 2:length(files)) {
       # find first row:
-      skip_df = read.csv(files[[i]])
+      skip_df = utils::read.csv(files[[i]])
 
       skip = grep("[#]RelGrpStartDate",skip_df[,1])
 
@@ -429,7 +429,7 @@ read_DART_file <- function(filepath,aux_age_df,DART_config = "https://www.cbr.wa
   recaps <- recaps %>%
     dplyr::group_by(id, site) %>%
     dplyr::arrange(id, site, time) %>%
-    dplyr::mutate(N = 1:n()) %>%
+    dplyr::mutate(N = 1:dplyr::n()) %>%
     dplyr::filter(N == 1) %>%
     dplyr::select(id, site, time, removed)
 
@@ -460,7 +460,7 @@ read_DART_file <- function(filepath,aux_age_df,DART_config = "https://www.cbr.wa
     }
 
   row_na_df <- age_df[1,]
-  row_na_df[,1:ncol(row_na)] <- NA
+  row_na_df[,1:ncol(row_na_df)] <- NA
   if (length(missing_obs_aux) > 1) {
     row_na_df <- row_na_df %>% tibble::add_row(id = rep(NA,length(missing_obs_aux)-1))
   }
@@ -531,7 +531,7 @@ remove_kelt_obs <- function(ch_df, kelt_obssite) {
     dplyr::filter(site %in% kelt_sites) %>%
     dplyr::group_by(id) %>%
     dplyr::arrange(time) %>%
-    dplyr::summarize(kelt_time = first(time))
+    dplyr::summarize(kelt_time = dplyr::first(time))
 
   remove_kelts_ch_df <- ch_df %>%
     dplyr::left_join(kelt_obs, by = "id") %>%
@@ -544,3 +544,5 @@ remove_kelt_obs <- function(ch_df, kelt_obssite) {
 
 }
 
+
+arrayname <- sitecode <- date_start <- date_end <- exception <- RecTime <- kelt_time <- NULL

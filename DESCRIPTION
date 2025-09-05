@@ -23,6 +23,7 @@ Imports:
     rstantools (>= 2.4.0),
     stats,
     stringr,
+    tibble,
     tidyr,
     utils
 Biarch: true
