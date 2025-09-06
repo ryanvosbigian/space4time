@@ -3,14 +3,18 @@
 #' Add covariates to a space4time capture history object
 #'
 #' @description
-#' A short description...
+#' Add covariates to a space4time capture history object. If the covariate has
+#'     missing levels from the indices (`a1,a2,j,k,s,t,r,g`), an indicator
+#'     variable is added that is named `"OFF_"` appended to the covariate name.
+#'
 #'
 #' @param cov_df a `data.frame` or `list` of `data.frame`'s containing the covariates
 #'     for theta and p `a1,a2,j,k,s,t,r,g` indices. See details.
 #' @param s4t_ch a `s4t_ch` object.
 #' @returns a `s4t_ch` object with covariates added
 #' @details
-#' Additional details...
+#' To show how covariates are added or what levels are required for the indices,
+#'     use extract_covariates.
 #'
 #'
 #' @export
@@ -169,8 +173,6 @@ add_covariates <- function(cov_df,s4t_ch) {
 #' @param s4t_ch a `s4t_ch` object.
 #' @returns a list of class `cov_s4t_ch` that contains the indices for $\theta$
 #'     and $p$ parameters.
-#' @details
-#' Additional details...
 #'
 #'
 #' @export
