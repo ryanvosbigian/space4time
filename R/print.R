@@ -1,6 +1,8 @@
 
 
-#' print summary of s4t_cjs_ml
+#' Print summary of `s4t_cjs_ml`
+#'
+#' Print summary of `s4t_cjs_ml`
 #'
 #' @export
 #' @param x summary.s4t_cjs_ml object
@@ -46,7 +48,9 @@ print.summary.s4t_cjs_ml <- function(x,
 }
 
 
-#' print s4t_cjs_ml
+#' Print `s4t_cjs_ml`
+#'
+#' Print `s4t_cjs_ml`
 #'
 #' @export
 #' @param x s4t_cjs_ml object
@@ -95,12 +99,14 @@ print.s4t_cjs_ml <- function(x, ...) {
 # }
 
 
-#' print summary of s4t_cjs_rstan
+#' Print summary of `s4t_cjs_rstan`
+#'
+#' Print summary of `s4t_cjs_rstan`
 #'
 #' @export
 #' @param x s4t_cjs_rstan object
-#' @param pars regular expressions ... NVM go back to rstan
-#' @param probs number of digits.
+#' @param pars vector of parameters to include (defaults to all parameters)
+#' @param probs quantiles for credible intervals
 #' @param digits_summary the number of significant digits to use when printing the summary
 #' @param include logical scalar indicating whether to include the parameters named by the
 #'      pars argument.
@@ -290,7 +296,7 @@ print.s4t_ch <- function(x, ...) {
 
   cat("Capture history object\n")
   cat("\nThere are N = ",length(x$s4t_config$sites_names)," with N = ",
-      sum(x$holdover_config)," sites with holdovers\n",sep="")
+      sum(x$s4t_config$holdover_config)," sites with holdovers\n",sep="")
   cat("\nSites: ",paste0(x$s4t_config$sites_names,collapse = ", "),"\n",sep="")
 
   cat("\nSites with holdovers: ",

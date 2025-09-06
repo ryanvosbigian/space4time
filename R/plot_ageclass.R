@@ -2,7 +2,8 @@
 #' Plot confusion matrix for fit_ageclass objects
 #'
 #' @description
-#' Plot confusion matrix for `fit_ageclass` objects
+#' Plot confusion matrix for `fit_ageclass` objects of predicted age class versus
+#'    observed age class.
 #'
 #'
 #' @export
@@ -52,25 +53,45 @@ plot.s4t_ageclass_model <- function(x, ...) {
 
 
   # plot confusion matrix
+  # p1 <- suppressWarnings(suppressMessages(compare_obs_pred %>%
+  #   dplyr::group_by(ageclass) %>%
+  #   dplyr::mutate(count_ageclass = dplyr::n()) %>%
+  #   dplyr::ungroup() %>%
+  #   dplyr::group_by(pred_ageclass) %>%
+  #   dplyr::mutate(count_predageclass = dplyr::n()) %>%
+  #   dplyr::group_by(ageclass,pred_ageclass) %>%
+  #   dplyr::summarize(count = dplyr::n(),
+  #                    Proportion.observed = count / count_ageclass,
+  #                    Proportion.predicted = count / count_predageclass) %>%
+  #   tidyr::pivot_longer(cols = c("Proportion.observed","Proportion.predicted"),names_to = "Prop",values_to = "val") %>%
+  #   ggplot2::ggplot(ggplot2::aes(ageclass,pred_ageclass)) +
+  #   ggplot2::geom_raster(ggplot2::aes(fill = val)) +
+  #   ggplot2::scale_fill_gradient(name = "Proportion",low = "white",high = "black",
+  #                                limits = c(0,1)) +
+  #   ggplot2::facet_wrap( ~ Prop) +
+  #   ggplot2::theme_classic() +
+  #   ggplot2::labs(x = "Observed ageclass",
+  #                 y = "Predicted ageclass")))
+
+
   p1 <- suppressWarnings(suppressMessages(compare_obs_pred %>%
-    dplyr::group_by(ageclass) %>%
-    dplyr::mutate(count_ageclass = dplyr::n()) %>%
-    dplyr::ungroup() %>%
-    dplyr::group_by(pred_ageclass) %>%
-    dplyr::mutate(count_predageclass = dplyr::n()) %>%
-    dplyr::group_by(ageclass,pred_ageclass) %>%
-    dplyr::summarize(count = dplyr::n(),
-                     Proportion.observed = count / count_ageclass,
-                     Proportion.predicted = count / count_predageclass) %>%
-    tidyr::pivot_longer(cols = c("Proportion.observed","Proportion.predicted"),names_to = "Prop",values_to = "val") %>%
-    ggplot2::ggplot(ggplot2::aes(ageclass,pred_ageclass)) +
-    ggplot2::geom_raster(ggplot2::aes(fill = val)) +
-    ggplot2::scale_fill_gradient(name = "Proportion",low = "white",high = "black",
-                                 limits = c(0,1)) +
-    ggplot2::facet_wrap( ~ Prop) +
-    ggplot2::theme_classic() +
-    ggplot2::labs(x = "Observed ageclass",
-                  y = "Predicted ageclass")))
+                                            dplyr::group_by(ageclass) %>%
+                                            dplyr::mutate(count_ageclass = dplyr::n()) %>%
+                                            dplyr::ungroup() %>%
+                                            dplyr::group_by(pred_ageclass) %>%
+                                            dplyr::mutate(count_predageclass = dplyr::n()) %>%
+                                            dplyr::group_by(ageclass,pred_ageclass) %>%
+                                            dplyr::summarize(count = dplyr::n(),
+                                                             Proportion.observed = count / count_ageclass) %>%
+                                            ggplot2::ggplot(ggplot2::aes(ageclass,pred_ageclass)) +
+                                            ggplot2::geom_raster(ggplot2::aes(fill = Proportion.observed)) +
+                                            ggplot2::scale_fill_gradient(name = "Proportion",low = "white",high = "black",
+                                                                         limits = c(0,1)) +
+                                            ggplot2::facet_wrap( ~ Prop) +
+                                            ggplot2::theme_classic() +
+                                            ggplot2::labs(x = "Observed ageclass",
+                                                          y = "Predicted ageclass")))
+
 
   return(p1)
 

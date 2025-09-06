@@ -646,6 +646,14 @@ new_s4t_ch <- function(obs_ch,
 #'     `obs_time` must be filled in. `obs_time` should correspond to the time period
 #'     of the auxiliary data.
 #'
+#' The `cov_p` and `cov_theta` arguments can be used to add in covariates. They can
+#'     be data frames or a list of data frames. The data frames are joined
+#'     (using `dplyr::left_join`) to the $\theta$ or $p$ parameters using indices for
+#'     site, time, initial release group, age, and group. Better practice is
+#'     to use the `add_covariates()` function to add any covariates rather than adding it
+#'     manually, so that any missing levels can be addressed. To see the indices of
+#'     the parameters, use `extract_covariates()`.
+#'
 #'
 #'
 #' Note that individual covariates can be included in the `s4t_cjs_ml` and `s4t_cjs_rstan`
@@ -1275,7 +1283,16 @@ marginalize_ch <- function(s4t_ch) {
 #' @param s4t_ch a `s4t_ch` object.
 #' @returns a `clean_s4t_ch` object.
 #' @details
-#' Additional details...
+#' The following issues are addressed by this function: repeat observations of
+#'     individuals at the same site, time difference in captures that
+#'     exceeds what is possible given age ranges, individuals observed after being
+#'     removed (zombies), reverse movements, and observed ages of known age fish
+#'     exceeding the minimum or maximum age for a site.
+#'
+#'     For each of these issues, the problematic observations are removed but the
+#'     the other observations of these individuals are retained.
+#'
+#'
 #'
 #'
 #' @export
@@ -1296,7 +1313,7 @@ clean_s4t_ch_obs <- function(s4t_ch) {
 
   ## repeat observations
 
-  message("Note: Cleaning method for repeat observations not implemented yet")
+  # message("Note: Cleaning method for repeat observations not implemented yet")
 
   identify_repeat_obs <- ch_df %>%
     dplyr::group_by(id,site) %>%

@@ -273,18 +273,22 @@ plotCH <- function(x, ...) {
 
 }
 
-#' Create traceplots from `s4t_cjs_rstan` object
+#' Markov chain traceplots
 #'
-#' add description
+#' Draw the traceplot corresponding to one or more Markov chains,
+#'     providing a visual way to inspect sampling behavior and assess
+#'     mixing across chains and convergence.
+#'
 #' @export
 #'
 #' @importFrom rstan traceplot
 #'
 #' @param object a `s4t_cjs_rstan` object
 #' @param pars a `character` object that parses parameters using regular
-#'      expressions
-#' @param ... not used
-#' @returns a ggplot2 object of traceplots
+#'      expressions. Defaults to all parameters or the first 10 parameters (
+#'      if there are more than 10)
+#' @param ... Optional arguments to pass to `stan::traceplot()`
+#' @returns A `ggplot` object that can be further customized using the `ggplot2` package.
 traceplot.s4t_cjs_rstan <- function(object,
                       pars = NULL,
                       ...) {

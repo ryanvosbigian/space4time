@@ -160,13 +160,15 @@ add_covariates <- function(cov_df,s4t_ch) {
 }
 
 
-#' Add covariates to a space4time capture history object
+#' Extract indices and covariates from space4time capture history objects
 #'
 #' @description
-#' A short description...
+#' Extract indices and covariates from space4time capture history objects. Note that
+#'     grouping indices are excluded.
 #'
 #' @param s4t_ch a `s4t_ch` object.
-#' @returns a `s4t_ch` object with covariates added
+#' @returns a list of class `cov_s4t_ch` that contains the indices for $\theta$
+#'     and $p$ parameters.
 #' @details
 #' Additional details...
 #'

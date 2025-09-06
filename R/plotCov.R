@@ -112,14 +112,14 @@ plotCov <- function(mod, par_formula, conditional = TRUE, ...) {
       dplyr::filter(j == 1) %>%
       ggplot2::ggplot(ggplot2::aes(element1,cohort_surv_mean, color = factor(a1))) +
       ggplot2::geom_point() +
-      ggplot2::geom_errorbar(aes(ymin = cohort_surv_lcl,ymax = cohort_surv_ucl),width = 0.1)
+      ggplot2::geom_errorbar(ggplot2::aes(ymin = cohort_surv_lcl,ymax = cohort_surv_ucl),width = 0.1)
   } else if (num_elements == 2) {
     p <- tmp_Theta_preds %>%
       dplyr::filter(...) %>%
       # dplyr::filter(j == 1) %>%
       ggplot2::ggplot(ggplot2::aes(element1,cohort_surv_mean)) +
       ggplot2::geom_point() +
-      ggplot2::geom_errorbar(aes(ymin = cohort_surv_lcl,ymax = cohort_surv_ucl),width = 0.1) +
+      ggplot2::geom_errorbar(ggplot2::aes(ymin = cohort_surv_lcl,ymax = cohort_surv_ucl),width = 0.1) +
       ggplot2::facet_wrap(~element2)
   }else if (num_elements == 3) {
     p <- tmp_Theta_preds %>%
