@@ -87,7 +87,6 @@ plot.s4t_ageclass_model <- function(x, ...) {
                                             ggplot2::geom_raster(ggplot2::aes(fill = Proportion.observed)) +
                                             ggplot2::scale_fill_gradient(name = "Proportion",low = "white",high = "black",
                                                                          limits = c(0,1)) +
-                                            ggplot2::facet_wrap( ~ Prop) +
                                             ggplot2::theme_classic() +
                                             ggplot2::labs(x = "Observed ageclass",
                                                           y = "Predicted ageclass")))
