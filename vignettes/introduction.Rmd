@@ -14,7 +14,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-
 # 1. Introduction
 
 The `space4time` package is used to fit an age-specific space-for-time mark-recapture model. This vignette provides the basic details on formatting data for the models and fitting the models. Load the `space4time` package by running
@@ -23,64 +22,223 @@ The `space4time` package is used to fit an age-specific space-for-time mark-reca
 library(space4time)
 ```
 
-To briefly describe the purpose of these models and when then would be useful, space-for-time substitutions are frequently used in mark-recapture models for animals that migrate along a fixed path. Instead of repeated observations over time, there are observations of individuals as they pass fixed stations or sites. This is not a perfect substitution, because the amount of time it takes individuals to move between sites can vary. This model incorporates time and individual ageclass into the space-for-time framework. Here, ageclasses are with respect to time (ages rather than stages like "juvenile" or "adult"). 
+To briefly describe the purpose of these models and when then would be useful, space-for-time substitutions are frequently used in mark-recapture models for animals that migrate along a fixed path. Instead of repeated observations over time, there are observations of individuals as they pass fixed stations or sites. This is not a perfect substitution, because the amount of time it takes individuals to move between sites can vary. This model incorporates time and individual ageclass into the space-for-time framework. Here, ageclasses are with respect to time, so they are ages rather than stages like "juvenile" or "adult". 
 
-The development of this model was motivated by migrating juvenile steelhead, which can be tagged as they exit rearing habitat. They can wait up to a few years before migrating out to the ocean, passing by observation stations (i.e. antennae that detect individuals with passive integrated transponder tags). Their survival and movement depends on age, so we made this model age-specific.
+The development of this model was motivated by migrating juvenile steelhead, which can be tagged as they exit rearing habitat. They can wait up to a few years before migrating out to the ocean, passing by observation stations (i.e. antennae that detect individuals with passive integrated transponder tags). Their survival and movement depends on age, so we made this model age-specific. However, ages are only measured for a subset of individuals, so we use a sub-model for age and then incorporate the uncertainty in age assignment into the mark-recapture likelihood.
+
+
+
+The mark-recapture likelihood is the product of the likelihood of the observed data, where the probability that an individual transitions from site `j` to site `k` given that it passed site `j` at time `s` and during age `a1` is $\Theta_{j,k,s,a_1,a_2,r,g}$. The probability that this individual is observed at site `k` is $p_{j,k,t,a_1,a_2,r,g}$. The mark-recapture likelihood incorporates the probability age assignments ($\pi_{i,s,a}$) for each individual $i$, where the mark-recapture probabilities are weighted over the probability age assignments (i.e. $\sum_{a1}{\Theta_{j,k,s,a_1,a_2,r,g} * \pi_{i,s,a1}}$). A full description of the likelihood and model implementation is given in (forthcoming manuscript). 
+
+There are two additional indices for the $Theta$ and $p$ arrays: initial release group $r$ and group $g$. The initial release group is where individuals were first captured (or observed). The group $g$ allows for individual covariates to be included. The implementation here uses formulas for the $Theta$ and $p$ parameters [add link to covariate vignette]. The formula for detection probability $p$ is:
+
+$$
+logit(p) = X\beta
+$$
+where $X$ is a design matrix of data and $\beta$ are parameters.
+
+The formula for $\Theta$ uses intermediary parameters for conditional transition rates ($\theta$), which are the probability that an individual transitions from site `j` to `k` during time `t` given that it did not transition from site `j` to `k` in the previous time period. This accounts for individuals that holdover between sites for a time period or more. 
+
+$$
+\Theta_{j,k,s,a_1,a_2,r,g} = \theta_{j,k,s,a_1,a_2,r,g}\prod^{a2-1}_{v=a_1}{\theta_{j,k,s,a_1,v,r,g}}
+$$
+
+$$
+logit(\theta_{j,k,s,a_1,a_2,r,g}) = Y\gamma
+$$
+where $Y$ is a design matrix of data and $\gamma$ are parameters.
+
+```{r eval = FALSE, echo = FALSE}
+"
+For instance, the probability that an individual transitions from site `1` to site `2` given that it passed site `1` at time `1` during age `1` and passes site `2` during age `2` is $\Theta_{j=1,k=2,s=1,a_1=1,a_2=2}$. The probability that they are observed at site `2` (given that they were observed at site `1`) is $\Theta_{j=1,k=2,s=1,a_1=1,a_2=2} *p_{j=1,k=2,t=2,a_1=1,a_2=2}$. The probability that they are not observed is $\Theta_{j=1,k=2,s=1,a_1=1,a_2=2} *(1 - p_{j=1,k=2,t=2,a_1=1,a_2=2})$. The probability t
+"
+```
+
 
 # 2. Data
 
-To demonstrate the format that data need to be in to be read, we will simulate data using a built-in function
+To demonstrate the format that data need to be in to be read, data is simulated using a built-in function
 
 ```{r simulate data}
+set.seed(1)
 sim.dat <- sim_simple_s4t_ch(N = 800)
+
+s4t_ch <- sim.dat$s4t_ch
 ```
 
 
-This returns a capture history object (`s4t_ch`). The key pieces of data of interest are
+This returns a capture history object (`s4t_ch`). The key pieces of data of interest are the capture history, individual auxiliary data, and site configuration.
 
-The capture history data:
+## a. The capture history data:
+
+Each row represents an observation or capture instance. There must be four columns, described in the table below.
+
+*Required columns: *  
+
+| Column | Description | 
+|:-------|:------:|
+| id | Uniquely identifier | 
+| site | Observed site name | 
+| time | Observation time period. Integer or date (converted to year) | 
+| removed | Whether individuals were removed at this point |
+
+Example first 6 rows:
 
 ```{r echo= FALSE}
-knitr::kable(head(sim.dat$s4t_ch$ch_df))
+ch_df = s4t_ch$obs_data$ch_df
+knitr::kable(head(s4t_ch$obs_data$ch_df))
 ```
 
 
-Individual auxiliary data:
+## b. Individual auxiliary data
+
+There must be example one row for each individual. There are three required columns and any extra columns can be included. Order of columns does not matter.
+
+*Required columns: *  
+
+| Column | Description | 
+|:-------|:------:|
+| id | Uniquely identifying code or number | 
+| obs_time | Observed time period when auxiliary data were collected | 
+| ageclass | Integer ageclass |
+
+Example first 6 rows:
 
 ```{r echo= FALSE}
-knitr::kable(head(sim.dat$s4t_ch$aux_age_df))
+aux_df <- s4t_ch$obs_data$all_aux
+knitr::kable(cbind(id = 1:6,head(s4t_ch$obs_data$all_aux)))
 ```
 
 
-`sites_config`:
 
-```{r echo= FALSE}
-knitr::kable(sim.dat$s4t_ch$s4t_config$sites_config)
+## c. Site configuration 
+
+The site configuration is an object nested within the `s4t_ch` object. A summary of the site configuration (`s4t_config` object) can be shown by printing the object:
+
+```{r echo=FALSE}
+print(s4t_ch$s4t_config)
 ```
 
-`holdover_config`:
+There are three sites, where one of the sites has holdovers, meaning that individuals can wait a time period or more between sites. The sites are named `1`, `2`, and `3`. The site with holdovers is site `1`, meaning that after individuals pass site `1`, they can wait a time period or more before transitioning to the next site (site `2`). The order and arrangement of the sites is shown by `Site -> site`, and the possible age ranges that individuals can be in each site are shown by `Age range per site`.
 
-```{r echo= FALSE}
-knitr::kable(sim.dat$s4t_ch$s4t_config$holdover_config)
+This object was generated using the following:
+
+```{r eval = FALSE}
+ex_config <- linear_s4t_config(sites_names = 1:3, # vector of site names
+                               holdover_sites = 1,# which site (or sites) do 
+                               # individuals holdover before continuing to the next site
+                               min_a = c(1,1,1), # for each site, the minimum possible age
+                               max_a = c(3,3,3)) # for each site, the maximum possible age
+```
+ 
+The `linear_s4t_config()` function is used to create these `s4t_config` objects. For more complex site configurations, `simplebranch_s4t_config()` or `s4t_config()` can be used.
+
+## d. Creating the `s4t_ch` object
+
+The `s4t_ch` object can be created using the elements from above:
+
+```{r eval = FALSE}
+ex_ch <- s4t_ch(ch_df = ch_df,
+                aux_age_df = aux_df,
+                s4t_config = ex_config)
 ```
 
-`sites_names`:
 
-```{r echo= FALSE}
-knitr::kable(sim.dat$s4t_ch$s4t_config$sites_names)
+
+# 4. Fit ageclass model
+
+Prior to fitting the full model, the sub-model for ageclass can be fit separately to select the best fitting model for ageclass. The `fit_ageclass` function uses ordinal regression with the observed age-class of individuals as a response. Covariates (which must be included in the individual auxiliary data when creating the `s4t_ch` object) can be included, using standard formula notation. We use the logit link and transitions between age groups are sequential. The threshold between each age group was estimated as parameters of the model. 
+
+
+
+
+```{r}
+age_m1 <- fit_ageclass(age_formula = ~ 1,s4t_ch = s4t_ch)
+
+age_m2 <- fit_ageclass(age_formula = ~ FL,s4t_ch = s4t_ch)
+
+# note that obs_time is treated as a factor (see fit_ageclass documentation)
+age_m3 <- fit_ageclass(age_formula = ~ FL + obs_time,s4t_ch = s4t_ch)
+
+
+```
+
+The models can be compared using AIC:
+
+```{r}
+AIC(age_m1, 
+    age_m2, 
+    age_m3)
+```
+
+The top model by AIC is `age_m2`.
+
+# 5. Fit space-for-time mark-recapture model
+
+There are two options for fitting space-for-time mark-recapture models, implementations using Bayesian (`fit_s4t_cjs_rstan`) and maximum likelihood (`fit_s4t_cjs_ml`) methods. As of now, the Bayesian implementation is faster. 
+
+For the purposes of this example, the number of chains is set to 2 (recommend 3), the number of warmup iteration is 200 (recommend at least 500), and the number of total iterations is 600 (recommend at least 500 over the number of warmups).
+
+The first three arguments are the formulas for detection probability (`p`), conditional transition rates (`theta`), and ageclass. The formulas allow for symbolic representation of the sub-models. 
+
+The formula for `p` below is `~ t`, which represents detection probability varying by the time individuals pass sites. There is only one site (site 2) where detection probability is estimated, because detection is not estimated at the first site or last site (fixed to 1 at the last site because it is not separable from transition rates). If there were multiple sites where detection probability was estimated, the equivalent formula would be `~ t * k`, which represents a different detection probability at each site at each time period. A table showing the meaning of each variable (`j`, `k`, `s`, `t`, `r`, `g`, `a1`, and `a2`) is shown below.
+
+
+The formula for `theta` below is `~ a1 * a2 * s * j`, which is the fully saturated model for this scenario with different transition probabilities for each combination of age, time, and site. The transition probabilities for individuals from site `j` to site `k` are conditioned on individuals not transitioning to site `k` in the previous time period. This is the fully saturated model for `theta` because there are no groups and because there is only one initial release site (site 1). If there were more than one initial release site, the full saturated model would be `~ a1 * a2 * s * j * r`.
+
+
+The argument `fixed_age == TRUE` allows for the ageclass model to be fit separately and the output fed into the mark-recapture model. The output is the estimated probabilities that individuals belong to each ageclass. The mark-recapture model uses the probability age assignments to integrate over the uncertainty in age.
+
+
+| Variable | Description | 
+|:---------|:--------:|
+| j | Release site |
+| k | Recapture site |
+| s | Release time |
+| t | Recapture time |
+| r | Initial release group |
+| g | Group (individual covariate) |
+| a1 | Age during time s ("release") |
+| a2 | Age during time t ("recapture") |
+
+
+```{r message=FALSE}
+m1 <- fit_s4t_cjs_rstan(
+      p_formula = ~ t,
+      theta_formula = ~ a1 * a2 * s * j,
+      ageclass_formula = ~ FL,
+      fixed_age = TRUE,
+      s4t_ch = s4t_ch,
+      chains = 2,
+      warmup = 200,
+      iter = 600
+    )
+
+
+```
+
+The results can be printed out. Check that the Rhat values are all below 1.1 (for proper convergence/mixing)
+
+```{r}
+print(m1)
 ```
 
 
-`min_a`:
+Evaluate traceplots of each estimated parameter:
 
-```{r echo= FALSE}
-knitr::kable(sim.dat$s4t_ch$s4t_config$min_a)
+```{r eval = FALSE}
+traceplot(m1,pars = "theta")
+
+traceplot(m1,pars = "^p") # regular expressions for all parameters that start with "p"
 ```
 
 
-`max_a`:
 
-```{r echo= FALSE}
-knitr::kable(sim.dat$s4t_ch$s4t_config$max_a)
+```{r fig.height=4,fig.width=6}
+plotSurvival(m1)
+```
+
+```{r fig.height=4,fig.width=6}
+plotTransitions(m1,textsize = 3, j == 1) # only include transitions that start from site 1
 ```
 

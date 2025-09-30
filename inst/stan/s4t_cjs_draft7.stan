@@ -198,7 +198,7 @@ data {
 
 parameters {
   ordered[setaux_max_a-1] alk_par_alpha; // this may be bad...
-  vector[N_a_parbeta] alk_par_delta;
+  vector[mod_mat_a_c-1] alk_par_delta;
 
   row_vector[N_theta_par] theta_params;
 
@@ -224,10 +224,8 @@ model {
    p_params ~ normal(0,10); // sigma = 2
   }
 
-
   // obsageclass ~ ordered_logistic(mod_mat_a_beta * alk_par_delta,alk_par_alpha);
   target += ordered_logistic_lpmf(obsageclass | mod_mat_a_beta * alk_par_delta,alk_par_alpha);
-
 
    // WAS: theta[a1,a2,s,j,k,b,g] -> theta[g,j,s,b,a1, VECTOR: a2]
 

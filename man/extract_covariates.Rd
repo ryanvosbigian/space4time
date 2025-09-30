@@ -2,7 +2,7 @@
 % Please edit documentation in R/add_covariates.R
 \name{extract_covariates}
 \alias{extract_covariates}
-\title{Add covariates to a space4time capture history object}
+\title{Extract indices and covariates from space4time capture history objects}
 \usage{
 extract_covariates(s4t_ch)
 }
@@ -10,11 +10,10 @@ extract_covariates(s4t_ch)
 \item{s4t_ch}{a \code{s4t_ch} object.}
 }
 \value{
-a \code{s4t_ch} object with covariates added
+a list of class \code{cov_s4t_ch} that contains the indices for $theta$
+and $p$ parameters.
 }
 \description{
-A short description...
-}
-\details{
-Additional details...
+Extract indices and covariates from space4time capture history objects. Note that
+grouping indices are excluded.
 }

@@ -1011,9 +1011,13 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
   estimated_parameters$ucl95 <- estimated_parameters$estimate + 1.96 * estimated_parameters$std_error
 
 
-  overall_surv <- estimate_overall_surv(res = res,format_cjs = format_cjs, s4t_ch = s4t_ch)
+  tmp_overall_surv <- estimate_overall_surv(res = res,format_cjs = format_cjs, s4t_ch = s4t_ch)
+  overall_surv <- tmp_overall_surv[[1]]
+  overall_surv_vc <- tmp_overall_surv[[2]]
 
-  cohort_surv <- estimate_cohort_surv(res = res,format_cjs = format_cjs, s4t_ch = s4t_ch)
+  tmp_cohort_surv <- estimate_cohort_surv(res = res,format_cjs = format_cjs, s4t_ch = s4t_ch)
+  cohort_surv <- tmp_cohort_surv[[1]]
+  cohort_surv_vc <- tmp_cohort_surv[[2]]
 
   # put into user_defined?
   sites_names <- colnames(s4t_ch$s4t_config$sites_config)
@@ -1148,7 +1152,7 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
   # set_max_a_obsaux <- max()
 
   if (fixed_age == FALSE) {
-    warning("need to add scripts to add ageclass param names")
+    # warning("need to add scripts to add ageclass param names")
 
     alphas <- interp_parnames[grepl("a_alpha",interp_parnames)]
     interp_parnames[grepl("a_alpha",interp_parnames)] <- paste0("a_alpha_",(1:length(alphas)) + age_diff)
@@ -1207,7 +1211,9 @@ fit_s4t_cjs_ml <- function(p_formula,theta_formula,
                              indices_p_obs = format_cjs$indices_p_obs,
                              ageclass_data = ageclass_data,
                              fixed_age = list(fixed_age = fixed_age),
-                             s4t_ch = s4t_ch
+                             s4t_ch = s4t_ch,
+                             apparent_surv_vc = overall_surv_vc,
+                             cohort_transitions_vc = cohort_surv_vc
                   ),
                   original_units = list(indices_theta_original = indices_theta_original,
                                         indices_p_obs_original = indices_p_obs_original,

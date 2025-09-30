@@ -1,0 +1,124 @@
+---
+title: "covariates"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{covariates}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(space4time)
+```
+
+
+The space-for-time mark-recapture model is parameterized using formulas for $\theta$ and $p$. Some variables are automatically made available (see table below). However, adding additional covariates requires additional setup. There are two types of covariates, covariates for indices and individual grouping covariates. The covariates for indices essentially take the place of the variables in the table below in formulas, and these are added using the `add_covariates()` function. Grouping covariates are included in the auxiliary data frame and specified when fitting models. 
+
+
+| Variable | Description | 
+|:---------|:--------:|
+| j | Release site |
+| k | Recapture site |
+| s | Release time |
+| t | Recapture time |
+| r | Initial release group |
+| g | Group (individual covariates) |
+| a1 | Age during time s ("release") |
+| a2 | Age during time t ("recapture") |
+
+
+
+
+
+## Specifying covariates for indices
+
+
+Note that all numeric covariates should be centered and z-scaled (i.e. using the `scale()` function).
+
+### Using add_covariates()
+
+Incorporating covariates into space-for-time mark-recapture models is made straightforward by the helper function `add_covariates()`. 
+
+### 
+
+
+### Examples
+
+#### Adding temporal covariate
+
+In this example, we want to incorporate an annual covariate for temperature on the transition rates. In this case, we have mean annual temperatures for both of our release sites (the last site does not count as a release site).
+
+```{r}
+set.seed(1)
+sim.dat <- sim_simple_s4t_ch()
+s4t_ch <- sim.dat$s4t_ch
+
+temperature_data <- data.frame(s =    c(1, 2, 3, 4,
+                                        1, 2, 3, 4),
+                               j =    c(1, 1, 1, 1,
+                                        2, 2, 2, 2),
+                               temp = c(12.1,13.4,11.3,15.3,
+                                        18.4,19.2,17.8,20.3)
+                               )
+
+# center and scale data
+temperature_data$temp <- scale(temperature_data$temp)
+
+```
+
+
+Next, we can add the data to the `s4t_ch` object.
+
+```{r}
+s4t_ch2 <- add_covariates(cov_df = temperature_data,
+                          s4t_ch = s4t_ch)
+```
+
+The fully saturated formula for theta is $\theta \sim a1 * a2 * j * s$ 
+Some different examples of how we could include this covariate are:
+
+```{r eval = FALSE}
+m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+                        theta_formula = ~ a1 * a2 * temp * j,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2,
+                        fixed_age = TRUE)
+
+m2 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+                        theta_formula = ~ a1 : a2 : temp + j + a1 * a2 * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2,
+                        fixed_age = TRUE)
+
+
+m3 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+                        theta_formula = ~ a1 : a2 : temp * j+ a1 * a2 * j,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2,
+                        fixed_age = TRUE)
+
+m2 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+                        theta_formula = ~ temp + a1 * a2 * j,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2,
+                        fixed_age = TRUE)
+
+```
+
+
+#### Adding temporal covariate for first sites
+
+
+
+
+## Specifying individual grouping covariates
+
+
+

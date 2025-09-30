@@ -12,13 +12,13 @@ sim_simple_s4t_ch(N = 500, max_obs_year = 2, prop_missing_age = 0.5)
 \item{max_obs_year}{an \code{integer} of the number of total time intervals}
 
 \item{prop_missing_age}{a \code{numeric} value between \code{0} and \code{1} of the proportion of
-individuals that do not have known ages.}
+individuals that do not have known ages. Default is 0.50.}
 }
 \value{
 a \code{list} containing capture history \code{data.frame}, \code{list} containing the
-params.
+parameters.
 }
 \description{
 Simulates a small capture history with 3 sites, where there can be holdovers
-betweeen the first 1st and 2nd sites.
+between the first 1st and 2nd sites.
 }

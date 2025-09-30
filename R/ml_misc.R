@@ -430,6 +430,9 @@ return_overall_surv <- function(par,
 #   return(cohort_surv)
 # }
 
+
+
+
 estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
   n_init_relsite <- format_cjs$n_init_relsite
   n_groups <- format_cjs$N_groups # may cause issues
@@ -511,7 +514,7 @@ estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
   init_relsite <- stringr::str_split_i(par_name,",",7)
   group <- stringr::str_split_i(par_name,",",8)
 
-  data.frame(a1 = age1,
+  cohort_surv <- data.frame(a1 = age1,
              a2 = age2,
              s = time_s,
              t = time_t,
@@ -526,6 +529,9 @@ estimate_cohort_surv <- function(res,format_cjs, s4t_ch) {
              se_logitscale = sqrt(diag(der_vc)),
              row.names = names(ests)
              )
+
+  return(list(cohort_surv = cohort_surv,
+       cohort_surv_vc = der_vc))
 
 }
 
@@ -611,7 +617,7 @@ estimate_overall_surv <- function(res,format_cjs, s4t_ch) {
   r <- as.integer(stringr::str_split_i(par_name,",",5))
   g <- as.integer(stringr::str_split_i(par_name,",",6))
 
-  data.frame(a1 = age1,
+  overall_surv <- data.frame(a1 = age1,
              s = time_s,
              j = site_j,
              k = site_k,
@@ -624,6 +630,9 @@ estimate_overall_surv <- function(res,format_cjs, s4t_ch) {
              se_logitscale = sqrt(diag(der_vc)),
              row.names = names(ests)
   )
+
+  return(list(overall_surv = overall_surv,
+       overall_surv_vc = der_vc))
 
 }
 

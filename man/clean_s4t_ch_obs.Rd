@@ -13,8 +13,16 @@ clean_s4t_ch_obs(s4t_ch)
 a \code{clean_s4t_ch} object.
 }
 \description{
-A short description...
+Cleans the capture history of a space4time capture history object. See details.
 }
 \details{
-Additional details...
+The following issues are addressed by this function: repeat observations of
+individuals at the same site, time difference in captures that
+exceeds what is possible given age ranges, individuals observed after being
+removed (zombies), reverse movements, and observed ages of known age fish
+exceeding the minimum or maximum age for a site.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{For each of these issues, the problematic observations are removed but the
+the other observations of these individuals are retained.
+}\if{html}{\out{</div>}}
 }

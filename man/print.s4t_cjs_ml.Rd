@@ -2,7 +2,7 @@
 % Please edit documentation in R/print.R
 \name{print.s4t_cjs_ml}
 \alias{print.s4t_cjs_ml}
-\title{print s4t_cjs_ml}
+\title{Print \code{s4t_cjs_ml}}
 \usage{
 \method{print}{s4t_cjs_ml}(x, ...)
 }
@@ -12,5 +12,5 @@
 \item{...}{for generic consistency}
 }
 \description{
-print s4t_cjs_ml
+Print \code{s4t_cjs_ml}
 }

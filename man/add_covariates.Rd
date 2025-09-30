@@ -16,8 +16,11 @@ for theta and p \verb{a1,a2,j,k,s,t,r,g} indices. See details.}
 a \code{s4t_ch} object with covariates added
 }
 \description{
-A short description...
+Add covariates to a space4time capture history object. If the covariate has
+missing levels from the indices (\verb{a1,a2,j,k,s,t,r,g}), an indicator
+variable is added that is named \code{"OFF_"} appended to the covariate name.
 }
 \details{
-Additional details...
+To show how covariates are added or what levels are required for the indices,
+use extract_covariates.
 }

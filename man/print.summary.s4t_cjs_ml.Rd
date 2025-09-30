@@ -2,7 +2,7 @@
 % Please edit documentation in R/print.R
 \name{print.summary.s4t_cjs_ml}
 \alias{print.summary.s4t_cjs_ml}
-\title{print summary of s4t_cjs_ml}
+\title{Print summary of \code{s4t_cjs_ml}}
 \usage{
 \method{print}{summary.s4t_cjs_ml}(x, digits = max(3L, getOption("digits") - 3L), ...)
 }
@@ -14,5 +14,5 @@
 \item{...}{passed to}
 }
 \description{
-print summary of s4t_cjs_ml
+Print summary of \code{s4t_cjs_ml}
 }

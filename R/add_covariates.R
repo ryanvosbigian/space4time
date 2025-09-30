@@ -73,10 +73,10 @@ add_covariates <- function(cov_df,s4t_ch) {
     tmp_indices_p_obs_original <- dplyr::left_join(indices_p_obs_original,stats::na.fail(tmp_df))
     na_rows <- !stats::complete.cases(tmp_indices_p_obs_original[,cov_col])
 
-    added_col <- NULL
+    added_col <- added_col_2 <- NULL
     if (sum(na_rows) > 0) {
       # then some of the levels are incomplete
-      tmp_indices_p_obs_original$INDICATORVARIABLE <- ifelse(na_rows,0,1)
+      tmp_indices_p_obs_original$INDICATORVARIABLE <- ifelse(na_rows,1,0)
 
       added_col <- paste0("OFF_",cov_col,collapse = "_")
 
@@ -86,11 +86,24 @@ add_covariates <- function(cov_df,s4t_ch) {
 
 
       tmp_indices_p_obs_original[,cov_col] <- ifelse(is.na(tmp_indices_p_obs_original[,cov_col] ),0,tmp_indices_p_obs_original[,cov_col] )
+
+      #### now for ON_ ...
+
+      tmp_indices_p_obs_original$INDICATORVARIABLE_2 <- ifelse(na_rows,0,1)
+
+      added_col_2 <- paste0("ON_",cov_col,collapse = "_")
+
+
+      colnames(tmp_indices_p_obs_original)[ncol(tmp_indices_p_obs_original)] <-
+        added_col_2
+
+
+
       message("Some levels from covariate(s) ",paste0(cov_col,collapse = ", "),
-              "\n    were missing. Added a column to cov_p to split observations between \n    observed and unobserved values: ",added_col)
+              "\n    were missing. Added columns to cov_p to split observations between \n    observed and unobserved values: ",added_col,"; ",added_col_2)
     }
 
-    red_p_obs_df <- tmp_indices_p_obs_original[,c(colnames(tmp_df),added_col)]
+    red_p_obs_df <- tmp_indices_p_obs_original[,c(colnames(tmp_df),added_col, added_col_2)]
     new_cov_p <- dplyr::distinct(red_p_obs_df)
 
     if (sum(na_rows) > 0) {
@@ -129,21 +142,41 @@ add_covariates <- function(cov_df,s4t_ch) {
     # test coverage of the levels put together:
     tmp_indices_theta_original <- dplyr::left_join(indices_theta_original,stats::na.fail(tmp_df))
     na_rows <- !stats::complete.cases(tmp_indices_theta_original[,cov_col])
-    added_col <- NULL
+    added_col <- added_col_2 <- NULL
     if (sum(na_rows) > 0) {
       # then some of the levels are incomplete
       tmp_indices_theta_original$INDICATORVARIABLE <- ifelse(na_rows,1,0)
+
+
       colnames(tmp_indices_theta_original)[ncol(tmp_indices_theta_original)] <-
         paste0("OFF_",cov_col,collapse = "_")
 
       added_col <- paste0("OFF_",cov_col,collapse = "_")
 
       tmp_indices_theta_original[,cov_col] <- ifelse(is.na(tmp_indices_theta_original[,cov_col] ),0,tmp_indices_theta_original[,cov_col] )
+
+
+
+      #### now for ON_ ...
+
+      tmp_indices_theta_original$INDICATORVARIABLE_2 <- ifelse(na_rows,0,1)
+
+      added_col_2 <- paste0("ON_",cov_col,collapse = "_")
+
+
+      colnames(tmp_indices_theta_original)[ncol(tmp_indices_theta_original)] <-
+        added_col_2
+
+
+
       message("Some levels from covariate(s) ",paste0(cov_col,collapse = ", "),
-              "\n    were missing. Added a column to cov_theta to split observations between \n    observed and unobserved values: ",added_col)
+              "\n    were missing. Added columns to cov_theta to split observations between \n    observed and unobserved values: ",added_col,"; ",added_col_2)
+
+
+
     }
 
-    red_theta_df <- tmp_indices_theta_original[,c(colnames(tmp_df),added_col)]
+    red_theta_df <- tmp_indices_theta_original[,c(colnames(tmp_df),added_col, added_col_2)]
     new_cov_theta <- dplyr::distinct(red_theta_df)
 
     if (sum(na_rows) > 0) {
@@ -171,7 +204,7 @@ add_covariates <- function(cov_df,s4t_ch) {
 #'     grouping indices are excluded.
 #'
 #' @param s4t_ch a `s4t_ch` object.
-#' @returns a list of class `cov_s4t_ch` that contains the indices for $\theta$
+#' @returns a list of class `cov_s4t_ch` that contains the indices for $theta$
 #'     and $p$ parameters.
 #'
 #'

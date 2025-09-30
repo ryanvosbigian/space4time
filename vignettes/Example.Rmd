@@ -1,0 +1,449 @@
+---
+title: "Example using PTAGIS queries"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(space4time)
+library(dplyr)
+library(ggplot2)
+```
+
+
+This is an example workflow for implementing the model. This implementation uses data queried from Columbia Basin Research Data Access in Real Time (DART). The Columbia Basin Research has a query that was developed for use with the Basin TribPit software. However, the data can also be used by *space4time*.  
+
+We start with the  observations of individuals from the East Fork Potlatch River Rotary Screw Trap, which has the site name: EFPTRP (previously POTREF). We'll use observations from 2015 to 2019 for this example. These data are from Idaho Department of Fish and Game's juvenile trapping database.
+
+```{r echo=FALSE}
+
+EFPTRP_age_data <- read.csv("EFPTRP_2015_2019_age.csv") %>%
+  dplyr::select(id = PITCode,obs_time = SurveyYear,SurveyDate,FL = FLength,Bin,Season,ageclass = Age)
+
+```
+
+Here are some of the rows of a file that contain data on juvenile steelhead encountered at this rotary screw trap. Some of the columns (`id`, `obs_time`, and `ageclass`) are required to have those names. Any additional variables can be included. However, complete data for all variables (except `ageclass`) is required for any of the following analyses.
+
+```{r}
+EFPTRP_age_data[10:15,]%>%
+  knitr::kable(row.names = FALSE)
+```
+
+We identify and drop duplicate observations as well as drop individuals with missing auxilary data (`FL`).
+
+```{r}
+
+# identify individuals with more than one observation at the RST in the data
+EFPTRP_age_data %>%
+  dplyr::group_by(id) %>% # groups data by ID
+  dplyr::arrange(id,SurveyDate) %>% # sorts by ID and date
+  dplyr::mutate(Obs = dplyr::n()) %>% # creates a column that is the number of times
+                                      # each individual is in the data
+  filter(Obs > 1) # filter for multiple observations
+
+# identify missing data
+EFPTRP_age_data %>%
+  dplyr::filter(is.na(FL)) # filter for FL as NA
+
+# drop duplicate observations (keep the first observation) and missing data
+EFPTRP_age_data <- EFPTRP_age_data %>%
+  dplyr::group_by(id) %>%
+  dplyr::arrange(id,SurveyDate) %>%
+  dplyr::summarize(         # summarizes by id, so it returns 1 row per id
+            id = dplyr::first(id), # retains the first value
+            SurveyDate = dplyr::first(SurveyDate),
+            obs_time = dplyr::first(obs_time), 
+            FL = dplyr::first(FL),
+            Bin = dplyr::first(Bin),
+            Season = dplyr::first(Season),
+            ageclass = dplyr::first(ageclass)
+            # obs_site = first(obs_site), # save the first observation of any additional variables
+            ) %>%
+  dplyr::filter(!is.na(FL)) 
+```
+
+Instead of using fork lengths, for this example we will use binned fork lengths. This allows for greater efficency in model fitting because it allows for observations to be marginalized (grouped together). The bins are also z-scored (centered and divided by the standard deviation) to help with model fitting if Bin is treated as a continuous variable. The min and max bin are truncated so that there are not any bins with only a handful of observations.
+
+
+```{r}
+# create histogram to visualize the distribution of fork lengths
+# hist(EFPTRP_age_data$FL,breaks = 50)
+
+
+EFPTRP_age_data <- EFPTRP_age_data %>%
+  dplyr::mutate(Bin = dplyr::case_when(FL < 80 ~ 80, # if FL < 80, return 80
+                                       FL >180 ~ 180, # if FL greater than 180, return 180
+                                       # otherwise, round FL to the nearest 10 mm.
+                                       FL >= 80 & FL <= 180 ~ round(FL,-1)), 
+                Bin_sc = (Bin - mean(Bin)) / stats::sd(Bin)) # z-scale Bin
+
+```
+
+
+To obtain capture history data, we used query tools developed by DART for Basin TribPit using functions available in the `space4time` package. We used tools developed for Basin TribPit and PitPro to query PTAGIS and identify transported fish. More information regarding Basin TribPit and the associated queries can be found at "https://www.cbr.washington.edu/analysis/apps/BasinTribPit". To conduct queries, we used the query "Upload TagID List created by the user" ("https://www.cbr.washington.edu/dart/query/pit_tagids"). We uploaded the tag list of observations from the age data and conducted the query to create a "TribPit Observation File" ("pitbasin_branching_upload_1759171262_907.csv"). To identify transported fish, we use their "site_config.txt" file, which located on the page for PitPro ("https://www.cbr.washington.edu/analysis/apps/pitpro") and is regularly updated ("https://www.cbr.washington.edu/paramest/docs/pitpro/updates/sites_config.txt"). 
+
+An alternative to using the queries in DART is to use a Complete Tag History query in PTAGIS. However, care must be taken to identify indiviudals that were transported by barges.
+
+
+The function to process DART TribPit observation files is `read_DART_file()`. The first argument is the filepath to the "TribPit Observation File", the second is the age data, that need to the specific columns identified above, and third (optional) is the path to the "site_config.txt" file. The default is to use the link.
+
+
+```{r}
+proc_DART_data <- read_DART_file(filepath = "pitbasin_branching_upload_1759171262_907.csv",
+               aux_age_df = EFPTRP_age_data,
+               DART_config = "sites_config.txt")
+```
+
+Note see `?read_DART_file` if there were more than one DART file to include.
+
+
+The output from `read_DART_file` (`proc_DART_data`) is a list with two objects, a data.frame of capture occasions (`proc_DART_data$ch_df`) and a data frame of the age auxiliary data (`proc_DART_data$aux_age_df`)
+
+```{r}
+ch_df <- proc_DART_data$ch_df
+head(ch_df)
+
+aux_age_df <- proc_DART_data$aux_age_df
+
+head(aux_age_df)
+```
+
+
+Summarize some of the observations
+
+```{r}
+table(aux_age_df$ageclass)
+```
+
+```{r}
+table(ch_df$site)
+```
+
+In this case, some of the observations are likely of kelts, which are post-spawning adult steelhead attempting to return to the ocean. To exclude these, we can use the `remove_kelt_obs()` function. 
+
+The `kelt_obssite` argument is the site after which all observations should be dropped, meaning that if an individual is observed at this site, then all further observations of the individual in the same or next time periods should be dropped. The Lower Granite Dam fish ladder site ("GRA") is used to identify adults. 
+
+```{r}
+ch_df2 <- remove_kelt_obs(ch_df = ch_df,kelt_obssite = "GRA")
+```
+
+Next, we can drop observations at non-target sites. 
+
+```{r}
+# only keep observations in the following sites
+ch_df3 <- ch_df2 %>% 
+  dplyr::filter(site %in% c("EFPTRP","POTREF","GOJ","GRJ","LMJ","MCJ","TWX","JDJ","BCC","B2J")) 
+```
+
+
+Note that here, the name of the RST in the EF Potlatch River was POTREF at some points in time.
+
+Next, we can check what age range to include for each site:
+
+```{r message = FALSE}
+# returns a data frame of the ages of known age fish at different observations
+ch_df %>%
+  dplyr::left_join(aux_age_df,by = "id") %>%  # merge age data with capture history
+  dplyr::filter(!is.na(ageclass)) %>% # only check observations of known age fish
+  dplyr::mutate(Age_at_obs = ageclass + (time - obs_time)) %>% # calculate known age
+  dplyr::group_by(site,Age_at_obs) %>% # group by site and age at site
+  dplyr::summarise(N = dplyr::n()) # summarize number of observations
+
+```
+
+The range of ages at each site is 1 through 3. All sites with substantial observations have the same range.
+
+
+This ends the initial data cleaning. Now, we can create site configuration object. Because there are multiple names for the initial release site, these are treated as if there are multiple release sites so we use the `simplebranch_s4t_config` function. The sites are reprinted below.
+
+```{r}
+table(ch_df3$site)
+```
+
+See documentation for more details (`?simplebranch_s4t_config`). The East Fork Potlatch RST has been at multiple locations, although here we treat them as the same site because they are not at substantially different locations. The sites_to_pool argument is used to merge these sites together. The holdover sites are the sites after which individuals can holdover before transitioning to the next site. The `branch_sites` argument specifies the initial branching sites, which are the two names for the East Fork Potlatch RST. 
+
+Here, we assume that no fish holdover after passing Lower Granite Dam ("GRJ"). We pool all recapture sites below Little Goose Dam ("GOJ") with Little Goose. We have to specify min age and max age for each site even if they are pooled. 
+
+
+```{r}
+ef_pot_site_config <- simplebranch_s4t_config(sites_names = c("EFPTRP",
+                                                        "POTREF",
+                                                        "GRJ","GOJ","LMJ","MCJ","JDJ",
+                                                        "BCC",
+                                                        "TWX"),
+                                              branch_sites = c("EFPTRP",
+                                                          "POTREF"),
+                                       holdover_sites = c("EFPTRP",
+                                                          "POTREF"),
+                                       sites_to_pool = list("EFPTRP" = c("EFPTRP","POTREF"),
+                                                            "GOJ" = c("LMJ","MCJ","JDJ",
+                                                                      "BCC","TWX")),
+                                       min_a = c("EFPTRP" = 1,
+                                                 "POTREF" = 1,
+                                                 "GRJ" = 1,
+                                                 "GOJ" = 1,
+                                                 "LMJ" = 1,
+                                                 "MCJ" = 1,
+                                                 "JDJ" = 1,
+                                                 "BCC" = 1,
+                                                 "TWX" = 1),
+                                       max_a = c("EFPTRP" = 3,
+                                                 "POTREF" = 3,
+                                                 "GRJ" = 3,
+                                                 "GOJ" = 3,
+                                                 "LMJ" = 3,
+                                                 "MCJ" = 3,
+                                                 "JDJ" = 3,
+                                                 "BCC" = 3,
+                                                 "TWX" = 3)
+
+)
+```
+
+
+Next, we create initial capture history object:
+
+```{r}
+efp_s4_ch <- s4t_ch(ch_df = ch_df3,aux_age_df = aux_age_df,s4t_config = ef_pot_site_config)
+```
+
+We need to address the errors in the error log. We can use the `clean_s4t_ch_obs()` function, which returns a cleaned capture history data frame as well as information on what observations were dropped. 
+
+```{r}
+clean_ch_df <- clean_s4t_ch_obs(efp_s4_ch)
+```
+
+We can inspect what observations were dropped and determine whether these makes biological sense.
+
+```{r eval = FALSE}
+
+# show dropped observations
+clean_ch_df$dropped_ch_df
+
+# show full observation history of individuals with dropped observations
+clean_ch_df$intermediate_ch_df %>%
+  dplyr::group_by(id) %>% # group by ID
+  dplyr::filter(any(drop_obs == TRUE)) %>% # keep only individuals with dropped observations
+  head() # print out only the first 6 observations
+
+
+# can inspect individuals
+
+# aux_age_df %>%
+#   dplyr::filter(id == "3DD.00778C962F")
+
+# clean_ch_df$intermediate_ch_df %>%
+#   dplyr::filter(id == "3DD.00778C962F")
+
+```
+
+Next, we re-make the capture history object using the cleaned `ch_df` data frame.
+
+```{r}
+efp_s4_ch2 <- s4t_ch(ch_df = clean_ch_df$cleaned_ch_df,aux_age_df = aux_age_df,s4t_config = ef_pot_site_config)
+```
+
+There are no errors, so we can use this capture history object in our analyses. If there were more errors (which does occasionally happen), we could clean the `efp_s4_ch2` object and see if the errors can be corrected by the cleaning function. 
+
+Next, we can fit the model for age class. First, we will compute some summaries of the ageing data.
+
+```{r}
+# annual summaries
+aux_age_df %>%
+  dplyr::filter(!is.na(ageclass)) %>% # only include observations with ages
+  dplyr::group_by(obs_time,ageclass) %>% # group by age and obs_time (year)
+  dplyr::summarize(mean_FL = mean(FL), # mean FL
+            sd_FL = stats::sd(FL),   # sd of FL
+            N = dplyr::n())          # number of observations
+
+
+# create boxplot of fork length by ages
+aux_age_df %>% 
+  dplyr::filter(!is.na(ageclass)) %>% # only include observations with ages
+  ggplot2::ggplot(ggplot2::aes(factor(ageclass), FL)) +
+  geom_boxplot() +
+  facet_wrap(~obs_time) +
+  theme_bw() +
+  labs(x = "Age",y = "Fork length (mm)")
+  
+  
+```
+
+
+Based on the above figure, we have the following models for ageclass, which use ordinal regression. We could use FL or scaled FL, but we will instead use the binned fork length and the scaled binned fork length. This is so that the model can be more efficient as a result of marginalization.
+
+```{r}
+
+age_mod1 <- fit_ageclass(age_formula = ~ I(factor(obs_time)) + Bin_sc,
+                         s4t_ch = efp_s4_ch2)
+
+age_mod2 <- fit_ageclass(age_formula = ~ I(factor(obs_time)) * Bin_sc,
+                         s4t_ch = efp_s4_ch2)
+
+age_mod3 <- fit_ageclass(age_formula = ~ I(factor(obs_time)) + I(factor(Bin)),
+                         s4t_ch = efp_s4_ch2)
+
+```
+
+
+We can inspect some simple goodness of fit:
+
+```{r}
+plot(age_mod1)
+```
+
+
+If further goodness-of-fit metrics are desired, there is a `predict` function for the ageclass models that can be used to return predicted values.
+
+We can use AIC to select the best fitting model:
+
+
+```{r}
+AIC(age_mod1,age_mod2,age_mod3)
+```
+
+The first model is selected based on AIC.
+
+
+Next, we fit space-for-time mark recapture models. The ageclass model is the top model from above (note: use one-sided formulas only). The formulas for detection probability (`p`) and conditional transition probability (`theta`) are determined based on the site structure. There is only one site, so the full model for theta is `theta ~ a1 * a2 * s * j`, which allows for different transitions based on time at "release" (`s`), "release" site (`j`), age at "release" (`a1`), and age at "recapture" (`a2`). The quotes around "release" and "recapture" indicate that the captures can be passive and that in this case does not imply actual capture (i.e. if they passed a site but weren't detected). We recommend fitting the full model for theta to obtain transition estimates for every combination of age, time, and site. Many reduced formulas would not make sense. 
+
+The full model for p is `p ~ t * a1 * a2`, which allows for different detection probability for each time of "recapture" (`t`), age at "release" (`a1`), and age at "recapture" (`a2`). Site is technically included, but because detection probabilities are not estimated for the first or final site, only the second site ("GRJ") has detection probabilities estimated. The detection probabilities for the final site are not separable from transition rates (note: this means that transition rates estimated between "GRJ" and "GOJ" are not actually the transition rates). 
+
+The full model for p may be over-parameterized, so we also fit reduced formulas where detection probability only depends on time and where detection probability depends on time and age at "recapture".
+
+
+```{r}
+
+s4t_m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+                            theta_formula = ~ a1 * a2 * s * j,
+                            ageclass_formula = ~ I(factor(obs_time)) + Bin_sc,
+                            s4t_ch = efp_s4_ch2)
+
+
+s4t_m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
+                            theta_formula = ~ a1 * a2 * s * j,
+                            ageclass_formula = ~ I(factor(obs_time)) + Bin_sc,
+                            s4t_ch = efp_s4_ch2)
+
+# full model
+s4t_m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * a1 * a2,
+                            theta_formula = ~ a1 * a2 * s * j,
+                            ageclass_formula = ~ I(factor(obs_time)) + Bin_sc,
+                            s4t_ch = efp_s4_ch2)
+
+# optionally save model objects
+# save(s4t_m1,s4t_m2,s4t_m3, file = "EF_Potlatch_s4t.RData")
+
+```
+
+We can check model fits:
+
+```{r}
+s4t_m1
+```
+
+Note that the R-hats for all parameters should all be below 1.05. It is also important to inspect traceplots to check that the chains are properly mixed:
+
+```{r, dpi=300,fig.height = 5,fig.width=7}
+traceplot.s4t_cjs_rstan(s4t_m1)
+```
+
+We can compare the models using loo-psis:
+
+```{r}
+library(loo)
+
+
+loo_m1 <- loo(s4t_m1)
+loo_m2 <- loo(s4t_m2)
+loo_m3 <- loo(s4t_m3)
+
+loo::loo_compare(loo_m1,loo_m2,loo_m3)
+```
+
+The best model is the first model, although the first and second are similar. The third is also a reasonable model, but it has slightly worse fit.
+
+We can extract the cohort transition rates, which are the probability that an individual transitions at a particular time.
+
+
+```{r}
+s4t_m1$cohort_transitions %>% head()
+```
+
+We can also extract the apparent survival, which are the probability that an individual transitions at any time (sum of the cohort_transition rates for a particular age, time, and site):
+
+```{r}
+s4t_m1$apparent_surv %>% head()
+```
+
+
+We can visualize these transition rates:
+
+```{r, dpi=300,fig.height = 5,fig.width=7}
+# currently the textsize must be set to include filters, which are j == "EFPTRP"
+# in this example
+plotTransitions(s4t_m1,textsize = 3,j == "EFPTRP")
+```
+
+We can also visaulize the apparent survival rates:
+
+```{r, dpi=300,fig.height = 5,fig.width=7}
+plotSurvival(s4t_m1,textsize = 3,j == "EFPTRP")
+```
+
+
+```{r echo = FALSE}
+fake_abundance_data <- data.frame(j = "EFPTRP",
+                                  s = c(2015,2015,2015,
+                                        2016,2016,2016,
+                                        2017,2017,2017,
+                                        2018,2018,2018,
+                                        2019,2019,2019),
+                                  a1 = c(1,2,3,
+                                         1,2,3,
+                                         1,2,3,
+                                         1,2,3,
+                                         1,2,3),
+                                  abundance = round(runif(15,10,1000)),
+                                  abundance_se = 0)
+```
+
+
+The helper function `abundance_estimates()` can be used to calculate abundance of individuals that transition from one site to another site. An example of where this would be useful is if there are age-specific abundance estimates at East Fork Potlatch RST for each year. The abundances (and standard errors of the abundance estimates if available) are specified in the argument `abund` and the summarization is specified by `type`. The format of the `abund` data frame is shown below, where it needs columns for site (`j`), time (`s`), age at release (`a1`), and abundance. This is merged with the `cohort_transitions` data frame and the abundances are estimated. Additionally, standard errors are approximated assuming that the covariances of the cohort transitions are multivariate normally distributed and that abundance estimates are independent. 
+
+
+```{r}
+# format of abund argument using fake (simulated) data.
+head(fake_abundance_data)
+
+# compute cohort specific abundances
+cohort_abundance_at_LGR = abundance_estimates(s4t_m1,abund = fake_abundance_data,type = "None")
+
+# summarize by broodyear, site, and group.
+broodyear_abundance_at_LGR = abundance_estimates(s4t_m1,abund = fake_abundance_data,type = "BroodYear")
+
+head(broodyear_abundance_at_LGR)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

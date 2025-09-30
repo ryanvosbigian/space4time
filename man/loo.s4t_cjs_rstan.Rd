@@ -12,8 +12,10 @@
 \item{...}{passed to loo::loo}
 }
 \value{
-a \verb{ADD DETAILS} object
+a named list with class \code{c("psis_loo", "loo")}. See \code{?loo::loo}
 }
 \description{
-Efficient approximate leave-one-out cross-validation (LOO)
+Computes the PSIS-LOO CV efficient approximate leave-one-out (LOO)
+cross-validation for Bayesian models using Pareto smoothed importance sampling (PSIS).
+See documentation for \code{loo::loo()}
 }

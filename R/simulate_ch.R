@@ -82,20 +82,33 @@ sim_simple_s4t_ch <- function(N = 500,
     }
   }
 
-  diag(Theta[1,2,,]) <- stats::runif(3,min = 0.2,max = 0.8)
-  diag(Theta[2,2,,]) <- stats::runif(3,min = 0.2,max = 0.8)
-  diag(Theta[3,2,,]) <- stats::runif(3,min = 0.2,max = 0.8)
-  diag(Theta[4,2,,]) <- stats::runif(3,min = 0.2,max = 0.8)
 
-  Theta[1,2,,4] <- 1 - diag(Theta[1,2,,])
-  Theta[2,2,,4] <- 1 - diag(Theta[2,2,,])
-  Theta[3,2,,4] <- 1 - diag(Theta[3,2,,])
-  Theta[4,2,,4] <- 1 - diag(Theta[4,2,,])
+  for (s in 1:(max_obs_year+2)) {
+    diag(Theta[s,2,,]) <- stats::runif(3,min = 0.2,max = 0.8)
+    # diag(Theta[2,2,,]) <- stats::runif(3,min = 0.2,max = 0.8)
+    # diag(Theta[3,2,,]) <- stats::runif(3,min = 0.2,max = 0.8)
+    # diag(Theta[4,2,,]) <- stats::runif(3,min = 0.2,max = 0.8)
 
+    Theta[s,2,,4] <- 1 - diag(Theta[s,2,,])
+    # Theta[2,2,,4] <- 1 - diag(Theta[2,2,,])
+    # Theta[3,2,,4] <- 1 - diag(Theta[3,2,,])
+    # Theta[4,2,,4] <- 1 - diag(Theta[4,2,,])
+  }
 
-  p_prob <- matrix(stats::runif(4 * 2,0.5,0.95),
-                   nrow = 4,
-                   ncol = 2)
+  # diag(Theta[1,2,,]) <- stats::runif(3,min = 0.2,max = 0.8)
+  # diag(Theta[2,2,,]) <- stats::runif(3,min = 0.2,max = 0.8)
+  # diag(Theta[3,2,,]) <- stats::runif(3,min = 0.2,max = 0.8)
+  # diag(Theta[4,2,,]) <- stats::runif(3,min = 0.2,max = 0.8)
+  #
+  # Theta[1,2,,4] <- 1 - diag(Theta[1,2,,])
+  # Theta[2,2,,4] <- 1 - diag(Theta[2,2,,])
+  # Theta[3,2,,4] <- 1 - diag(Theta[3,2,,])
+  # Theta[4,2,,4] <- 1 - diag(Theta[4,2,,])
+  #
+
+  p_prob <- matrix(stats::runif((2 + max_obs_year) * (2),0.5,0.95),
+                   nrow = 2 + max_obs_year,
+                   ncol = (2))
 
   rowSums(Theta[1,1,,])
   Theta[1,1,,]
@@ -190,13 +203,13 @@ sim_simple_s4t_ch <- function(N = 500,
 
 
   s4t_config <- linear_s4t_config(sites_names = 1:3,
-                                holdover_sites = 1,
-                                min_a =c(1,1,1),
-                                max_a = c(3,3,3))
+                                  holdover_sites = 1,
+                                  min_a =c(1,1,1),
+                                  max_a = c(3,3,3))
 
   suppressMessages(s4t_ch <- s4t_ch(ch_df = ch_df,
-                   aux_age_df = obs_lengthyear,
-                   s4t_config = s4t_config
+                                    aux_age_df = obs_lengthyear,
+                                    s4t_config = s4t_config
   ))
 
   return(list(s4t_ch = s4t_ch,
@@ -204,9 +217,6 @@ sim_simple_s4t_ch <- function(N = 500,
                             p_prob = p_prob,
                             overall_surv = overall_surv,
                             cohort_surv = cohort_surv)))
-
-
-
 }
 
 

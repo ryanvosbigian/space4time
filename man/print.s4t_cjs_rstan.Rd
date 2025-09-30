@@ -2,7 +2,7 @@
 % Please edit documentation in R/print.R
 \name{print.s4t_cjs_rstan}
 \alias{print.s4t_cjs_rstan}
-\title{print summary of s4t_cjs_rstan}
+\title{Print summary of \code{s4t_cjs_rstan}}
 \usage{
 \method{print}{s4t_cjs_rstan}(
   x,
@@ -16,9 +16,9 @@
 \arguments{
 \item{x}{s4t_cjs_rstan object}
 
-\item{pars}{regular expressions ... NVM go back to rstan}
+\item{pars}{vector of parameters to include (defaults to all parameters)}
 
-\item{probs}{number of digits.}
+\item{probs}{quantiles for credible intervals}
 
 \item{digits_summary}{the number of significant digits to use when printing the summary}
 
@@ -28,5 +28,5 @@ pars argument.}
 \item{...}{passed to \code{summary} method for s4t_cjs_rstan object.}
 }
 \description{
-print summary of s4t_cjs_rstan
+Print summary of \code{s4t_cjs_rstan}
 }

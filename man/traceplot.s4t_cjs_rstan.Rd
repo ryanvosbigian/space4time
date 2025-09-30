@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{traceplot.s4t_cjs_rstan}
 \alias{traceplot.s4t_cjs_rstan}
-\title{Create traceplots from \code{s4t_cjs_rstan} object}
+\title{Markov chain traceplots}
 \usage{
 traceplot.s4t_cjs_rstan(object, pars = NULL, ...)
 }
@@ -10,13 +10,16 @@ traceplot.s4t_cjs_rstan(object, pars = NULL, ...)
 \item{object}{a \code{s4t_cjs_rstan} object}
 
 \item{pars}{a \code{character} object that parses parameters using regular
-expressions}
+expressions. Defaults to all parameters or the first 10 parameters (
+if there are more than 10)}
 
-\item{...}{not used}
+\item{...}{Optional arguments to pass to \code{stan::traceplot()}}
 }
 \value{
-a ggplot2 object of traceplots
+A \code{ggplot} object that can be further customized using the \code{ggplot2} package.
 }
 \description{
-add description
+Draw the traceplot corresponding to one or more Markov chains,
+providing a visual way to inspect sampling behavior and assess
+mixing across chains and convergence.
 }

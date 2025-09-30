@@ -648,7 +648,7 @@ new_s4t_ch <- function(obs_ch,
 #'
 #' The `cov_p` and `cov_theta` arguments can be used to add in covariates. They can
 #'     be data frames or a list of data frames. The data frames are joined
-#'     (using `dplyr::left_join`) to the $\theta$ or $p$ parameters using indices for
+#'     (using `dplyr::left_join`) to the $theta$ or $p$ parameters using indices for
 #'     site, time, initial release group, age, and group. Better practice is
 #'     to use the `add_covariates()` function to add any covariates rather than adding it
 #'     manually, so that any missing levels can be addressed. To see the indices of

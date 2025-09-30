@@ -45,6 +45,14 @@ If the \code{ageclass} was not observed, then \code{ageclass = NA}, but
 \code{obs_time} must be filled in. \code{obs_time} should correspond to the time period
 of the auxiliary data.
 
+The \code{cov_p} and \code{cov_theta} arguments can be used to add in covariates. They can
+be data frames or a list of data frames. The data frames are joined
+(using \code{dplyr::left_join}) to the $\theta$ or $p$ parameters using indices for
+site, time, initial release group, age, and group. Better practice is
+to use the \code{add_covariates()} function to add any covariates rather than adding it
+manually, so that any missing levels can be addressed. To see the indices of
+the parameters, use \code{extract_covariates()}.
+
 Note that individual covariates can be included in the \code{s4t_cjs_ml} and \code{s4t_cjs_rstan}
 models. These covariates are included in the \code{aux_age_df} data.
 }

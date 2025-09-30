@@ -9,11 +9,11 @@
 \arguments{
 \item{x}{a \code{s4t_cjs_rstan} object}
 
-\item{...}{not used}
+\item{...}{not used (for generic consistency)}
 }
 \value{
-A named list of class ....
+A named list (of class \code{c("waic", "loo")}). See \code{?loo::waic}.
 }
 \description{
-add description
+The waic() methods can be used to compute WAIC from the pointwise log-likelihood. See \code{loo::waic()}
 }

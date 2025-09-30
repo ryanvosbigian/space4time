@@ -29,5 +29,6 @@ Must be the same length and order as \code{sites_names}}
 to be pooled together and treated as one site. See LINK VIGNETTE and details.}
 }
 \description{
-Note that this can be used
+Create site configuration for a simple linear arrangement of sites, where there are no
+branches.
 }

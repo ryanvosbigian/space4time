@@ -15,7 +15,8 @@
 a \code{ggplot} figure showing the confusion matrix of the model fit.
 }
 \description{
-Plot confusion matrix for \code{fit_ageclass} objects
+Plot confusion matrix for \code{fit_ageclass} objects of predicted age class versus
+observed age class.
 }
 \examples{
 sim.dat <- sim_simple_s4t_ch(N = 2000)

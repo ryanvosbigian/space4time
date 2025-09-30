@@ -19,8 +19,8 @@ process_site_config <- function(DART_config,configdate = Sys.Date()) {
                           stringsAsFactors = FALSE)[0,]
 
   # Find the start and end of the desired section
-  start_line <- which(grepl("# Detector Configuration", lines)) + 2
-  end_line <- which(grepl("# Interrogation Site Configuration", lines)) - 2
+  suppressWarnings(start_line <- which(grepl("# Detector Configuration", lines)) + 2)
+  suppressWarnings(end_line <- which(grepl("# Interrogation Site Configuration", lines)) - 2)
 
   detector_config_lines <- lines[start_line:end_line]
 
@@ -305,7 +305,7 @@ identify_barged_fish <- function(capture_data,parsed_df) {
 #' Read DART Basin TribPit observation files and combine with auxiliary age data
 #'
 #'
-#' @export
+#'
 #'
 #' @param filepath the path to the DART Basin TribPit observation file
 #' @param aux_age_df A data frame object in the same format as aux_age_df
@@ -316,6 +316,11 @@ identify_barged_fish <- function(capture_data,parsed_df) {
 #'
 #' @returns A list with two elements. The first is the formatted capture history data (`ch_df`)
 #'     and the second is the age auxiliary data (`aux_age_df`).
+#'
+#'
+#' @details
+#' Currently, only Dams in the Snake River are checked for transported fish.
+#'
 #'
 #' @export
 #'
@@ -448,7 +453,7 @@ read_DART_file <- function(filepath,aux_age_df,DART_config = "https://www.cbr.wa
     if (length(check_cols) > 0) {
       message(paste0("These columns are missing from age_df:",
                      paste0(check_cols,collapse = ", ")))
-      stop("age_df does not contain necessary columns")
+      stop("aux_age_df does not contain necessary columns")
     }
 
     needed_cap_cols <- c("RelSite","TagID","Lgth")
@@ -545,4 +550,218 @@ remove_kelt_obs <- function(ch_df, kelt_obssite) {
 }
 
 
-arrayname <- sitecode <- date_start <- date_end <- exception <- RecTime <- kelt_time <- NULL
+
+estimate_cohort_surv_vc <- function(obj) {
+  res <- obj$res
+  s4t_ch <- obj$fit$s4t_ch
+  obj$fit$indices_theta$g
+
+  n_init_relsite <- s4t_ch$ch_info$n_init_relsite
+  n_groups <- length(unique(obj$fit$indices_theta$g)) # may cause issues
+
+
+
+  init_relsite_list <- s4t_ch$ch_info$init_relsite_list
+  set_min_a <- s4t_ch$ch_info$observed_relative_min_max$set_min_a
+  set_max_a <- s4t_ch$ch_info$observed_relative_min_max$set_max_a
+
+
+  max_s_rel <- s4t_ch$ch_info$max_s_rel
+  max_t_recap <- s4t_ch$ch_info$max_t_recap
+  n_sites <- s4t_ch$ch_info$n_sites
+  recap_sites <- s4t_ch$ch_info$recap_sites
+  last_sites <- s4t_ch$ch_info$last_sites
+  recap_sites_not_last <- s4t_ch$ch_info$recap_sites_not_last
+  not_last_sites <- c(1:n_sites)[!(1:n_sites %in% s4t_ch$ch_info$last_sites)]
+  sites_config <- s4t_ch$s4t_config$sites_config
+  holdover_config <- s4t_ch$s4t_config$holdover_config
+
+
+
+  mod_mat_theta <- obj$fit$mod_mat_theta
+  indices_theta <- obj$fit$indices_theta
+
+  min_ageclass_mat <- s4t_ch$ch_info$min_ageclass_mat
+  max_ageclass_mat <- s4t_ch$ch_info$max_ageclass_mat
+
+  ja <- numDeriv::jacobian(function(x, ...) stats::plogis(return_cohort_surv(par = x, ...)),
+                           x = res$par,
+                           n_init_relsite = n_init_relsite,
+                           init_relsite_list = init_relsite_list,
+                           n_groups = n_groups,
+                           set_min_a = set_min_a,
+                           set_max_a = set_max_a,
+                           max_s_rel = max_s_rel,
+                           max_t_recap = max_t_recap,
+                           n_sites = n_sites,
+                           recap_sites = recap_sites,
+                           last_sites = last_sites,
+                           recap_sites_not_last = recap_sites_not_last,
+                           not_last_sites = not_last_sites,
+                           sites_config = sites_config,
+                           holdover_config = holdover_config,
+                           mod_mat_theta = mod_mat_theta,
+                           indices_theta = indices_theta,
+                           min_ageclass_mat = min_ageclass_mat,
+                           max_ageclass_mat = max_ageclass_mat)
+
+  vc <- solve(res$hessian)
+
+  der_vc <- ja %*% vc %*% t(ja)
+
+  return(der_vc)
+
+}
+
+
+
+
+#' Calculate abundance estimates
+#'
+#' @description
+#' Calculate abundance estimates of cohorts
+#'
+#'
+#' @export
+#'
+#' @param obj a capture history data frame (see documentation for s4t_ch)
+#' @param abund a vector of sites that identify kelts (i.e. adult fish ladders)
+#' @param type the type of summarization for the abundance estimates. BroodYear
+#'     summarizes by broodyear (s - a1), ReleaseYear summarizes by time (s),
+#'     and None does not summarize.
+#'
+#' @returns a capture history data frame without observations following
+#'     observations at the specified sites.
+#'
+#' @export
+#'
+#' @examples
+#'
+abundance_estimates <- function(obj, abund, type = c("BroodYear","ReleaseYear","None")) {
+
+  abund <- as.data.frame(abund)
+
+  tmp_mis <- setdiff(c("a1","s","j","abundance","abundance_se"),colnames(abund))
+  if ("abundance_se" %in% tmp_mis) {
+    abund$abundance_se <- 0
+  }
+
+  tmp_mis <- setdiff(c("a1","s","j","abundance","abundance_se"),colnames(abund))
+
+  if (length(tmp_mis) > 0) {
+    stop(paste0("Missing columns from `abund`: ",paste0(tmp_mis,collapse = ", ")))
+  }
+
+  tmp_add <- setdiff(colnames(abund),c("a1","s","j","r","g","abundance","abundance_se"))
+
+  if (length(tmp_add) > 0) {
+    message(paste0("Only the following columns can be included in `abund`: ",
+                   paste0(c("a1","s","j","r","g","abundance","abundance_se"),collapse = ", ")))
+    stop(paste0("Remove columns from `abund`: ",paste0(tmp_add,collapse = ", ")))
+  }
+
+  abund$j <- as.character(abund$j)
+
+
+
+  cohort_transitions <- obj$cohort_transitions
+  suppressMessages(transition_df <- dplyr::left_join(cohort_transitions,abund))
+
+  if (is(obj,"s4t_cjs_ml")) {
+
+
+
+    # cohort_vc <- obj$fit$cohort_surv_vc
+    cohort_vc <- estimate_cohort_surv_vc(obj = obj)
+
+
+
+  } else if (is(obj,"s4t_cjs_rstan")) {
+    colnames(transition_df)[colnames(transition_df) == "mean"] <- "estimate"
+    colnames(transition_df)[colnames(transition_df) == "mean"] <- "estimate_se"
+
+    tmp_cohort_trans_parnames <- paste0("cohort_surv[",1:obj$res@sim$dims_oi$cohort_surv,"]")
+    # rstan::as.matrix.stanfit(obj$res,pars = tmp_cohort_trans_parnames)
+    tmp_cohort <- rstan::extract(obj$res,pars = tmp_cohort_trans_parnames)
+    cohort_vc <- stats::cov(do.call(cbind,tmp_cohort))
+
+    # stats::cov()
+  }
+
+
+
+  # transition_df$abundance_se <- runif(nrow(transition_df),20,50)
+
+  abund_vc <- diag(transition_df$abundance_se^2)
+
+
+
+  outer_N <- transition_df$abundance %*% t(transition_df$abundance)
+  outer_Theta <- transition_df$estimate %*% t(transition_df$estimate)
+
+  cohort_abund_vc <- (abund_vc * cohort_vc) +
+    (abund_vc * outer_Theta) +
+    (outer_N * cohort_vc)
+
+  # for approximation, just set NaNs to zero:
+  if (sum(is.nan(cohort_abund_vc) > 0)) {
+    message("Setting Nan values in vcov matrix to 0, results are approximate.")
+    cohort_abund_vc <- ifelse(is.nan(cohort_abund_vc),0,cohort_abund_vc)
+  }
+  if (sum(is.na(cohort_abund_vc) > 0)) {
+    message("Setting Nan values in vcov matrix to 0, results are approximate.")
+    cohort_abund_vc <- ifelse(is.na(cohort_abund_vc),0,cohort_abund_vc)
+  }
+
+
+  calc_se <- function(Index,cohort_abund_vc) {
+
+    a = matrix(rep(0,nrow(cohort_abund_vc)),nrow=1)
+    a[Index] <- 1
+    as.numeric(sqrt(a %*% cohort_abund_vc %*% t(a)))
+  }
+
+  if (type == "BroodYear") {
+
+
+
+
+
+    transition_df %>%
+      dplyr::mutate(Index = 1:dplyr::n(),
+                    broodyear = s - a1) %>%
+      dplyr::mutate(cohort_abund = estimate * abundance,
+             cohort_abund_se = sqrt((abundance_se^2 + abundance^2) * (diag(cohort_vc) + estimate^2) - ((abundance^2) * (estimate^2)))) %>%
+      dplyr::ungroup() %>%
+      dplyr::group_by(broodyear,r,g,j) %>% #View()
+      dplyr::summarize(abundance_broodyear = sum(cohort_abund),
+                       # paste0(Index,collapse = " "),
+                abundance_broodyear_se = calc_se(Index,cohort_abund_vc)
+                )
+
+
+  } else if (type == "None") {
+    transition_df %>%
+      dplyr::mutate(Index = 1:dplyr::n(),
+                    broodyear = s - a1) %>%
+      dplyr::mutate(estimate_se = sqrt(diag(cohort_vc)),
+                    cohort_abund = estimate * abundance,
+                    cohort_abund_se = sqrt((abundance_se^2 + abundance^2) * (diag(cohort_vc) + estimate^2) - ((abundance^2) * (estimate^2))))
+  } else if (type == "ReleaseYear") {
+    transition_df %>%
+      dplyr::mutate(Index = 1:dplyr::n(),
+                    broodyear = s - a1) %>%
+      dplyr::mutate(cohort_abund = estimate * abundance,
+                    cohort_abund_se = sqrt((abundance_se^2 + abundance^2) * (diag(cohort_vc) + estimate^2) - ((abundance^2) * (estimate^2)))) %>%
+      dplyr::ungroup() %>%
+      dplyr::group_by(s,j,r,g) %>%
+      dplyr::summarize(abundance_releaseyear = sum(cohort_abund),
+                       abundance_releaseyear_se = calc_se(Index,cohort_abund_vc))
+
+  }
+
+}
+
+
+arrayname <- sitecode <- date_start <- date_end <- exception <- RecTime <- kelt_time <-
+  abundance <- abundance_se <- broodyear <- cohort_abund <- Index <-  NULL

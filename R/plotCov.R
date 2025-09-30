@@ -127,7 +127,7 @@ plotCov <- function(mod, par_formula, conditional = TRUE, ...) {
       # dplyr::filter(j == 1) %>%
       ggplot2::ggplot(ggplot2::aes(element1,cohort_surv_mean, color = factor(element2))) +
       ggplot2::geom_point() +
-      ggplot2::geom_errorbar(aes(ymin = cohort_surv_lcl,ymax = cohort_surv_ucl),width = 0.1) +
+      ggplot2::geom_errorbar(ggplot2::aes(ymin = cohort_surv_lcl,ymax = cohort_surv_ucl),width = 0.1) +
       ggplot2::facet_wrap(~element3)
   }
 

@@ -134,4 +134,4 @@ plot.s4t_ageclass_model <- function(x, ...) {
 
 # to fix no visible binding note
 pred_ageclass <- count <- count_ageclass <- count_predageclass <-
-  val <- NULL
+  val <- Proportion.observed <- NULL
