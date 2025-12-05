@@ -1,0 +1,11 @@
+pandoc: 3.6.3
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  covariates: covariates.html
+  Example: Example.html
+  introduction: introduction.html
+last_built: 2025-12-05T00:39Z
+urls:
+  reference: https://ryanvosbigian.github.io/space4time/reference
+  article: https://ryanvosbigian.github.io/space4time/articles
