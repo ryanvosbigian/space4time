@@ -5,12 +5,12 @@ library(space4time)
 ```
 
 The space-for-time mark-recapture model is parameterized using formulas
-for $`\theta`$ and $`p`$. Some variables are automatically made
-available (see table below). However, adding additional covariates
-requires additional setup. There are two types of covariates, covariates
-for indices and individual grouping covariates. The covariates for
-indices essentially take the place of the variables in the table below
-in formulas, and these are added using the
+for $\theta$ and $p$. Some variables are automatically made available
+(see table below). However, adding additional covariates requires
+additional setup. There are two types of covariates, covariates for
+indices and individual grouping covariates. The covariates for indices
+essentially take the place of the variables in the table below in
+formulas, and these are added using the
 [`add_covariates()`](https://ryanvosbigian.github.io/space4time/reference/add_covariates.md)
 function. Grouping covariates are included in the auxiliary data frame
 and specified when fitting models.
@@ -75,8 +75,8 @@ s4t_ch2 <- add_covariates(cov_df = temperature_data,
 #> Joining with `by = join_by(s, j)`
 ```
 
-The fully saturated formula for theta is $`\theta \sim a1 * a2 * j * s`$
-Some different examples of how we could include this covariate are:
+The fully saturated formula for theta is $\theta \sim a1*a2*j*s$ Some
+different examples of how we could include this covariate are:
 
 ``` r
 m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,

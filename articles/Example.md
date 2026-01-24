@@ -20,6 +20,8 @@ Access in Real Time (DART). The Columbia Basin Research has a query that
 was developed for use with the Basin TribPit software. However, the data
 can also be used by *space4time*.
 
+## Data processing
+
 We start with the observations of individuals from the East Fork
 Potlatch River Rotary Screw Trap, which has the site name: EFPTRP
 (previously POTREF). We’ll use observations from 2015 to 2019 for this
@@ -270,6 +272,8 @@ table(ch_df3$site)
 #>      3     38    685    126    191     39     84     19   2451     14
 ```
 
+## Creating the capture history object
+
 See documentation for more details
 ([`?simplebranch_s4t_config`](https://ryanvosbigian.github.io/space4time/reference/simplebranch_s4t_config.md)).
 The East Fork Potlatch RST has been at multiple locations, although here
@@ -318,6 +322,29 @@ ef_pot_site_config <- simplebranch_s4t_config(sites_names = c("EFPTRP",
                                                  "TWX" = 3)
 
 )
+
+print(ef_pot_site_config)
+#> Site and age transition configuration object
+#> 
+#> There are N = 3 with N = 1 sites with holdovers
+#> 
+#> Sites: EFPTRP, GRJ, GOJ
+#> 
+#> Sites with holdovers: EFPTRP
+#> 
+#> Sites pooled:
+#> EFPTRP include: POTREF
+#> GOJ include: LMJ, MCJ, JDJ, BCC, TWX
+#> 
+#> Site -> site:
+#> EFPTRP -> GRJ
+#> GRJ -> GOJ
+#> GOJ -> 
+#> 
+#> Age range per site:
+#> EFPTRP: 1-3
+#> GRJ: 1-3
+#> GOJ: 1-3
 ```
 
 Next, we create initial capture history object:
@@ -402,7 +429,9 @@ efp_s4_ch2 <- s4t_ch(ch_df = clean_ch_df$cleaned_ch_df,aux_age_df = aux_age_df,s
 There are no errors, so we can use this capture history object in our
 analyses. If there were more errors (which does occasionally happen), we
 could clean the `efp_s4_ch2` object and see if the errors can be
-corrected by the cleaning function.
+corrected by the cleaning function. As observations are removed more
+issues can arise, so cleaning, remaking the capture history object,
+cleaning the remade object, and remaking it again can happen.
 
 Next, we can fit the model for age class. First, we will compute some
 summaries of the ageing data.
@@ -449,11 +478,13 @@ aux_age_df %>%
 
 ![](Example_files/figure-html/unnamed-chunk-19-1.png)
 
+## Fit models
+
 Based on the above figure, we have the following models for ageclass,
 which use ordinal regression. We could use FL or scaled FL, but we will
 instead use the binned fork length and the scaled binned fork length.
 This is so that the model can be more efficient as a result of
-marginalization.
+marginalization. Use one-sided formulas.
 
 ``` r
 
@@ -477,7 +508,8 @@ plot(age_mod1)
 
 If further goodness-of-fit metrics are desired, there is a `predict`
 function for the ageclass models that can be used to return predicted
-values.
+values (see
+[`?predict.s4t_ageclass_model`](https://ryanvosbigian.github.io/space4time/reference/predict.s4t_ageclass_model.md)).
 
 We can use AIC to select the best fitting model:
 
@@ -520,525 +552,322 @@ formulas where detection probability only depends on time and where
 detection probability depends on time and age at “recapture”.
 
 ``` r
+# Allows for parallel computation (reduces overall time)
+rstan::rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
 
 s4t_m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
                             theta_formula = ~ a1 * a2 * s * j,
                             ageclass_formula = ~ I(factor(obs_time)) + Bin_sc,
+                            fixed_age = FALSE,
                             s4t_ch = efp_s4_ch2)
-#> 
-#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 1).
-#> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.000822 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.22 seconds.
-#> Chain 1: Adjust your expectations accordingly!
-#> Chain 1: 
-#> Chain 1: 
-#> Chain 1: Iteration:   1 / 1000 [  0%]  (Warmup)
-#> Chain 1: Iteration: 100 / 1000 [ 10%]  (Warmup)
-#> Chain 1: Iteration: 200 / 1000 [ 20%]  (Warmup)
-#> Chain 1: Iteration: 300 / 1000 [ 30%]  (Warmup)
-#> Chain 1: Iteration: 400 / 1000 [ 40%]  (Warmup)
-#> Chain 1: Iteration: 500 / 1000 [ 50%]  (Warmup)
-#> Chain 1: Iteration: 501 / 1000 [ 50%]  (Sampling)
-#> Chain 1: Iteration: 600 / 1000 [ 60%]  (Sampling)
-#> Chain 1: Iteration: 700 / 1000 [ 70%]  (Sampling)
-#> Chain 1: Iteration: 800 / 1000 [ 80%]  (Sampling)
-#> Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)
-#> Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)
-#> Chain 1: 
-#> Chain 1:  Elapsed Time: 70.818 seconds (Warm-up)
-#> Chain 1:                77.32 seconds (Sampling)
-#> Chain 1:                148.138 seconds (Total)
-#> Chain 1: 
-#> 
-#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 2).
-#> Chain 2: 
-#> Chain 2: Gradient evaluation took 0.000653 seconds
-#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 6.53 seconds.
-#> Chain 2: Adjust your expectations accordingly!
-#> Chain 2: 
-#> Chain 2: 
-#> Chain 2: Iteration:   1 / 1000 [  0%]  (Warmup)
-#> Chain 2: Iteration: 100 / 1000 [ 10%]  (Warmup)
-#> Chain 2: Iteration: 200 / 1000 [ 20%]  (Warmup)
-#> Chain 2: Iteration: 300 / 1000 [ 30%]  (Warmup)
-#> Chain 2: Iteration: 400 / 1000 [ 40%]  (Warmup)
-#> Chain 2: Iteration: 500 / 1000 [ 50%]  (Warmup)
-#> Chain 2: Iteration: 501 / 1000 [ 50%]  (Sampling)
-#> Chain 2: Iteration: 600 / 1000 [ 60%]  (Sampling)
-#> Chain 2: Iteration: 700 / 1000 [ 70%]  (Sampling)
-#> Chain 2: Iteration: 800 / 1000 [ 80%]  (Sampling)
-#> Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)
-#> Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)
-#> Chain 2: 
-#> Chain 2:  Elapsed Time: 60.846 seconds (Warm-up)
-#> Chain 2:                39.346 seconds (Sampling)
-#> Chain 2:                100.192 seconds (Total)
-#> Chain 2: 
-#> 
-#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 3).
-#> Chain 3: 
-#> Chain 3: Gradient evaluation took 0.000723 seconds
-#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.23 seconds.
-#> Chain 3: Adjust your expectations accordingly!
-#> Chain 3: 
-#> Chain 3: 
-#> Chain 3: Iteration:   1 / 1000 [  0%]  (Warmup)
-#> Chain 3: Iteration: 100 / 1000 [ 10%]  (Warmup)
-#> Chain 3: Iteration: 200 / 1000 [ 20%]  (Warmup)
-#> Chain 3: Iteration: 300 / 1000 [ 30%]  (Warmup)
-#> Chain 3: Iteration: 400 / 1000 [ 40%]  (Warmup)
-#> Chain 3: Iteration: 500 / 1000 [ 50%]  (Warmup)
-#> Chain 3: Iteration: 501 / 1000 [ 50%]  (Sampling)
-#> Chain 3: Iteration: 600 / 1000 [ 60%]  (Sampling)
-#> Chain 3: Iteration: 700 / 1000 [ 70%]  (Sampling)
-#> Chain 3: Iteration: 800 / 1000 [ 80%]  (Sampling)
-#> Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)
-#> Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)
-#> Chain 3: 
-#> Chain 3:  Elapsed Time: 78.47 seconds (Warm-up)
-#> Chain 3:                56.989 seconds (Sampling)
-#> Chain 3:                135.459 seconds (Total)
-#> Chain 3:
 
 
 s4t_m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
                             theta_formula = ~ a1 * a2 * s * j,
                             ageclass_formula = ~ I(factor(obs_time)) + Bin_sc,
+                            fixed_age = FALSE,
                             s4t_ch = efp_s4_ch2)
-#> 
-#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 1).
-#> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.000826 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.26 seconds.
-#> Chain 1: Adjust your expectations accordingly!
-#> Chain 1: 
-#> Chain 1: 
-#> Chain 1: Iteration:   1 / 1000 [  0%]  (Warmup)
-#> Chain 1: Iteration: 100 / 1000 [ 10%]  (Warmup)
-#> Chain 1: Iteration: 200 / 1000 [ 20%]  (Warmup)
-#> Chain 1: Iteration: 300 / 1000 [ 30%]  (Warmup)
-#> Chain 1: Iteration: 400 / 1000 [ 40%]  (Warmup)
-#> Chain 1: Iteration: 500 / 1000 [ 50%]  (Warmup)
-#> Chain 1: Iteration: 501 / 1000 [ 50%]  (Sampling)
-#> Chain 1: Iteration: 600 / 1000 [ 60%]  (Sampling)
-#> Chain 1: Iteration: 700 / 1000 [ 70%]  (Sampling)
-#> Chain 1: Iteration: 800 / 1000 [ 80%]  (Sampling)
-#> Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)
-#> Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)
-#> Chain 1: 
-#> Chain 1:  Elapsed Time: 81.699 seconds (Warm-up)
-#> Chain 1:                57.77 seconds (Sampling)
-#> Chain 1:                139.469 seconds (Total)
-#> Chain 1: 
-#> 
-#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 2).
-#> Chain 2: 
-#> Chain 2: Gradient evaluation took 0.000688 seconds
-#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 6.88 seconds.
-#> Chain 2: Adjust your expectations accordingly!
-#> Chain 2: 
-#> Chain 2: 
-#> Chain 2: Iteration:   1 / 1000 [  0%]  (Warmup)
-#> Chain 2: Iteration: 100 / 1000 [ 10%]  (Warmup)
-#> Chain 2: Iteration: 200 / 1000 [ 20%]  (Warmup)
-#> Chain 2: Iteration: 300 / 1000 [ 30%]  (Warmup)
-#> Chain 2: Iteration: 400 / 1000 [ 40%]  (Warmup)
-#> Chain 2: Iteration: 500 / 1000 [ 50%]  (Warmup)
-#> Chain 2: Iteration: 501 / 1000 [ 50%]  (Sampling)
-#> Chain 2: Iteration: 600 / 1000 [ 60%]  (Sampling)
-#> Chain 2: Iteration: 700 / 1000 [ 70%]  (Sampling)
-#> Chain 2: Iteration: 800 / 1000 [ 80%]  (Sampling)
-#> Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)
-#> Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)
-#> Chain 2: 
-#> Chain 2:  Elapsed Time: 89.663 seconds (Warm-up)
-#> Chain 2:                58.536 seconds (Sampling)
-#> Chain 2:                148.199 seconds (Total)
-#> Chain 2: 
-#> 
-#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 3).
-#> Chain 3: 
-#> Chain 3: Gradient evaluation took 0.000683 seconds
-#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 6.83 seconds.
-#> Chain 3: Adjust your expectations accordingly!
-#> Chain 3: 
-#> Chain 3: 
-#> Chain 3: Iteration:   1 / 1000 [  0%]  (Warmup)
-#> Chain 3: Iteration: 100 / 1000 [ 10%]  (Warmup)
-#> Chain 3: Iteration: 200 / 1000 [ 20%]  (Warmup)
-#> Chain 3: Iteration: 300 / 1000 [ 30%]  (Warmup)
-#> Chain 3: Iteration: 400 / 1000 [ 40%]  (Warmup)
-#> Chain 3: Iteration: 500 / 1000 [ 50%]  (Warmup)
-#> Chain 3: Iteration: 501 / 1000 [ 50%]  (Sampling)
-#> Chain 3: Iteration: 600 / 1000 [ 60%]  (Sampling)
-#> Chain 3: Iteration: 700 / 1000 [ 70%]  (Sampling)
-#> Chain 3: Iteration: 800 / 1000 [ 80%]  (Sampling)
-#> Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)
-#> Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)
-#> Chain 3: 
-#> Chain 3:  Elapsed Time: 80.824 seconds (Warm-up)
-#> Chain 3:                58.237 seconds (Sampling)
-#> Chain 3:                139.061 seconds (Total)
-#> Chain 3:
 
 # full model
 s4t_m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * a1 * a2,
                             theta_formula = ~ a1 * a2 * s * j,
                             ageclass_formula = ~ I(factor(obs_time)) + Bin_sc,
+                            fixed_age = FALSE,
                             s4t_ch = efp_s4_ch2)
-#> 
-#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 1).
-#> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.0015 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 15 seconds.
-#> Chain 1: Adjust your expectations accordingly!
-#> Chain 1: 
-#> Chain 1: 
-#> Chain 1: Iteration:   1 / 1000 [  0%]  (Warmup)
-#> Chain 1: Iteration: 100 / 1000 [ 10%]  (Warmup)
-#> Chain 1: Iteration: 200 / 1000 [ 20%]  (Warmup)
-#> Chain 1: Iteration: 300 / 1000 [ 30%]  (Warmup)
-#> Chain 1: Iteration: 400 / 1000 [ 40%]  (Warmup)
-#> Chain 1: Iteration: 500 / 1000 [ 50%]  (Warmup)
-#> Chain 1: Iteration: 501 / 1000 [ 50%]  (Sampling)
-#> Chain 1: Iteration: 600 / 1000 [ 60%]  (Sampling)
-#> Chain 1: Iteration: 700 / 1000 [ 70%]  (Sampling)
-#> Chain 1: Iteration: 800 / 1000 [ 80%]  (Sampling)
-#> Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)
-#> Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)
-#> Chain 1: 
-#> Chain 1:  Elapsed Time: 82.091 seconds (Warm-up)
-#> Chain 1:                57.999 seconds (Sampling)
-#> Chain 1:                140.09 seconds (Total)
-#> Chain 1: 
-#> 
-#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 2).
-#> Chain 2: 
-#> Chain 2: Gradient evaluation took 0.000677 seconds
-#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 6.77 seconds.
-#> Chain 2: Adjust your expectations accordingly!
-#> Chain 2: 
-#> Chain 2: 
-#> Chain 2: Iteration:   1 / 1000 [  0%]  (Warmup)
-#> Chain 2: Iteration: 100 / 1000 [ 10%]  (Warmup)
-#> Chain 2: Iteration: 200 / 1000 [ 20%]  (Warmup)
-#> Chain 2: Iteration: 300 / 1000 [ 30%]  (Warmup)
-#> Chain 2: Iteration: 400 / 1000 [ 40%]  (Warmup)
-#> Chain 2: Iteration: 500 / 1000 [ 50%]  (Warmup)
-#> Chain 2: Iteration: 501 / 1000 [ 50%]  (Sampling)
-#> Chain 2: Iteration: 600 / 1000 [ 60%]  (Sampling)
-#> Chain 2: Iteration: 700 / 1000 [ 70%]  (Sampling)
-#> Chain 2: Iteration: 800 / 1000 [ 80%]  (Sampling)
-#> Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)
-#> Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)
-#> Chain 2: 
-#> Chain 2:  Elapsed Time: 85.531 seconds (Warm-up)
-#> Chain 2:                60.896 seconds (Sampling)
-#> Chain 2:                146.427 seconds (Total)
-#> Chain 2: 
-#> 
-#> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 3).
-#> Chain 3: 
-#> Chain 3: Gradient evaluation took 0.001356 seconds
-#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 13.56 seconds.
-#> Chain 3: Adjust your expectations accordingly!
-#> Chain 3: 
-#> Chain 3: 
-#> Chain 3: Iteration:   1 / 1000 [  0%]  (Warmup)
-#> Chain 3: Iteration: 100 / 1000 [ 10%]  (Warmup)
-#> Chain 3: Iteration: 200 / 1000 [ 20%]  (Warmup)
-#> Chain 3: Iteration: 300 / 1000 [ 30%]  (Warmup)
-#> Chain 3: Iteration: 400 / 1000 [ 40%]  (Warmup)
-#> Chain 3: Iteration: 500 / 1000 [ 50%]  (Warmup)
-#> Chain 3: Iteration: 501 / 1000 [ 50%]  (Sampling)
-#> Chain 3: Iteration: 600 / 1000 [ 60%]  (Sampling)
-#> Chain 3: Iteration: 700 / 1000 [ 70%]  (Sampling)
-#> Chain 3: Iteration: 800 / 1000 [ 80%]  (Sampling)
-#> Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)
-#> Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)
-#> Chain 3: 
-#> Chain 3:  Elapsed Time: 96.527 seconds (Warm-up)
-#> Chain 3:                66.899 seconds (Sampling)
-#> Chain 3:                163.426 seconds (Total)
-#> Chain 3:
 
 # optionally save model objects
 # save(s4t_m1,s4t_m2,s4t_m3, file = "EF_Potlatch_s4t.RData")
 ```
 
+## Check and evaluate fitted models
+
 We can check model fits:
 
 ``` r
 s4t_m1
-#> Inference for Stan model: s4t_cjs_fixedage_draft7.
+#> Inference for Stan model: s4t_cjs_draft7.
 #> 3 chains, each with iter=1000; warmup=500; thin=1; 
 #> post-warmup draws per chain=500, total post-warmup draws=1500.
 #> 
-#>                       mean se_mean   sd  2.5%   25%   50%   75% 97.5% n_eff
-#> theta_(Intercept)    -4.56    0.02 0.49 -5.59 -4.87 -4.56 -4.22 -3.64   603
-#> theta_a12             0.77    0.02 0.78 -0.76  0.24  0.76  1.29  2.32  1291
-#> theta_a13             4.30    0.02 0.82  2.61  3.79  4.32  4.85  5.85  1405
-#> theta_a22             1.90    0.02 0.51  0.92  1.55  1.90  2.22  2.94   705
-#> theta_a23            -1.07    0.02 0.63 -2.38 -1.48 -1.06 -0.66  0.15   844
-#> theta_s2016           0.51    0.02 0.70 -1.00  0.07  0.53  0.99  1.79   854
-#> theta_s2017           0.59    0.02 0.55 -0.51  0.23  0.58  0.95  1.70   673
-#> theta_s2018          -0.33    0.02 0.77 -1.89 -0.83 -0.30  0.18  1.09  1126
-#> theta_s2019          -0.16    0.02 0.85 -1.88 -0.72 -0.13  0.40  1.49  1190
-#> theta_s2020           1.03    0.03 1.16 -1.18  0.27  0.99  1.82  3.34  1836
-#> theta_jGRJ            0.40    0.02 0.81 -1.21 -0.15  0.42  0.96  1.92  1267
-#> theta_a12:a22         2.02    0.02 0.77  0.48  1.51  2.02  2.52  3.60  1042
-#> theta_a12:s2016       0.09    0.03 1.16 -2.20 -0.70  0.10  0.89  2.38  1548
-#> theta_a13:s2016       0.61    0.03 1.02 -1.38 -0.10  0.61  1.28  2.61  1568
-#> theta_a12:s2017       1.27    0.02 0.98 -0.57  0.58  1.26  1.94  3.24  1662
-#> theta_a13:s2017       0.12    0.03 1.45 -2.85 -0.80  0.10  1.03  3.24  2947
-#> theta_a12:s2018      -0.03    0.03 1.09 -2.07 -0.78 -0.08  0.69  2.18  1675
-#> theta_a13:s2018       1.00    0.03 1.25 -1.59  0.23  1.05  1.88  3.27  1416
-#> theta_a12:s2019      -0.53    0.03 0.93 -2.43 -1.11 -0.53  0.07  1.34   940
-#> theta_a13:s2019       0.33    0.03 1.16 -2.06 -0.44  0.33  1.13  2.62  1631
-#> theta_a12:s2020       0.85    0.03 1.26 -1.44  0.02  0.78  1.67  3.39  1786
-#> theta_a22:s2016       0.71    0.03 0.76 -0.71  0.20  0.69  1.20  2.27   875
-#> theta_a23:s2016       0.55    0.03 0.88 -1.18 -0.02  0.54  1.12  2.31   895
-#> theta_a22:s2017      -0.16    0.02 0.62 -1.42 -0.56 -0.15  0.26  1.01   727
-#> theta_a23:s2017       0.32    0.03 0.76 -1.14 -0.20  0.28  0.86  1.92   914
-#> theta_a22:s2018       0.96    0.02 0.80 -0.56  0.42  0.95  1.49  2.60  1142
-#> theta_a23:s2018       0.56    0.03 1.02 -1.43 -0.12  0.59  1.28  2.45  1416
-#> theta_a22:s2019       0.99    0.03 0.96 -0.78  0.32  0.93  1.64  2.89  1205
-#> theta_a23:s2019      -0.01    0.03 1.12 -2.20 -0.77  0.01  0.75  2.18  1565
-#> theta_a12:jGRJ       -1.98    0.03 0.96 -3.88 -2.56 -1.99 -1.32 -0.06   835
-#> theta_a13:jGRJ        0.27    0.03 1.10 -1.84 -0.49  0.26  1.01  2.44  1752
-#> theta_s2016:jGRJ     -0.83    0.02 1.05 -2.96 -1.58 -0.82 -0.09  1.19  1800
-#> theta_s2017:jGRJ      1.18    0.03 0.92 -0.64  0.57  1.17  1.76  3.03  1112
-#> theta_s2018:jGRJ     -0.22    0.03 1.13 -2.46 -0.98 -0.22  0.52  2.07  1621
-#> theta_s2019:jGRJ      0.77    0.03 1.07 -1.36  0.05  0.78  1.45  2.86  1218
-#> theta_a12:a22:s2016  -0.01    0.03 1.10 -2.00 -0.76 -0.04  0.68  2.39  1461
-#> theta_a12:a22:s2017   0.40    0.02 0.92 -1.40 -0.26  0.43  1.06  2.11  1478
-#> theta_a12:a22:s2018   0.56    0.03 1.09 -1.49 -0.18  0.52  1.32  2.74  1766
-#> theta_a12:s2016:jGRJ -0.63    0.03 1.18 -2.91 -1.45 -0.64  0.18  1.69  1644
-#> theta_a13:s2016:jGRJ  0.11    0.03 1.32 -2.37 -0.78  0.14  1.02  2.63  2468
-#> theta_a12:s2017:jGRJ -1.79    0.03 1.06 -3.85 -2.47 -1.83 -1.06  0.37   976
-#> theta_a13:s2017:jGRJ  0.05    0.03 1.41 -2.72 -0.85  0.04  1.00  2.71  2385
-#> theta_a12:s2018:jGRJ  0.09    0.03 1.20 -2.32 -0.74  0.10  0.88  2.47  1727
-#> theta_a13:s2018:jGRJ -0.20    0.03 1.28 -2.65 -1.07 -0.22  0.66  2.37  2096
-#> theta_a12:s2019:jGRJ  0.09    0.03 1.20 -2.37 -0.67  0.10  0.90  2.48  1308
-#> theta_a13:s2019:jGRJ  0.94    0.03 1.33 -1.57  0.06  0.89  1.84  3.55  1922
-#> p_(Intercept)        -1.89    0.02 0.37 -2.61 -2.15 -1.89 -1.65 -1.16   434
-#> p_t2016               0.03    0.02 0.44 -0.85 -0.28  0.04  0.34  0.86   628
-#> p_t2017               0.95    0.02 0.40  0.18  0.66  0.96  1.22  1.70   451
-#> p_t2018               0.83    0.02 0.43 -0.01  0.54  0.84  1.13  1.69   636
-#> p_t2019               1.15    0.02 0.45  0.29  0.86  1.15  1.45  2.03   560
-#> p_t2020              -3.85    0.06 2.26 -9.19 -5.14 -3.59 -2.24 -0.38  1267
-#> overall_surv[1]       0.08    0.00 0.03  0.04  0.06  0.08  0.10  0.14  1688
-#> overall_surv[2]       0.53    0.01 0.13  0.31  0.43  0.52  0.62  0.81   572
-#> overall_surv[3]       0.23    0.00 0.12  0.05  0.15  0.21  0.30  0.50  1749
-#> overall_surv[4]       0.22    0.00 0.04  0.16  0.20  0.22  0.24  0.30  1552
-#> overall_surv[5]       0.77    0.00 0.15  0.45  0.67  0.79  0.89  0.99  1332
-#> overall_surv[6]       0.56    0.00 0.20  0.19  0.41  0.55  0.72  0.93  1920
-#> overall_surv[7]       0.13    0.00 0.02  0.09  0.11  0.12  0.14  0.18  1689
-#> overall_surv[8]       0.90    0.00 0.06  0.76  0.86  0.90  0.94  0.99  2144
-#> overall_surv[9]       0.45    0.01 0.29  0.03  0.19  0.43  0.70  0.96  2066
-#> overall_surv[10]      0.13    0.00 0.04  0.08  0.11  0.13  0.15  0.22  1628
-#> overall_surv[11]      0.75    0.00 0.14  0.49  0.64  0.75  0.86  0.98  1684
-#> overall_surv[12]      0.50    0.01 0.27  0.02  0.30  0.54  0.72  0.93  1360
-#> overall_surv[13]      0.17    0.00 0.11  0.05  0.10  0.14  0.20  0.49  1176
-#> overall_surv[14]      0.59    0.00 0.14  0.37  0.49  0.57  0.67  0.93  1223
-#> overall_surv[15]      0.27    0.00 0.17  0.03  0.15  0.25  0.38  0.66  1692
-#> overall_surv[16]      0.02    0.00 0.02  0.00  0.01  0.02  0.03  0.07  1282
-#> overall_surv[17]      0.20    0.00 0.06  0.11  0.15  0.19  0.23  0.33   775
-#> overall_surv[18]      0.36    0.00 0.17  0.09  0.23  0.34  0.47  0.73  1701
-#> overall_surv[19]      0.02    0.00 0.03  0.00  0.00  0.01  0.03  0.09  1920
-#> overall_surv[20]      0.17    0.00 0.05  0.10  0.14  0.17  0.20  0.31  1481
-#> overall_surv[21]      0.54    0.01 0.22  0.17  0.37  0.52  0.71  0.96  1779
-#> overall_surv[22]      0.10    0.00 0.06  0.02  0.05  0.09  0.13  0.26  2020
-#> overall_surv[23]      0.51    0.00 0.06  0.41  0.47  0.51  0.55  0.64  2116
-#> overall_surv[24]      0.71    0.01 0.30  0.05  0.51  0.83  0.96  1.00  1354
-#> overall_surv[25]      0.02    0.00 0.03  0.00  0.00  0.01  0.02  0.11  1331
-#> overall_surv[26]      0.40    0.00 0.10  0.24  0.33  0.39  0.46  0.63  1882
-#> overall_surv[27]      0.53    0.01 0.26  0.05  0.33  0.55  0.75  0.95  1407
-#> overall_surv[28]      0.06    0.00 0.08  0.00  0.01  0.03  0.07  0.28  1480
-#> overall_surv[29]      0.43    0.00 0.11  0.24  0.35  0.43  0.50  0.67  1530
-#> overall_surv[30]      0.72    0.00 0.18  0.32  0.59  0.74  0.87  0.98  1709
-#> overall_surv[31]      0.57    0.01 0.24  0.14  0.38  0.57  0.78  0.97  1647
-#> overall_surv[32]      0.56    0.01 0.25  0.11  0.35  0.58  0.78  0.96  1674
-#> cohort_surv[1]        0.01    0.00 0.01  0.00  0.01  0.01  0.01  0.03   676
-#> cohort_surv[2]        0.07    0.00 0.02  0.03  0.05  0.06  0.08  0.12  1923
-#> cohort_surv[3]        0.00    0.00 0.00  0.00  0.00  0.00  0.00  0.01  1434
-#> cohort_surv[4]        0.53    0.01 0.13  0.31  0.43  0.52  0.62  0.80   571
-#> cohort_surv[5]        0.00    0.00 0.00  0.00  0.00  0.00  0.01  0.02  1534
-#> cohort_surv[6]        0.23    0.00 0.12  0.05  0.15  0.21  0.30  0.50  1749
-#> cohort_surv[7]        0.02    0.00 0.02  0.00  0.01  0.02  0.03  0.06  1642
-#> cohort_surv[8]        0.19    0.00 0.03  0.14  0.17  0.19  0.21  0.25  1598
-#> cohort_surv[9]        0.01    0.00 0.01  0.00  0.01  0.01  0.01  0.03  1809
-#> cohort_surv[10]       0.76    0.00 0.15  0.44  0.66  0.78  0.89  0.98  1295
-#> cohort_surv[11]       0.01    0.00 0.01  0.00  0.00  0.00  0.01  0.03  1980
-#> cohort_surv[12]       0.56    0.00 0.20  0.19  0.41  0.55  0.72  0.93  1920
-#> cohort_surv[13]       0.02    0.00 0.01  0.01  0.01  0.02  0.02  0.04  2180
-#> cohort_surv[14]       0.10    0.00 0.02  0.06  0.08  0.09  0.11  0.15  1472
-#> cohort_surv[15]       0.01    0.00 0.00  0.00  0.01  0.01  0.01  0.02  1699
-#> cohort_surv[16]       0.89    0.00 0.06  0.75  0.85  0.89  0.93  0.98  2187
-#> cohort_surv[17]       0.01    0.00 0.01  0.00  0.00  0.01  0.01  0.03  1772
-#> cohort_surv[18]       0.45    0.01 0.29  0.03  0.19  0.43  0.70  0.96  2066
-#> cohort_surv[19]       0.01    0.00 0.01  0.00  0.00  0.01  0.01  0.03  1437
-#> cohort_surv[20]       0.12    0.00 0.03  0.07  0.09  0.11  0.14  0.19  1544
-#> cohort_surv[21]       0.01    0.00 0.01  0.00  0.00  0.00  0.01  0.02  1933
-#> cohort_surv[22]       0.74    0.00 0.14  0.48  0.64  0.74  0.86  0.98  1682
-#> cohort_surv[23]       0.00    0.00 0.01  0.00  0.00  0.00  0.00  0.02  1670
-#> cohort_surv[24]       0.50    0.01 0.27  0.02  0.30  0.54  0.72  0.93  1360
-#> cohort_surv[25]       0.01    0.00 0.01  0.00  0.00  0.01  0.02  0.04  1555
-#> cohort_surv[26]       0.16    0.00 0.11  0.05  0.09  0.12  0.19  0.47  1135
-#> cohort_surv[27]       0.59    0.00 0.14  0.37  0.49  0.56  0.67  0.92  1225
-#> cohort_surv[28]       0.00    0.00 0.00  0.00  0.00  0.00  0.00  0.02  1510
-#> cohort_surv[29]       0.27    0.00 0.17  0.03  0.15  0.25  0.38  0.66  1692
-#> cohort_surv[30]       0.02    0.00 0.02  0.00  0.01  0.02  0.03  0.07  1282
-#> cohort_surv[31]       0.20    0.00 0.06  0.11  0.15  0.19  0.23  0.33   775
-#> cohort_surv[32]       0.36    0.00 0.17  0.09  0.23  0.34  0.47  0.73  1701
-#> cohort_surv[33]       0.02    0.00 0.03  0.00  0.00  0.01  0.03  0.09  1920
-#> cohort_surv[34]       0.17    0.00 0.05  0.10  0.14  0.17  0.20  0.31  1481
-#> cohort_surv[35]       0.54    0.01 0.22  0.17  0.37  0.52  0.71  0.96  1779
-#> cohort_surv[36]       0.10    0.00 0.06  0.02  0.05  0.09  0.13  0.26  2020
-#> cohort_surv[37]       0.51    0.00 0.06  0.41  0.47  0.51  0.55  0.64  2116
-#> cohort_surv[38]       0.71    0.01 0.30  0.05  0.51  0.83  0.96  1.00  1354
-#> cohort_surv[39]       0.02    0.00 0.03  0.00  0.00  0.01  0.02  0.11  1331
-#> cohort_surv[40]       0.40    0.00 0.10  0.24  0.33  0.39  0.46  0.63  1882
-#> cohort_surv[41]       0.53    0.01 0.26  0.05  0.33  0.55  0.75  0.95  1407
-#> cohort_surv[42]       0.06    0.00 0.08  0.00  0.01  0.03  0.07  0.28  1480
-#> cohort_surv[43]       0.43    0.00 0.11  0.24  0.35  0.43  0.50  0.67  1530
-#> cohort_surv[44]       0.72    0.00 0.18  0.32  0.59  0.74  0.87  0.98  1709
-#> cohort_surv[45]       0.57    0.01 0.24  0.14  0.38  0.57  0.78  0.97  1647
-#> cohort_surv[46]       0.56    0.01 0.25  0.11  0.35  0.58  0.78  0.96  1674
-#>                      Rhat
-#> theta_(Intercept)    1.00
-#> theta_a12            1.00
-#> theta_a13            1.00
-#> theta_a22            1.00
-#> theta_a23            1.00
-#> theta_s2016          1.00
-#> theta_s2017          1.00
-#> theta_s2018          1.00
-#> theta_s2019          1.00
-#> theta_s2020          1.00
-#> theta_jGRJ           1.00
-#> theta_a12:a22        1.00
-#> theta_a12:s2016      1.00
-#> theta_a13:s2016      1.00
-#> theta_a12:s2017      1.00
-#> theta_a13:s2017      1.00
-#> theta_a12:s2018      1.00
-#> theta_a13:s2018      1.00
-#> theta_a12:s2019      1.00
-#> theta_a13:s2019      1.00
-#> theta_a12:s2020      1.00
-#> theta_a22:s2016      1.00
-#> theta_a23:s2016      1.00
-#> theta_a22:s2017      1.00
-#> theta_a23:s2017      1.00
-#> theta_a22:s2018      1.00
-#> theta_a23:s2018      1.00
-#> theta_a22:s2019      1.00
-#> theta_a23:s2019      1.00
-#> theta_a12:jGRJ       1.00
-#> theta_a13:jGRJ       1.00
-#> theta_s2016:jGRJ     1.00
-#> theta_s2017:jGRJ     1.00
-#> theta_s2018:jGRJ     1.00
-#> theta_s2019:jGRJ     1.00
-#> theta_a12:a22:s2016  1.00
-#> theta_a12:a22:s2017  1.00
-#> theta_a12:a22:s2018  1.00
-#> theta_a12:s2016:jGRJ 1.00
-#> theta_a13:s2016:jGRJ 1.00
-#> theta_a12:s2017:jGRJ 1.01
-#> theta_a13:s2017:jGRJ 1.00
-#> theta_a12:s2018:jGRJ 1.00
-#> theta_a13:s2018:jGRJ 1.00
-#> theta_a12:s2019:jGRJ 1.00
-#> theta_a13:s2019:jGRJ 1.00
-#> p_(Intercept)        1.01
-#> p_t2016              1.00
-#> p_t2017              1.01
-#> p_t2018              1.01
-#> p_t2019              1.00
-#> p_t2020              1.00
-#> overall_surv[1]      1.00
-#> overall_surv[2]      1.01
-#> overall_surv[3]      1.00
-#> overall_surv[4]      1.00
-#> overall_surv[5]      1.00
-#> overall_surv[6]      1.00
-#> overall_surv[7]      1.00
-#> overall_surv[8]      1.00
-#> overall_surv[9]      1.00
-#> overall_surv[10]     1.00
-#> overall_surv[11]     1.00
-#> overall_surv[12]     1.00
-#> overall_surv[13]     1.00
-#> overall_surv[14]     1.00
-#> overall_surv[15]     1.00
-#> overall_surv[16]     1.00
-#> overall_surv[17]     1.00
-#> overall_surv[18]     1.00
-#> overall_surv[19]     1.00
-#> overall_surv[20]     1.00
-#> overall_surv[21]     1.00
-#> overall_surv[22]     1.00
-#> overall_surv[23]     1.00
-#> overall_surv[24]     1.00
-#> overall_surv[25]     1.00
-#> overall_surv[26]     1.00
-#> overall_surv[27]     1.00
-#> overall_surv[28]     1.00
-#> overall_surv[29]     1.00
-#> overall_surv[30]     1.00
-#> overall_surv[31]     1.00
-#> overall_surv[32]     1.00
-#> cohort_surv[1]       1.00
-#> cohort_surv[2]       1.00
-#> cohort_surv[3]       1.00
-#> cohort_surv[4]       1.01
-#> cohort_surv[5]       1.00
-#> cohort_surv[6]       1.00
-#> cohort_surv[7]       1.00
-#> cohort_surv[8]       1.00
-#> cohort_surv[9]       1.00
-#> cohort_surv[10]      1.00
-#> cohort_surv[11]      1.00
-#> cohort_surv[12]      1.00
-#> cohort_surv[13]      1.00
-#> cohort_surv[14]      1.00
-#> cohort_surv[15]      1.00
-#> cohort_surv[16]      1.00
-#> cohort_surv[17]      1.00
-#> cohort_surv[18]      1.00
-#> cohort_surv[19]      1.00
-#> cohort_surv[20]      1.00
-#> cohort_surv[21]      1.00
-#> cohort_surv[22]      1.00
-#> cohort_surv[23]      1.00
-#> cohort_surv[24]      1.00
-#> cohort_surv[25]      1.00
-#> cohort_surv[26]      1.00
-#> cohort_surv[27]      1.00
-#> cohort_surv[28]      1.00
-#> cohort_surv[29]      1.00
-#> cohort_surv[30]      1.00
-#> cohort_surv[31]      1.00
-#> cohort_surv[32]      1.00
-#> cohort_surv[33]      1.00
-#> cohort_surv[34]      1.00
-#> cohort_surv[35]      1.00
-#> cohort_surv[36]      1.00
-#> cohort_surv[37]      1.00
-#> cohort_surv[38]      1.00
-#> cohort_surv[39]      1.00
-#> cohort_surv[40]      1.00
-#> cohort_surv[41]      1.00
-#> cohort_surv[42]      1.00
-#> cohort_surv[43]      1.00
-#> cohort_surv[44]      1.00
-#> cohort_surv[45]      1.00
-#> cohort_surv[46]      1.00
+#>                                  mean se_mean   sd  2.5%   25%   50%   75%
+#> theta_(Intercept)               -4.58    0.02 0.50 -5.60 -4.91 -4.56 -4.26
+#> theta_a12                        0.79    0.02 0.77 -0.76  0.29  0.83  1.33
+#> theta_a13                        4.04    0.02 0.84  2.39  3.46  4.07  4.60
+#> theta_a22                        1.87    0.02 0.52  0.86  1.52  1.87  2.19
+#> theta_a23                       -0.98    0.02 0.65 -2.26 -1.42 -0.98 -0.55
+#> theta_s2016                      0.52    0.02 0.70 -0.92  0.05  0.55  1.02
+#> theta_s2017                      0.61    0.02 0.58 -0.53  0.23  0.61  0.98
+#> theta_s2018                     -0.42    0.02 0.79 -2.01 -0.95 -0.39  0.15
+#> theta_s2019                     -0.23    0.02 0.80 -1.75 -0.77 -0.23  0.30
+#> theta_s2020                      1.04    0.03 1.20 -1.27  0.22  1.00  1.79
+#> theta_jGRJ                       0.45    0.03 0.84 -1.13 -0.16  0.46  0.99
+#> theta_a12:a22                    2.05    0.02 0.75  0.61  1.55  2.04  2.56
+#> theta_a12:s2016                  0.05    0.03 1.10 -2.05 -0.70  0.03  0.79
+#> theta_a13:s2016                  0.57    0.03 1.00 -1.32 -0.12  0.52  1.23
+#> theta_a12:s2017                  1.26    0.03 1.06 -0.85  0.52  1.28  2.00
+#> theta_a13:s2017                  0.12    0.02 1.43 -2.87 -0.81  0.11  1.09
+#> theta_a12:s2018                  0.06    0.03 1.18 -2.16 -0.76  0.06  0.84
+#> theta_a13:s2018                  0.34    0.03 1.37 -2.36 -0.63  0.37  1.32
+#> theta_a12:s2019                 -0.54    0.02 0.87 -2.33 -1.07 -0.52  0.01
+#> theta_a13:s2019                  0.27    0.02 1.21 -2.02 -0.59  0.29  1.12
+#> theta_a12:s2020                  0.87    0.03 1.26 -1.46 -0.01  0.84  1.72
+#> theta_a22:s2016                  0.74    0.03 0.74 -0.60  0.22  0.72  1.24
+#> theta_a23:s2016                  0.61    0.03 0.92 -1.16 -0.01  0.60  1.24
+#> theta_a22:s2017                 -0.17    0.02 0.62 -1.36 -0.58 -0.19  0.24
+#> theta_a23:s2017                  0.25    0.03 0.77 -1.26 -0.28  0.26  0.79
+#> theta_a22:s2018                  1.03    0.02 0.84 -0.54  0.48  0.98  1.57
+#> theta_a23:s2018                  0.33    0.03 1.07 -1.81 -0.42  0.37  1.07
+#> theta_a22:s2019                  1.04    0.02 0.89 -0.67  0.42  1.03  1.64
+#> theta_a23:s2019                 -0.08    0.02 1.12 -2.49 -0.80 -0.06  0.64
+#> theta_a12:jGRJ                  -2.00    0.03 0.94 -3.86 -2.62 -2.00 -1.39
+#> theta_a13:jGRJ                   0.44    0.03 1.20 -1.90 -0.37  0.44  1.25
+#> theta_s2016:jGRJ                -0.86    0.03 1.12 -3.10 -1.59 -0.83 -0.13
+#> theta_s2017:jGRJ                 1.15    0.03 0.95 -0.76  0.50  1.16  1.80
+#> theta_s2018:jGRJ                -0.24    0.03 1.06 -2.33 -0.97 -0.25  0.47
+#> theta_s2019:jGRJ                 0.87    0.03 1.08 -1.28  0.22  0.92  1.61
+#> theta_a12:a22:s2016              0.10    0.03 1.12 -2.03 -0.66  0.08  0.84
+#> theta_a12:a22:s2017              0.34    0.03 1.03 -1.62 -0.39  0.34  1.04
+#> theta_a12:a22:s2018              0.66    0.03 1.07 -1.43 -0.07  0.62  1.36
+#> theta_a12:s2016:jGRJ            -0.67    0.03 1.16 -3.01 -1.50 -0.64  0.15
+#> theta_a13:s2016:jGRJ             0.17    0.03 1.29 -2.29 -0.70  0.14  1.02
+#> theta_a12:s2017:jGRJ            -1.74    0.03 1.03 -3.74 -2.43 -1.75 -1.08
+#> theta_a13:s2017:jGRJ            -0.05    0.03 1.43 -2.80 -1.02 -0.02  0.88
+#> theta_a12:s2018:jGRJ             0.01    0.03 1.15 -2.27 -0.76  0.07  0.80
+#> theta_a13:s2018:jGRJ            -0.15    0.03 1.33 -2.78 -1.05 -0.20  0.74
+#> theta_a12:s2019:jGRJ             0.06    0.03 1.15 -2.12 -0.70  0.04  0.82
+#> theta_a13:s2019:jGRJ             0.98    0.03 1.23 -1.29  0.13  0.94  1.82
+#> p_(Intercept)                   -1.87    0.02 0.36 -2.55 -2.12 -1.87 -1.63
+#> p_t2016                          0.03    0.02 0.43 -0.82 -0.24  0.03  0.32
+#> p_t2017                          0.90    0.02 0.39  0.12  0.64  0.91  1.17
+#> p_t2018                          0.86    0.02 0.43  0.02  0.57  0.87  1.14
+#> p_t2019                          1.17    0.02 0.46  0.29  0.87  1.18  1.47
+#> p_t2020                         -4.00    0.07 2.39 -9.41 -5.36 -3.61 -2.29
+#> overall_surv[1]                  0.08    0.00 0.02  0.04  0.06  0.08  0.09
+#> overall_surv[2]                  0.53    0.00 0.13  0.31  0.45  0.52  0.61
+#> overall_surv[3]                  0.20    0.00 0.12  0.04  0.12  0.18  0.27
+#> overall_surv[4]                  0.22    0.00 0.04  0.16  0.20  0.22  0.24
+#> overall_surv[5]                  0.79    0.00 0.14  0.49  0.69  0.81  0.90
+#> overall_surv[6]                  0.53    0.00 0.20  0.18  0.38  0.53  0.67
+#> overall_surv[7]                  0.12    0.00 0.02  0.08  0.11  0.12  0.13
+#> overall_surv[8]                  0.89    0.00 0.06  0.75  0.85  0.90  0.94
+#> overall_surv[9]                  0.41    0.01 0.28  0.02  0.16  0.38  0.64
+#> overall_surv[10]                 0.13    0.00 0.03  0.07  0.10  0.12  0.14
+#> overall_surv[11]                 0.78    0.00 0.13  0.52  0.68  0.78  0.89
+#> overall_surv[12]                 0.32    0.01 0.27  0.01  0.07  0.24  0.53
+#> overall_surv[13]                 0.16    0.00 0.10  0.05  0.10  0.13  0.19
+#> overall_surv[14]                 0.59    0.00 0.13  0.38  0.50  0.58  0.67
+#> overall_surv[15]                 0.22    0.00 0.16  0.02  0.10  0.19  0.31
+#> overall_surv[16]                 0.02    0.00 0.02  0.00  0.01  0.02  0.03
+#> overall_surv[17]                 0.20    0.00 0.06  0.11  0.16  0.19  0.23
+#> overall_surv[18]                 0.37    0.00 0.17  0.09  0.22  0.35  0.48
+#> overall_surv[19]                 0.02    0.00 0.04  0.00  0.00  0.01  0.03
+#> overall_surv[20]                 0.18    0.00 0.05  0.11  0.15  0.17  0.21
+#> overall_surv[21]                 0.56    0.01 0.23  0.16  0.38  0.56  0.73
+#> overall_surv[22]                 0.10    0.00 0.06  0.02  0.06  0.09  0.13
+#> overall_surv[23]                 0.50    0.00 0.06  0.40  0.46  0.50  0.54
+#> overall_surv[24]                 0.68    0.01 0.31  0.03  0.45  0.80  0.96
+#> overall_surv[25]                 0.02    0.00 0.03  0.00  0.00  0.01  0.02
+#> overall_surv[26]                 0.43    0.00 0.10  0.27  0.35  0.41  0.49
+#> overall_surv[27]                 0.37    0.01 0.26  0.02  0.14  0.32  0.56
+#> overall_surv[28]                 0.06    0.00 0.08  0.00  0.01  0.03  0.08
+#> overall_surv[29]                 0.45    0.00 0.11  0.26  0.37  0.45  0.53
+#> overall_surv[30]                 0.71    0.00 0.19  0.30  0.58  0.74  0.87
+#> overall_surv[31]                 0.58    0.01 0.24  0.14  0.38  0.57  0.79
+#> overall_surv[32]                 0.57    0.01 0.26  0.10  0.36  0.58  0.80
+#> cohort_surv[1]                   0.01    0.00 0.01  0.00  0.01  0.01  0.01
+#> cohort_surv[2]                   0.06    0.00 0.02  0.03  0.05  0.06  0.08
+#> cohort_surv[3]                   0.00    0.00 0.00  0.00  0.00  0.00  0.01
+#> cohort_surv[4]                   0.53    0.00 0.13  0.31  0.44  0.52  0.61
+#> cohort_surv[5]                   0.01    0.00 0.00  0.00  0.00  0.00  0.01
+#> cohort_surv[6]                   0.20    0.00 0.12  0.04  0.12  0.18  0.27
+#> cohort_surv[7]                   0.02    0.00 0.01  0.00  0.01  0.02  0.03
+#> cohort_surv[8]                   0.19    0.00 0.03  0.13  0.17  0.19  0.21
+#> cohort_surv[9]                   0.01    0.00 0.01  0.00  0.01  0.01  0.02
+#> cohort_surv[10]                  0.78    0.00 0.14  0.48  0.68  0.80  0.90
+#> cohort_surv[11]                  0.01    0.00 0.01  0.00  0.00  0.00  0.01
+#> cohort_surv[12]                  0.53    0.00 0.20  0.18  0.38  0.53  0.67
+#> cohort_surv[13]                  0.02    0.00 0.01  0.01  0.01  0.02  0.02
+#> cohort_surv[14]                  0.09    0.00 0.02  0.06  0.08  0.09  0.10
+#> cohort_surv[15]                  0.01    0.00 0.00  0.00  0.01  0.01  0.01
+#> cohort_surv[16]                  0.88    0.00 0.06  0.74  0.84  0.89  0.93
+#> cohort_surv[17]                  0.01    0.00 0.01  0.00  0.00  0.01  0.01
+#> cohort_surv[18]                  0.41    0.01 0.28  0.02  0.16  0.38  0.64
+#> cohort_surv[19]                  0.01    0.00 0.01  0.00  0.00  0.01  0.01
+#> cohort_surv[20]                  0.11    0.00 0.03  0.06  0.09  0.11  0.13
+#> cohort_surv[21]                  0.01    0.00 0.01  0.00  0.00  0.00  0.01
+#> cohort_surv[22]                  0.77    0.00 0.13  0.51  0.67  0.77  0.88
+#> cohort_surv[23]                  0.00    0.00 0.00  0.00  0.00  0.00  0.00
+#> cohort_surv[24]                  0.32    0.01 0.27  0.01  0.07  0.24  0.53
+#> cohort_surv[25]                  0.01    0.00 0.01  0.00  0.00  0.01  0.01
+#> cohort_surv[26]                  0.15    0.00 0.10  0.05  0.08  0.12  0.18
+#> cohort_surv[27]                  0.59    0.00 0.13  0.38  0.50  0.57  0.67
+#> cohort_surv[28]                  0.00    0.00 0.01  0.00  0.00  0.00  0.00
+#> cohort_surv[29]                  0.22    0.00 0.16  0.02  0.10  0.19  0.31
+#> cohort_surv[30]                  0.02    0.00 0.02  0.00  0.01  0.02  0.03
+#> cohort_surv[31]                  0.20    0.00 0.06  0.11  0.16  0.19  0.23
+#> cohort_surv[32]                  0.37    0.00 0.17  0.09  0.22  0.35  0.48
+#> cohort_surv[33]                  0.02    0.00 0.04  0.00  0.00  0.01  0.03
+#> cohort_surv[34]                  0.18    0.00 0.05  0.11  0.15  0.17  0.21
+#> cohort_surv[35]                  0.56    0.01 0.23  0.16  0.38  0.56  0.73
+#> cohort_surv[36]                  0.10    0.00 0.06  0.02  0.06  0.09  0.13
+#> cohort_surv[37]                  0.50    0.00 0.06  0.40  0.46  0.50  0.54
+#> cohort_surv[38]                  0.68    0.01 0.31  0.03  0.45  0.80  0.96
+#> cohort_surv[39]                  0.02    0.00 0.03  0.00  0.00  0.01  0.02
+#> cohort_surv[40]                  0.43    0.00 0.10  0.27  0.35  0.41  0.49
+#> cohort_surv[41]                  0.37    0.01 0.26  0.02  0.14  0.32  0.56
+#> cohort_surv[42]                  0.06    0.00 0.08  0.00  0.01  0.03  0.08
+#> cohort_surv[43]                  0.45    0.00 0.11  0.26  0.37  0.45  0.53
+#> cohort_surv[44]                  0.71    0.00 0.19  0.30  0.58  0.74  0.87
+#> cohort_surv[45]                  0.58    0.01 0.24  0.14  0.38  0.57  0.79
+#> cohort_surv[46]                  0.57    0.01 0.26  0.10  0.36  0.58  0.80
+#> a_alpha_1                        1.78    0.01 0.30  1.23  1.58  1.77  1.97
+#> a_alpha_2                        9.45    0.02 0.66  8.22  8.98  9.42  9.87
+#> a_delta_I(factor(obs_time))2016 -0.21    0.01 0.40 -0.96 -0.47 -0.20  0.05
+#> a_delta_I(factor(obs_time))2017 -1.67    0.01 0.35 -2.37 -1.91 -1.67 -1.45
+#> a_delta_I(factor(obs_time))2018 -0.58    0.01 0.49 -1.50 -0.92 -0.59 -0.27
+#> a_delta_I(factor(obs_time))2019  0.41    0.01 0.49 -0.53  0.07  0.40  0.75
+#> a_delta_Bin_sc                   3.95    0.01 0.25  3.51  3.78  3.93  4.11
+#>                                 97.5% n_eff Rhat
+#> theta_(Intercept)               -3.60   656    1
+#> theta_a12                        2.23  1223    1
+#> theta_a13                        5.69  1280    1
+#> theta_a22                        2.93   619    1
+#> theta_a23                        0.29   829    1
+#> theta_s2016                      1.79   870    1
+#> theta_s2017                      1.74   706    1
+#> theta_s2018                      1.06  1358    1
+#> theta_s2019                      1.32  1453    1
+#> theta_s2020                      3.45  1690    1
+#> theta_jGRJ                       2.09  1010    1
+#> theta_a12:a22                    3.56  1021    1
+#> theta_a12:s2016                  2.23  1551    1
+#> theta_a13:s2016                  2.56  1409    1
+#> theta_a12:s2017                  3.31  1743    1
+#> theta_a13:s2017                  2.94  3407    1
+#> theta_a12:s2018                  2.40  1536    1
+#> theta_a13:s2018                  2.84  1789    1
+#> theta_a12:s2019                  1.17  1354    1
+#> theta_a13:s2019                  2.60  2364    1
+#> theta_a12:s2020                  3.36  1720    1
+#> theta_a22:s2016                  2.22   819    1
+#> theta_a23:s2016                  2.37  1162    1
+#> theta_a22:s2017                  1.03   803    1
+#> theta_a23:s2017                  1.73   921    1
+#> theta_a22:s2018                  2.71  1330    1
+#> theta_a23:s2018                  2.40  1754    1
+#> theta_a22:s2019                  2.80  1501    1
+#> theta_a23:s2019                  2.20  2153    1
+#> theta_a12:jGRJ                  -0.14   944    1
+#> theta_a13:jGRJ                   2.87  1669    1
+#> theta_s2016:jGRJ                 1.48  1318    1
+#> theta_s2017:jGRJ                 2.91   910    1
+#> theta_s2018:jGRJ                 1.86  1699    1
+#> theta_s2019:jGRJ                 2.88  1562    1
+#> theta_a12:a22:s2016              2.38  1575    1
+#> theta_a12:a22:s2017              2.33  1444    1
+#> theta_a12:a22:s2018              2.83  1309    1
+#> theta_a12:s2016:jGRJ             1.54  1243    1
+#> theta_a13:s2016:jGRJ             2.73  1952    1
+#> theta_a12:s2017:jGRJ             0.29  1251    1
+#> theta_a13:s2017:jGRJ             2.76  2170    1
+#> theta_a12:s2018:jGRJ             2.24  1539    1
+#> theta_a13:s2018:jGRJ             2.42  2704    1
+#> theta_a12:s2019:jGRJ             2.37  1756    1
+#> theta_a13:s2019:jGRJ             3.33  2172    1
+#> p_(Intercept)                   -1.13   509    1
+#> p_t2016                          0.85   722    1
+#> p_t2017                          1.65   564    1
+#> p_t2018                          1.68   686    1
+#> p_t2019                          2.06   763    1
+#> p_t2020                         -0.31  1307    1
+#> overall_surv[1]                  0.13  1792    1
+#> overall_surv[2]                  0.79   693    1
+#> overall_surv[3]                  0.49  1628    1
+#> overall_surv[4]                  0.30  1579    1
+#> overall_surv[5]                  0.99  1316    1
+#> overall_surv[6]                  0.91  1779    1
+#> overall_surv[7]                  0.17  1799    1
+#> overall_surv[8]                  0.98  2621    1
+#> overall_surv[9]                  0.94  1939    1
+#> overall_surv[10]                 0.20  1878    1
+#> overall_surv[11]                 0.98  1730    1
+#> overall_surv[12]                 0.88  1432    1
+#> overall_surv[13]                 0.44  1320    1
+#> overall_surv[14]                 0.89  1794    1
+#> overall_surv[15]                 0.62  2084    1
+#> overall_surv[16]                 0.08   966    1
+#> overall_surv[17]                 0.34   971    1
+#> overall_surv[18]                 0.73  2304    1
+#> overall_surv[19]                 0.12  1152    1
+#> overall_surv[20]                 0.31  1263    1
+#> overall_surv[21]                 0.97  1763    1
+#> overall_surv[22]                 0.26  2072    1
+#> overall_surv[23]                 0.63  1784    1
+#> overall_surv[24]                 1.00  1479    1
+#> overall_surv[25]                 0.10  1382    1
+#> overall_surv[26]                 0.65  1563    1
+#> overall_surv[27]                 0.92  1399    1
+#> overall_surv[28]                 0.32  1265    1
+#> overall_surv[29]                 0.69  1965    1
+#> overall_surv[30]                 0.99  2257    1
+#> overall_surv[31]                 0.97  1954    1
+#> overall_surv[32]                 0.96  2178    1
+#> cohort_surv[1]                   0.03   661    1
+#> cohort_surv[2]                   0.11  1875    1
+#> cohort_surv[3]                   0.01  1144    1
+#> cohort_surv[4]                   0.79   689    1
+#> cohort_surv[5]                   0.02  1523    1
+#> cohort_surv[6]                   0.49  1628    1
+#> cohort_surv[7]                   0.06  1477    1
+#> cohort_surv[8]                   0.25  1542    1
+#> cohort_surv[9]                   0.03  1684    1
+#> cohort_surv[10]                  0.98  1332    1
+#> cohort_surv[11]                  0.03  1900    1
+#> cohort_surv[12]                  0.91  1779    1
+#> cohort_surv[13]                  0.04  2153    1
+#> cohort_surv[14]                  0.14  1840    1
+#> cohort_surv[15]                  0.02  1624    1
+#> cohort_surv[16]                  0.98  2528    1
+#> cohort_surv[17]                  0.04  1551    1
+#> cohort_surv[18]                  0.94  1939    1
+#> cohort_surv[19]                  0.03  1558    1
+#> cohort_surv[20]                  0.18  1780    1
+#> cohort_surv[21]                  0.02  1105    1
+#> cohort_surv[22]                  0.98  1729    1
+#> cohort_surv[23]                  0.02  1384    1
+#> cohort_surv[24]                  0.88  1432    1
+#> cohort_surv[25]                  0.04  1621    1
+#> cohort_surv[26]                  0.43  1290    1
+#> cohort_surv[27]                  0.88  1796    1
+#> cohort_surv[28]                  0.02  1504    1
+#> cohort_surv[29]                  0.62  2084    1
+#> cohort_surv[30]                  0.08   966    1
+#> cohort_surv[31]                  0.34   971    1
+#> cohort_surv[32]                  0.73  2304    1
+#> cohort_surv[33]                  0.12  1152    1
+#> cohort_surv[34]                  0.31  1263    1
+#> cohort_surv[35]                  0.97  1763    1
+#> cohort_surv[36]                  0.26  2072    1
+#> cohort_surv[37]                  0.63  1784    1
+#> cohort_surv[38]                  1.00  1479    1
+#> cohort_surv[39]                  0.10  1382    1
+#> cohort_surv[40]                  0.65  1563    1
+#> cohort_surv[41]                  0.92  1399    1
+#> cohort_surv[42]                  0.32  1265    1
+#> cohort_surv[43]                  0.69  1965    1
+#> cohort_surv[44]                  0.99  2257    1
+#> cohort_surv[45]                  0.97  1954    1
+#> cohort_surv[46]                  0.96  2178    1
+#> a_alpha_1                        2.39   975    1
+#> a_alpha_2                       10.84  1170    1
+#> a_delta_I(factor(obs_time))2016  0.60  1270    1
+#> a_delta_I(factor(obs_time))2017 -1.01  1037    1
+#> a_delta_I(factor(obs_time))2018  0.43  1459    1
+#> a_delta_I(factor(obs_time))2019  1.33  1622    1
+#> a_delta_Bin_sc                   4.47  1286    1
 #> 
-#> Samples were drawn using NUTS(diag_e) at Thu Dec  4 16:47:29 2025.
+#> Samples were drawn using NUTS(diag_e) at Sat Jan 24 01:27:05 2026.
 #> For each parameter, n_eff is a crude measure of effective sample size,
 #> and Rhat is the potential scale reduction factor on split chains (at 
 #> convergence, Rhat=1).
@@ -1058,29 +887,30 @@ We can compare the models using loo-psis:
 
 ``` r
 library(loo)
-#> This is loo version 2.8.0
+#> This is loo version 2.9.0
 #> - Online documentation and vignettes at mc-stan.org/loo
 #> - As of v2.0.0 loo defaults to 1 core but we recommend using as many as possible. Use the 'cores' argument or set options(mc.cores = NUM_CORES) for an entire session.
-#> - Windows 10 users: loo may be very slow if 'mc.cores' is set in your .Rprofile file (see https://github.com/stan-dev/loo/issues/94).
 
 
-loo_m1 <- loo(s4t_m1)
+loo_m1 <- loo(extract_log_lik_s4t(s4t_m1))
 #> Warning: Some Pareto k diagnostic values are too high. See help('pareto-k-diagnostic') for details.
-loo_m2 <- loo(s4t_m2)
+loo_m2 <- loo(extract_log_lik_s4t(s4t_m2))
 #> Warning: Some Pareto k diagnostic values are too high. See help('pareto-k-diagnostic') for details.
-loo_m3 <- loo(s4t_m3)
+loo_m3 <- loo(extract_log_lik_s4t(s4t_m3))
 #> Warning: Some Pareto k diagnostic values are too high. See help('pareto-k-diagnostic') for details.
 
 loo::loo_compare(loo_m1,loo_m2,loo_m3)
 #>        elpd_diff se_diff
-#> model1   0.0       0.0  
-#> model2  -0.6       5.7  
-#> model3 -10.5       7.2
+#> model2  0.0       0.0   
+#> model1 -0.7       2.9   
+#> model3 -2.6       2.5
 ```
 
 The best model is the first model, although the first and second are
 similar. The third is also a reasonable model, but it has slightly worse
 fit.
+
+## Exploring model outputs
 
 We can extract the cohort transition rates, which are the probability
 that an individual transitions at a particular time.
@@ -1088,26 +918,26 @@ that an individual transitions at a particular time.
 ``` r
 s4t_m1$cohort_transitions %>% head()
 #>                a1 a2    s    t      j   k      r g        mean      se_mean
-#> cohort_surv[1]  1  1 2015 2015 EFPTRP GRJ EFPTRP 1 0.011596141 2.255094e-04
-#> cohort_surv[2]  1  2 2015 2016 EFPTRP GRJ EFPTRP 1 0.067762938 5.202243e-04
-#> cohort_surv[3]  1  3 2015 2017 EFPTRP GRJ EFPTRP 1 0.003859254 6.247052e-05
-#> cohort_surv[4]  2  2 2015 2015 EFPTRP GRJ EFPTRP 1 0.527944021 5.450687e-03
-#> cohort_surv[5]  2  3 2015 2016 EFPTRP GRJ EFPTRP 1 0.004703763 1.013366e-04
-#> cohort_surv[6]  3  3 2015 2015 EFPTRP GRJ EFPTRP 1 0.230996056 2.796183e-03
+#> cohort_surv[1]  1  1 2015 2015 EFPTRP GRJ EFPTRP 1 0.011455171 2.375577e-04
+#> cohort_surv[2]  1  2 2015 2016 EFPTRP GRJ EFPTRP 1 0.064592880 4.888089e-04
+#> cohort_surv[3]  1  3 2015 2017 EFPTRP GRJ EFPTRP 1 0.004183722 7.908485e-05
+#> cohort_surv[4]  2  2 2015 2015 EFPTRP GRJ EFPTRP 1 0.529337314 4.772706e-03
+#> cohort_surv[5]  2  3 2015 2016 EFPTRP GRJ EFPTRP 1 0.005034383 1.041963e-04
+#> cohort_surv[6]  3  3 2015 2015 EFPTRP GRJ EFPTRP 1 0.204419890 2.893042e-03
 #>                         sd         2.5%         25%         50%         75%
-#> cohort_surv[1] 0.005861567 0.0037382181 0.007585499 0.010358318 0.014463397
-#> cohort_surv[2] 0.022811372 0.0326458232 0.051413544 0.064563167 0.081115477
-#> cohort_surv[3] 0.002365250 0.0010690766 0.002282107 0.003337353 0.004890911
-#> cohort_surv[4] 0.130286186 0.3061972524 0.429073455 0.516816675 0.615960422
-#> cohort_surv[5] 0.003969004 0.0006248236 0.002107785 0.003656135 0.006084381
-#> cohort_surv[6] 0.116954616 0.0535492085 0.145051610 0.214602857 0.302718925
-#>                      97.5%     n_eff      Rhat
-#> cohort_surv[1] 0.025672911  675.6133 1.0043057
-#> cohort_surv[2] 0.120210019 1922.7446 1.0012341
-#> cohort_surv[3] 0.009525344 1433.5208 0.9998680
-#> cohort_surv[4] 0.803037193  571.3395 1.0066268
-#> cohort_surv[5] 0.015675809 1534.0167 0.9993725
-#> cohort_surv[6] 0.496569670 1749.4581 0.9986282
+#> cohort_surv[1] 0.006105359 0.0036673048 0.007336571 0.010387169 0.013954609
+#> cohort_surv[2] 0.021167379 0.0316289295 0.048789163 0.061863225 0.077507028
+#> cohort_surv[3] 0.002675272 0.0012015107 0.002390998 0.003518774 0.005272272
+#> cohort_surv[4] 0.125308017 0.3065988802 0.440690579 0.518453143 0.610462150
+#> cohort_surv[5] 0.004066054 0.0007153681 0.002263275 0.003951328 0.006510270
+#> cohort_surv[6] 0.116737520 0.0392537053 0.120316326 0.180996902 0.268501900
+#>                     97.5%     n_eff      Rhat
+#> cohort_surv[1] 0.02659450  660.5174 0.9992650
+#> cohort_surv[2] 0.11316915 1875.2362 0.9996131
+#> cohort_surv[3] 0.01118563 1144.3246 1.0001737
+#> cohort_surv[4] 0.79122978  689.3318 0.9996430
+#> cohort_surv[5] 0.01592746 1522.7947 1.0006032
+#> cohort_surv[6] 0.49143529 1628.2134 0.9991254
 ```
 
 We can also extract the apparent survival, which are the probability
@@ -1117,27 +947,37 @@ rates for a particular age, time, and site):
 ``` r
 s4t_m1$apparent_surv %>% head()
 #>                 a1    s      j   k      r g       mean      se_mean         sd
-#> overall_surv[1]  1 2015 EFPTRP GRJ EFPTRP 1 0.08321833 0.0006211894 0.02552496
-#> overall_surv[2]  2 2015 EFPTRP GRJ EFPTRP 1 0.53264778 0.0054519093 0.13038041
-#> overall_surv[3]  3 2015 EFPTRP GRJ EFPTRP 1 0.23099606 0.0027961830 0.11695462
-#> overall_surv[4]  1 2016 EFPTRP GRJ EFPTRP 1 0.22043826 0.0009113620 0.03590648
-#> overall_surv[5]  2 2016 EFPTRP GRJ EFPTRP 1 0.77100705 0.0040430397 0.14755549
-#> overall_surv[6]  3 2016 EFPTRP GRJ EFPTRP 1 0.56280593 0.0046261495 0.20269724
+#> overall_surv[1]  1 2015 EFPTRP GRJ EFPTRP 1 0.08023177 0.0005703543 0.02414737
+#> overall_surv[2]  2 2015 EFPTRP GRJ EFPTRP 1 0.53437170 0.0047653227 0.12542159
+#> overall_surv[3]  3 2015 EFPTRP GRJ EFPTRP 1 0.20441989 0.0028930424 0.11673752
+#> overall_surv[4]  1 2016 EFPTRP GRJ EFPTRP 1 0.22094788 0.0008969744 0.03564145
+#> overall_surv[5]  2 2016 EFPTRP GRJ EFPTRP 1 0.78809145 0.0039117116 0.14190697
+#> overall_surv[6]  3 2016 EFPTRP GRJ EFPTRP 1 0.53324242 0.0046367987 0.19554637
 #>                       2.5%        25%        50%        75%     97.5%     n_eff
-#> overall_surv[1] 0.04380003 0.06441708 0.08005725 0.09814767 0.1417122 1688.4264
-#> overall_surv[2] 0.31356379 0.43454555 0.52254028 0.61892467 0.8079113  571.9097
-#> overall_surv[3] 0.05354921 0.14505161 0.21460286 0.30271893 0.4965697 1749.4581
-#> overall_surv[4] 0.15739545 0.19654483 0.21712918 0.24104679 0.2996030 1552.2579
-#> overall_surv[5] 0.44954688 0.66714630 0.78910629 0.89423648 0.9856612 1331.9709
-#> overall_surv[6] 0.18673929 0.40968979 0.55348538 0.71659939 0.9312145 1919.8016
+#> overall_surv[1] 0.04266909 0.06253705 0.07764074 0.09455789 0.1346447 1792.4629
+#> overall_surv[2] 0.31235741 0.44650559 0.52369632 0.61479065 0.7941292  692.7236
+#> overall_surv[3] 0.03925371 0.12031633 0.18099690 0.26850190 0.4914353 1628.2134
+#> overall_surv[4] 0.15719428 0.19599268 0.21908197 0.24410878 0.2970899 1578.8857
+#> overall_surv[5] 0.48913772 0.68900468 0.81130224 0.90379448 0.9855774 1316.0542
+#> overall_surv[6] 0.18302041 0.38252723 0.52536475 0.67475454 0.9121927 1778.5376
 #>                      Rhat
-#> overall_surv[1] 1.0023496
-#> overall_surv[2] 1.0066533
-#> overall_surv[3] 0.9986282
-#> overall_surv[4] 1.0017769
-#> overall_surv[5] 1.0004279
-#> overall_surv[6] 0.9982456
+#> overall_surv[1] 0.9997085
+#> overall_surv[2] 0.9995519
+#> overall_surv[3] 0.9991254
+#> overall_surv[4] 1.0000281
+#> overall_surv[5] 1.0013367
+#> overall_surv[6] 0.9987947
 ```
+
+**Warning**. An important caveat to interpreting these is that any
+transition (cohort transition and apparent survival probability) to the
+last site (Little Goose Dam in this example) are not the actual
+transition probability. They are the product of the transition
+probability and the detection probability at the last site. This is a
+feature of all Cormack-Jolly-Seber type models, where the survival in
+the last site is not differentiable from detection, because we need an
+additional detection site to differentiate between observation and
+survival.
 
 We can visualize these transition rates:
 
@@ -1156,7 +996,7 @@ plotTransitions(s4t_m1,textsize = 3,j == "EFPTRP")
 
 ![](Example_files/figure-html/unnamed-chunk-29-1.png)
 
-We can also visaulize the apparent survival rates:
+We can also visualize the apparent survival rates:
 
 ``` r
 plotSurvival(s4t_m1,textsize = 3,j == "EFPTRP")
@@ -1171,6 +1011,55 @@ plotSurvival(s4t_m1,textsize = 3,j == "EFPTRP")
 
 ![](Example_files/figure-html/unnamed-chunk-30-1.png)
 
+We can plot how apparent survival changed over time for each age group,
+with the 95% credible intervals shown by the error bars:
+
+``` r
+s4t_m1$apparent_surv %>%
+  dplyr::filter(k == "GRJ") %>%
+  dplyr::mutate(age = factor(a1)) %>%
+  ggplot2::ggplot(ggplot2::aes(s, mean, color = age,group = age)) +
+  ggplot2::geom_point() + 
+  ggplot2::geom_errorbar(ggplot2::aes(ymin = `2.5%`,
+                                      ymax = `97.5%`),
+                         width = 0.05,
+                         linewidth = 1,
+                         alpha = 0.5) + 
+  ggplot2::geom_line() +
+  ggplot2::theme_bw() +
+  ggplot2::labs(x = "Release year",
+                y = "Apparent survival",
+                color = "Age")
+```
+
+![](Example_files/figure-html/unnamed-chunk-31-1.png)
+
+We can also plot how the cohort transition rates have changed over time,
+with the 95% credible intervals shown by the error bars:
+
+``` r
+s4t_m1$cohort_transitions %>%
+  dplyr::filter(k == "GRJ") %>%
+  dplyr::mutate(age = paste0("Age-",a1),
+                holdover = factor(a2-a1)) %>%
+  ggplot2::ggplot(ggplot2::aes(s, mean, color = holdover,group = holdover)) +
+  ggplot2::geom_point() + 
+  ggplot2::geom_errorbar(ggplot2::aes(ymin = `2.5%`,
+                                      ymax = `97.5%`),
+                         width = 0.05,
+                         linewidth = 1,
+                         alpha = 0.5) + 
+  ggplot2::geom_line() +
+  ggplot2::facet_wrap(~age) +
+  ggplot2::theme_bw() +
+  ggplot2::labs(x = "Release year",
+                y = "Transition probabilities",
+                color = "Holdover (yrs)")
+```
+
+![](Example_files/figure-html/unnamed-chunk-32-1.png) \## Incorporate
+abundance estimates
+
 The helper function
 [`abundance_estimates()`](https://ryanvosbigian.github.io/space4time/reference/abundance_estimates.md)
 can be used to calculate abundance of individuals that transition from
@@ -1180,8 +1069,8 @@ each year. The abundances (and standard errors of the abundance
 estimates if available) are specified in the argument `abund` and the
 summarization is specified by `type`. The format of the `abund` data
 frame is shown below, where it needs columns for site (`j`), time (`s`),
-age at release (`a1`), and abundance. This is merged with the
-`cohort_transitions` data frame and the abundances are estimated.
+age at release (`a1`), and abundance (`abundance`). This is merged with
+the `cohort_transitions` data frame and the abundances are estimated.
 Additionally, standard errors are approximated assuming that the
 covariances of the cohort transitions are multivariate normally
 distributed and that abundance estimates are independent.
@@ -1190,16 +1079,46 @@ distributed and that abundance estimates are independent.
 # format of abund argument using fake (simulated) data.
 head(fake_abundance_data)
 #>        j    s a1 abundance abundance_se
-#> 1 EFPTRP 2015  1       471            0
-#> 2 EFPTRP 2015  2       355            0
-#> 3 EFPTRP 2015  3       384            0
-#> 4 EFPTRP 2016  1       157            0
-#> 5 EFPTRP 2016  2       282            0
-#> 6 EFPTRP 2016  3       773            0
+#> 1 EFPTRP 2015  1       503            0
+#> 2 EFPTRP 2015  2       297            0
+#> 3 EFPTRP 2015  3       736            0
+#> 4 EFPTRP 2016  1       775            0
+#> 5 EFPTRP 2016  2       876            0
+#> 6 EFPTRP 2016  3       183            0
 
 # compute cohort specific abundances
 cohort_abundance_at_LGR = abundance_estimates(s4t_m1,abund = fake_abundance_data,type = "None")
 #> Setting Nan values in vcov matrix to 0, results are approximate.
+
+head(cohort_abundance_at_LGR)
+#>   a1 a2    s    t      j   k      r g    estimate      se_mean          sd
+#> 1  1  1 2015 2015 EFPTRP GRJ EFPTRP 1 0.011455171 2.375577e-04 0.006105359
+#> 2  1  2 2015 2016 EFPTRP GRJ EFPTRP 1 0.064592880 4.888089e-04 0.021167379
+#> 3  1  3 2015 2017 EFPTRP GRJ EFPTRP 1 0.004183722 7.908485e-05 0.002675272
+#> 4  2  2 2015 2015 EFPTRP GRJ EFPTRP 1 0.529337314 4.772706e-03 0.125308017
+#> 5  2  3 2015 2016 EFPTRP GRJ EFPTRP 1 0.005034383 1.041963e-04 0.004066054
+#> 6  3  3 2015 2015 EFPTRP GRJ EFPTRP 1 0.204419890 2.893042e-03 0.116737520
+#>           2.5%         25%         50%         75%      97.5%     n_eff
+#> 1 0.0036673048 0.007336571 0.010387169 0.013954609 0.02659450  660.5174
+#> 2 0.0316289295 0.048789163 0.061863225 0.077507028 0.11316915 1875.2362
+#> 3 0.0012015107 0.002390998 0.003518774 0.005272272 0.01118563 1144.3246
+#> 4 0.3065988802 0.440690579 0.518453143 0.610462150 0.79122978  689.3318
+#> 5 0.0007153681 0.002263275 0.003951328 0.006510270 0.01592746 1522.7947
+#> 6 0.0392537053 0.120316326 0.180996902 0.268501900 0.49143529 1628.2134
+#>        Rhat abundance abundance_se Index broodyear estimate_se cohort_abund
+#> 1 0.9992650       503            0     1      2014 0.006105359     5.761951
+#> 2 0.9996131       503            0     2      2014 0.021167379    32.490219
+#> 3 1.0001737       503            0     3      2014 0.002675272     2.104412
+#> 4 0.9996430       297            0     4      2013 0.125308017   157.213182
+#> 5 1.0006032       297            0     5      2013 0.004066054     1.495212
+#> 6 0.9991254       736            0     6      2012 0.116737520   150.453039
+#>   cohort_abund_se
+#> 1        3.070996
+#> 2       10.647192
+#> 3        1.345662
+#> 4       37.216481
+#> 5        1.207618
+#> 6       85.918814
 
 # summarize by broodyear, site, and group.
 broodyear_abundance_at_LGR = abundance_estimates(s4t_m1,abund = fake_abundance_data,type = "BroodYear")
@@ -1210,10 +1129,10 @@ head(broodyear_abundance_at_LGR)
 #> # Groups:   broodyear, r, g [3]
 #>   broodyear r          g j      abundance_broodyear abundance_broodyear_se
 #>       <dbl> <chr>  <dbl> <chr>                <dbl>                  <dbl>
-#> 1      2012 EFPTRP     1 EFPTRP                88.7                   44.9
-#> 2      2012 EFPTRP     1 GRJ                   NA                      0  
-#> 3      2013 EFPTRP     1 EFPTRP               624.                   165. 
-#> 4      2013 EFPTRP     1 GRJ                   NA                      0  
-#> 5      2014 EFPTRP     1 EFPTRP               627.                   239. 
-#> 6      2014 EFPTRP     1 GRJ                   NA                      0
+#> 1      2012 EFPTRP     1 EFPTRP                150.                   85.9
+#> 2      2012 EFPTRP     1 GRJ                    NA                     0  
+#> 3      2013 EFPTRP     1 EFPTRP                256.                   51.4
+#> 4      2013 EFPTRP     1 GRJ                    NA                     0  
+#> 5      2014 EFPTRP     1 EFPTRP                900.                  170. 
+#> 6      2014 EFPTRP     1 GRJ                    NA                     0
 ```

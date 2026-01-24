@@ -2,17 +2,17 @@
 
 ## All functions
 
-- [`abundance_estimates()`](https://ryanvosbigian.github.io/space4time/reference/abundance_estimates.md)
-  : Calculate abundance estimates
-
-- [`add_covariates()`](https://ryanvosbigian.github.io/space4time/reference/add_covariates.md)
-  : Add covariates to a space4time capture history object
-
 - [`AIC(`*`<s4t_ageclass_model>`*`)`](https://ryanvosbigian.github.io/space4time/reference/AIC.s4t_ageclass_model.md)
   : Compute and return AIC of fitted model objects
 
 - [`AIC(`*`<s4t_cjs_ml>`*`)`](https://ryanvosbigian.github.io/space4time/reference/AIC.s4t_cjs_ml.md)
   : Compute AIC of fitted model objects
+
+- [`abundance_estimates()`](https://ryanvosbigian.github.io/space4time/reference/abundance_estimates.md)
+  : Calculate abundance estimates
+
+- [`add_covariates()`](https://ryanvosbigian.github.io/space4time/reference/add_covariates.md)
+  : Add covariates to a space4time capture history object
 
 - [`anova(`*`<s4t_ageclass_model>`*`)`](https://ryanvosbigian.github.io/space4time/reference/anova.s4t_ageclass_model.md)
   : Compute likelihood ratio tests of two fitted model objects
@@ -47,6 +47,9 @@
 - [`extract_covariates()`](https://ryanvosbigian.github.io/space4time/reference/extract_covariates.md)
   : Extract indices and covariates from space4time capture history
   objects
+
+- [`extract_log_lik_s4t()`](https://ryanvosbigian.github.io/space4time/reference/extract_log_lik_s4t.md)
+  : Extract pointwise log-likelihood from a fitted s4t_cjs_rstan model
 
 - [`fit_ageclass()`](https://ryanvosbigian.github.io/space4time/reference/fit_ageclass.md)
   : Fit age-class model using ordinal regression
@@ -139,11 +142,11 @@
 
   Create space4time site configuration object (`s4t_config`)
 
-- [`simplebranch_s4t_config()`](https://ryanvosbigian.github.io/space4time/reference/simplebranch_s4t_config.md)
-  : Create site configuration for simple branching site arrangement
-
 - [`sim_simple_s4t_ch()`](https://ryanvosbigian.github.io/space4time/reference/sim_simple_s4t_ch.md)
   : Simulate simple capture history
+
+- [`simplebranch_s4t_config()`](https://ryanvosbigian.github.io/space4time/reference/simplebranch_s4t_config.md)
+  : Create site configuration for simple branching site arrangement
 
 - [`space4time`](https://ryanvosbigian.github.io/space4time/reference/space4time.md)
   : space4time
