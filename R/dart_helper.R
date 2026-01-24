@@ -524,7 +524,6 @@ read_DART_file <- function(filepath,aux_age_df,DART_config = "https://www.cbr.wa
 #'
 #' @export
 #'
-#' @examples
 #'
 remove_kelt_obs <- function(ch_df, kelt_obssite) {
   kelt_sites <- intersect(as.character(kelt_obssite),unique(ch_df$site))
@@ -635,7 +634,6 @@ estimate_cohort_surv_vc <- function(obj) {
 #'
 #' @export
 #'
-#' @examples
 #'
 abundance_estimates <- function(obj, abund, type = c("BroodYear","ReleaseYear","None")) {
 
