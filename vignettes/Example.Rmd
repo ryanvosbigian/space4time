@@ -23,6 +23,9 @@ library(ggplot2)
 
 This is an example workflow for implementing the model. This implementation uses data queried from Columbia Basin Research Data Access in Real Time (DART). The Columbia Basin Research has a query that was developed for use with the Basin TribPit software. However, the data can also be used by *space4time*.  
 
+
+## Data processing
+
 We start with the  observations of individuals from the East Fork Potlatch River Rotary Screw Trap, which has the site name: EFPTRP (previously POTREF). We'll use observations from 2015 to 2019 for this example. These data are from Idaho Department of Fish and Game's juvenile trapping database.
 
 ```{r echo=FALSE}
@@ -170,9 +173,13 @@ This ends the initial data cleaning. Now, we can create site configuration objec
 table(ch_df3$site)
 ```
 
+
+## Creating the capture history object
+
 See documentation for more details (`?simplebranch_s4t_config`). The East Fork Potlatch RST has been at multiple locations, although here we treat them as the same site because they are not at substantially different locations. The sites_to_pool argument is used to merge these sites together. The holdover sites are the sites after which individuals can holdover before transitioning to the next site. The `branch_sites` argument specifies the initial branching sites, which are the two names for the East Fork Potlatch RST. 
 
 Here, we assume that no fish holdover after passing Lower Granite Dam ("GRJ"). We pool all recapture sites below Little Goose Dam ("GOJ") with Little Goose. We have to specify min age and max age for each site even if they are pooled. 
+
 
 
 ```{r}
@@ -208,6 +215,8 @@ ef_pot_site_config <- simplebranch_s4t_config(sites_names = c("EFPTRP",
                                                  "TWX" = 3)
 
 )
+
+print(ef_pot_site_config)
 ```
 
 
@@ -253,7 +262,7 @@ Next, we re-make the capture history object using the cleaned `ch_df` data frame
 efp_s4_ch2 <- s4t_ch(ch_df = clean_ch_df$cleaned_ch_df,aux_age_df = aux_age_df,s4t_config = ef_pot_site_config)
 ```
 
-There are no errors, so we can use this capture history object in our analyses. If there were more errors (which does occasionally happen), we could clean the `efp_s4_ch2` object and see if the errors can be corrected by the cleaning function. 
+There are no errors, so we can use this capture history object in our analyses. If there were more errors (which does occasionally happen), we could clean the `efp_s4_ch2` object and see if the errors can be corrected by the cleaning function. As observations are removed more issues can arise, so cleaning, remaking the capture history object, cleaning the remade object, and remaking it again can happen.
 
 Next, we can fit the model for age class. First, we will compute some summaries of the ageing data.
 
@@ -279,8 +288,9 @@ aux_age_df %>%
   
 ```
 
+## Fit models
 
-Based on the above figure, we have the following models for ageclass, which use ordinal regression. We could use FL or scaled FL, but we will instead use the binned fork length and the scaled binned fork length. This is so that the model can be more efficient as a result of marginalization.
+Based on the above figure, we have the following models for ageclass, which use ordinal regression. We could use FL or scaled FL, but we will instead use the binned fork length and the scaled binned fork length. This is so that the model can be more efficient as a result of marginalization. Use one-sided formulas.
 
 ```{r}
 
@@ -303,7 +313,7 @@ plot(age_mod1)
 ```
 
 
-If further goodness-of-fit metrics are desired, there is a `predict` function for the ageclass models that can be used to return predicted values.
+If further goodness-of-fit metrics are desired, there is a `predict` function for the ageclass models that can be used to return predicted values (see `?predict.s4t_ageclass_model`). 
 
 We can use AIC to select the best fitting model:
 
@@ -323,28 +333,36 @@ The full model for p may be over-parameterized, so we also fit reduced formulas 
 
 
 ```{r}
+# Allows for parallel computation (reduces overall time)
+rstan::rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
 
 s4t_m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
                             theta_formula = ~ a1 * a2 * s * j,
                             ageclass_formula = ~ I(factor(obs_time)) + Bin_sc,
+                            fixed_age = FALSE,
                             s4t_ch = efp_s4_ch2)
 
 
 s4t_m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
                             theta_formula = ~ a1 * a2 * s * j,
                             ageclass_formula = ~ I(factor(obs_time)) + Bin_sc,
+                            fixed_age = FALSE,
                             s4t_ch = efp_s4_ch2)
 
 # full model
 s4t_m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * a1 * a2,
                             theta_formula = ~ a1 * a2 * s * j,
                             ageclass_formula = ~ I(factor(obs_time)) + Bin_sc,
+                            fixed_age = FALSE,
                             s4t_ch = efp_s4_ch2)
 
 # optionally save model objects
 # save(s4t_m1,s4t_m2,s4t_m3, file = "EF_Potlatch_s4t.RData")
 
 ```
+
+## Check and evaluate fitted models
 
 We can check model fits:
 
@@ -364,14 +382,16 @@ We can compare the models using loo-psis:
 library(loo)
 
 
-loo_m1 <- loo(s4t_m1)
-loo_m2 <- loo(s4t_m2)
-loo_m3 <- loo(s4t_m3)
+loo_m1 <- loo(extract_log_lik_s4t(s4t_m1))
+loo_m2 <- loo(extract_log_lik_s4t(s4t_m2))
+loo_m3 <- loo(extract_log_lik_s4t(s4t_m3))
 
 loo::loo_compare(loo_m1,loo_m2,loo_m3)
 ```
 
 The best model is the first model, although the first and second are similar. The third is also a reasonable model, but it has slightly worse fit.
+
+## Exploring model outputs
 
 We can extract the cohort transition rates, which are the probability that an individual transitions at a particular time.
 
@@ -387,6 +407,9 @@ s4t_m1$apparent_surv %>% head()
 ```
 
 
+**Warning**. An important caveat to interpreting these is that any transition (cohort transition and apparent survival probability) to the last site (Little Goose Dam in this example) are not the actual transition probability. They are the product of the transition probability and the detection probability at the last site. This is a feature of all Cormack-Jolly-Seber type models, where the survival in the last site is not differentiable from detection, because we need an additional detection site to differentiate between observation and survival.
+
+
 We can visualize these transition rates:
 
 ```{r, dpi=300,fig.height = 5,fig.width=7}
@@ -395,11 +418,58 @@ We can visualize these transition rates:
 plotTransitions(s4t_m1,textsize = 3,j == "EFPTRP")
 ```
 
-We can also visaulize the apparent survival rates:
+We can also visualize the apparent survival rates:
 
 ```{r, dpi=300,fig.height = 5,fig.width=7}
 plotSurvival(s4t_m1,textsize = 3,j == "EFPTRP")
 ```
+
+
+
+
+We can plot how apparent survival changed over time for each age group, with the 95% credible intervals shown by the error bars:
+
+```{r dpi=300,fig.height = 5,fig.width=7}
+s4t_m1$apparent_surv %>%
+  dplyr::filter(k == "GRJ") %>%
+  dplyr::mutate(age = factor(a1)) %>%
+  ggplot2::ggplot(ggplot2::aes(s, mean, color = age,group = age)) +
+  ggplot2::geom_point() + 
+  ggplot2::geom_errorbar(ggplot2::aes(ymin = `2.5%`,
+                                      ymax = `97.5%`),
+                         width = 0.05,
+                         linewidth = 1,
+                         alpha = 0.5) + 
+  ggplot2::geom_line() +
+  ggplot2::theme_bw() +
+  ggplot2::labs(x = "Release year",
+                y = "Apparent survival",
+                color = "Age")
+  
+```
+
+We can also plot how the cohort transition rates have changed over time, with the 95% credible intervals shown by the error bars:
+
+```{r dpi=300,fig.height = 5,fig.width=7}
+s4t_m1$cohort_transitions %>%
+  dplyr::filter(k == "GRJ") %>%
+  dplyr::mutate(age = paste0("Age-",a1),
+                holdover = factor(a2-a1)) %>%
+  ggplot2::ggplot(ggplot2::aes(s, mean, color = holdover,group = holdover)) +
+  ggplot2::geom_point() + 
+  ggplot2::geom_errorbar(ggplot2::aes(ymin = `2.5%`,
+                                      ymax = `97.5%`),
+                         width = 0.05,
+                         linewidth = 1,
+                         alpha = 0.5) + 
+  ggplot2::geom_line() +
+  ggplot2::facet_wrap(~age) +
+  ggplot2::theme_bw() +
+  ggplot2::labs(x = "Release year",
+                y = "Transition probabilities",
+                color = "Holdover (yrs)")
+```
+## Incorporate abundance estimates
 
 
 ```{r echo = FALSE}
@@ -419,7 +489,7 @@ fake_abundance_data <- data.frame(j = "EFPTRP",
 ```
 
 
-The helper function `abundance_estimates()` can be used to calculate abundance of individuals that transition from one site to another site. An example of where this would be useful is if there are age-specific abundance estimates at East Fork Potlatch RST for each year. The abundances (and standard errors of the abundance estimates if available) are specified in the argument `abund` and the summarization is specified by `type`. The format of the `abund` data frame is shown below, where it needs columns for site (`j`), time (`s`), age at release (`a1`), and abundance. This is merged with the `cohort_transitions` data frame and the abundances are estimated. Additionally, standard errors are approximated assuming that the covariances of the cohort transitions are multivariate normally distributed and that abundance estimates are independent. 
+The helper function `abundance_estimates()` can be used to calculate abundance of individuals that transition from one site to another site. An example of where this would be useful is if there are age-specific abundance estimates at East Fork Potlatch RST for each year. The abundances (and standard errors of the abundance estimates if available) are specified in the argument `abund` and the summarization is specified by `type`. The format of the `abund` data frame is shown below, where it needs columns for site (`j`), time (`s`), age at release (`a1`), and abundance (`abundance`). This is merged with the `cohort_transitions` data frame and the abundances are estimated. Additionally, standard errors are approximated assuming that the covariances of the cohort transitions are multivariate normally distributed and that abundance estimates are independent. 
 
 
 ```{r}
@@ -429,21 +499,12 @@ head(fake_abundance_data)
 # compute cohort specific abundances
 cohort_abundance_at_LGR = abundance_estimates(s4t_m1,abund = fake_abundance_data,type = "None")
 
+head(cohort_abundance_at_LGR)
+
 # summarize by broodyear, site, and group.
 broodyear_abundance_at_LGR = abundance_estimates(s4t_m1,abund = fake_abundance_data,type = "BroodYear")
 
 head(broodyear_abundance_at_LGR)
 ```
-
-
-
-
-
-
-
-
-
-
-
 
 
