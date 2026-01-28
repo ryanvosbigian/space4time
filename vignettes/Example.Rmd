@@ -334,8 +334,8 @@ The full model for p may be over-parameterized, so we also fit reduced formulas 
 
 ```{r}
 # Allows for parallel computation (reduces overall time)
-rstan::rstan_options(auto_write = TRUE)
-options(mc.cores = parallel::detectCores())
+# rstan::rstan_options(auto_write = TRUE)
+# options(mc.cores = parallel::detectCores())
 
 s4t_m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
                             theta_formula = ~ a1 * a2 * s * j,
