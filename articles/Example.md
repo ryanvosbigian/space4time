@@ -553,14 +553,89 @@ detection probability depends on time and age at “recapture”.
 
 ``` r
 # Allows for parallel computation (reduces overall time)
-rstan::rstan_options(auto_write = TRUE)
-options(mc.cores = parallel::detectCores())
+# rstan::rstan_options(auto_write = TRUE)
+# options(mc.cores = parallel::detectCores())
 
 s4t_m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
                             theta_formula = ~ a1 * a2 * s * j,
                             ageclass_formula = ~ I(factor(obs_time)) + Bin_sc,
                             fixed_age = FALSE,
                             s4t_ch = efp_s4_ch2)
+#> 
+#> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 1).
+#> Chain 1: 
+#> Chain 1: Gradient evaluation took 0.000973 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 9.73 seconds.
+#> Chain 1: Adjust your expectations accordingly!
+#> Chain 1: 
+#> Chain 1: 
+#> Chain 1: Iteration:   1 / 1000 [  0%]  (Warmup)
+#> Chain 1: Iteration: 100 / 1000 [ 10%]  (Warmup)
+#> Chain 1: Iteration: 200 / 1000 [ 20%]  (Warmup)
+#> Chain 1: Iteration: 300 / 1000 [ 30%]  (Warmup)
+#> Chain 1: Iteration: 400 / 1000 [ 40%]  (Warmup)
+#> Chain 1: Iteration: 500 / 1000 [ 50%]  (Warmup)
+#> Chain 1: Iteration: 501 / 1000 [ 50%]  (Sampling)
+#> Chain 1: Iteration: 600 / 1000 [ 60%]  (Sampling)
+#> Chain 1: Iteration: 700 / 1000 [ 70%]  (Sampling)
+#> Chain 1: Iteration: 800 / 1000 [ 80%]  (Sampling)
+#> Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)
+#> Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)
+#> Chain 1: 
+#> Chain 1:  Elapsed Time: 59.044 seconds (Warm-up)
+#> Chain 1:                46.3 seconds (Sampling)
+#> Chain 1:                105.344 seconds (Total)
+#> Chain 1: 
+#> 
+#> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 2).
+#> Chain 2: 
+#> Chain 2: Gradient evaluation took 0.000805 seconds
+#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 8.05 seconds.
+#> Chain 2: Adjust your expectations accordingly!
+#> Chain 2: 
+#> Chain 2: 
+#> Chain 2: Iteration:   1 / 1000 [  0%]  (Warmup)
+#> Chain 2: Iteration: 100 / 1000 [ 10%]  (Warmup)
+#> Chain 2: Iteration: 200 / 1000 [ 20%]  (Warmup)
+#> Chain 2: Iteration: 300 / 1000 [ 30%]  (Warmup)
+#> Chain 2: Iteration: 400 / 1000 [ 40%]  (Warmup)
+#> Chain 2: Iteration: 500 / 1000 [ 50%]  (Warmup)
+#> Chain 2: Iteration: 501 / 1000 [ 50%]  (Sampling)
+#> Chain 2: Iteration: 600 / 1000 [ 60%]  (Sampling)
+#> Chain 2: Iteration: 700 / 1000 [ 70%]  (Sampling)
+#> Chain 2: Iteration: 800 / 1000 [ 80%]  (Sampling)
+#> Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)
+#> Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)
+#> Chain 2: 
+#> Chain 2:  Elapsed Time: 61.259 seconds (Warm-up)
+#> Chain 2:                45.521 seconds (Sampling)
+#> Chain 2:                106.78 seconds (Total)
+#> Chain 2: 
+#> 
+#> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 3).
+#> Chain 3: 
+#> Chain 3: Gradient evaluation took 0.000734 seconds
+#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.34 seconds.
+#> Chain 3: Adjust your expectations accordingly!
+#> Chain 3: 
+#> Chain 3: 
+#> Chain 3: Iteration:   1 / 1000 [  0%]  (Warmup)
+#> Chain 3: Iteration: 100 / 1000 [ 10%]  (Warmup)
+#> Chain 3: Iteration: 200 / 1000 [ 20%]  (Warmup)
+#> Chain 3: Iteration: 300 / 1000 [ 30%]  (Warmup)
+#> Chain 3: Iteration: 400 / 1000 [ 40%]  (Warmup)
+#> Chain 3: Iteration: 500 / 1000 [ 50%]  (Warmup)
+#> Chain 3: Iteration: 501 / 1000 [ 50%]  (Sampling)
+#> Chain 3: Iteration: 600 / 1000 [ 60%]  (Sampling)
+#> Chain 3: Iteration: 700 / 1000 [ 70%]  (Sampling)
+#> Chain 3: Iteration: 800 / 1000 [ 80%]  (Sampling)
+#> Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)
+#> Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)
+#> Chain 3: 
+#> Chain 3:  Elapsed Time: 57.894 seconds (Warm-up)
+#> Chain 3:                46.899 seconds (Sampling)
+#> Chain 3:                104.793 seconds (Total)
+#> Chain 3:
 
 
 s4t_m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
@@ -568,6 +643,81 @@ s4t_m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
                             ageclass_formula = ~ I(factor(obs_time)) + Bin_sc,
                             fixed_age = FALSE,
                             s4t_ch = efp_s4_ch2)
+#> 
+#> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 1).
+#> Chain 1: 
+#> Chain 1: Gradient evaluation took 0.000898 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.98 seconds.
+#> Chain 1: Adjust your expectations accordingly!
+#> Chain 1: 
+#> Chain 1: 
+#> Chain 1: Iteration:   1 / 1000 [  0%]  (Warmup)
+#> Chain 1: Iteration: 100 / 1000 [ 10%]  (Warmup)
+#> Chain 1: Iteration: 200 / 1000 [ 20%]  (Warmup)
+#> Chain 1: Iteration: 300 / 1000 [ 30%]  (Warmup)
+#> Chain 1: Iteration: 400 / 1000 [ 40%]  (Warmup)
+#> Chain 1: Iteration: 500 / 1000 [ 50%]  (Warmup)
+#> Chain 1: Iteration: 501 / 1000 [ 50%]  (Sampling)
+#> Chain 1: Iteration: 600 / 1000 [ 60%]  (Sampling)
+#> Chain 1: Iteration: 700 / 1000 [ 70%]  (Sampling)
+#> Chain 1: Iteration: 800 / 1000 [ 80%]  (Sampling)
+#> Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)
+#> Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)
+#> Chain 1: 
+#> Chain 1:  Elapsed Time: 69.616 seconds (Warm-up)
+#> Chain 1:                51.495 seconds (Sampling)
+#> Chain 1:                121.111 seconds (Total)
+#> Chain 1: 
+#> 
+#> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 2).
+#> Chain 2: 
+#> Chain 2: Gradient evaluation took 0.000727 seconds
+#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.27 seconds.
+#> Chain 2: Adjust your expectations accordingly!
+#> Chain 2: 
+#> Chain 2: 
+#> Chain 2: Iteration:   1 / 1000 [  0%]  (Warmup)
+#> Chain 2: Iteration: 100 / 1000 [ 10%]  (Warmup)
+#> Chain 2: Iteration: 200 / 1000 [ 20%]  (Warmup)
+#> Chain 2: Iteration: 300 / 1000 [ 30%]  (Warmup)
+#> Chain 2: Iteration: 400 / 1000 [ 40%]  (Warmup)
+#> Chain 2: Iteration: 500 / 1000 [ 50%]  (Warmup)
+#> Chain 2: Iteration: 501 / 1000 [ 50%]  (Sampling)
+#> Chain 2: Iteration: 600 / 1000 [ 60%]  (Sampling)
+#> Chain 2: Iteration: 700 / 1000 [ 70%]  (Sampling)
+#> Chain 2: Iteration: 800 / 1000 [ 80%]  (Sampling)
+#> Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)
+#> Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)
+#> Chain 2: 
+#> Chain 2:  Elapsed Time: 62.647 seconds (Warm-up)
+#> Chain 2:                43.467 seconds (Sampling)
+#> Chain 2:                106.114 seconds (Total)
+#> Chain 2: 
+#> 
+#> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 3).
+#> Chain 3: 
+#> Chain 3: Gradient evaluation took 0.000782 seconds
+#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.82 seconds.
+#> Chain 3: Adjust your expectations accordingly!
+#> Chain 3: 
+#> Chain 3: 
+#> Chain 3: Iteration:   1 / 1000 [  0%]  (Warmup)
+#> Chain 3: Iteration: 100 / 1000 [ 10%]  (Warmup)
+#> Chain 3: Iteration: 200 / 1000 [ 20%]  (Warmup)
+#> Chain 3: Iteration: 300 / 1000 [ 30%]  (Warmup)
+#> Chain 3: Iteration: 400 / 1000 [ 40%]  (Warmup)
+#> Chain 3: Iteration: 500 / 1000 [ 50%]  (Warmup)
+#> Chain 3: Iteration: 501 / 1000 [ 50%]  (Sampling)
+#> Chain 3: Iteration: 600 / 1000 [ 60%]  (Sampling)
+#> Chain 3: Iteration: 700 / 1000 [ 70%]  (Sampling)
+#> Chain 3: Iteration: 800 / 1000 [ 80%]  (Sampling)
+#> Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)
+#> Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)
+#> Chain 3: 
+#> Chain 3:  Elapsed Time: 67.313 seconds (Warm-up)
+#> Chain 3:                44.428 seconds (Sampling)
+#> Chain 3:                111.741 seconds (Total)
+#> Chain 3:
 
 # full model
 s4t_m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * a1 * a2,
@@ -575,6 +725,81 @@ s4t_m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * a1 * a2,
                             ageclass_formula = ~ I(factor(obs_time)) + Bin_sc,
                             fixed_age = FALSE,
                             s4t_ch = efp_s4_ch2)
+#> 
+#> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 1).
+#> Chain 1: 
+#> Chain 1: Gradient evaluation took 0.000836 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.36 seconds.
+#> Chain 1: Adjust your expectations accordingly!
+#> Chain 1: 
+#> Chain 1: 
+#> Chain 1: Iteration:   1 / 1000 [  0%]  (Warmup)
+#> Chain 1: Iteration: 100 / 1000 [ 10%]  (Warmup)
+#> Chain 1: Iteration: 200 / 1000 [ 20%]  (Warmup)
+#> Chain 1: Iteration: 300 / 1000 [ 30%]  (Warmup)
+#> Chain 1: Iteration: 400 / 1000 [ 40%]  (Warmup)
+#> Chain 1: Iteration: 500 / 1000 [ 50%]  (Warmup)
+#> Chain 1: Iteration: 501 / 1000 [ 50%]  (Sampling)
+#> Chain 1: Iteration: 600 / 1000 [ 60%]  (Sampling)
+#> Chain 1: Iteration: 700 / 1000 [ 70%]  (Sampling)
+#> Chain 1: Iteration: 800 / 1000 [ 80%]  (Sampling)
+#> Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)
+#> Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)
+#> Chain 1: 
+#> Chain 1:  Elapsed Time: 65.475 seconds (Warm-up)
+#> Chain 1:                46.47 seconds (Sampling)
+#> Chain 1:                111.945 seconds (Total)
+#> Chain 1: 
+#> 
+#> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 2).
+#> Chain 2: 
+#> Chain 2: Gradient evaluation took 0.000712 seconds
+#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.12 seconds.
+#> Chain 2: Adjust your expectations accordingly!
+#> Chain 2: 
+#> Chain 2: 
+#> Chain 2: Iteration:   1 / 1000 [  0%]  (Warmup)
+#> Chain 2: Iteration: 100 / 1000 [ 10%]  (Warmup)
+#> Chain 2: Iteration: 200 / 1000 [ 20%]  (Warmup)
+#> Chain 2: Iteration: 300 / 1000 [ 30%]  (Warmup)
+#> Chain 2: Iteration: 400 / 1000 [ 40%]  (Warmup)
+#> Chain 2: Iteration: 500 / 1000 [ 50%]  (Warmup)
+#> Chain 2: Iteration: 501 / 1000 [ 50%]  (Sampling)
+#> Chain 2: Iteration: 600 / 1000 [ 60%]  (Sampling)
+#> Chain 2: Iteration: 700 / 1000 [ 70%]  (Sampling)
+#> Chain 2: Iteration: 800 / 1000 [ 80%]  (Sampling)
+#> Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)
+#> Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)
+#> Chain 2: 
+#> Chain 2:  Elapsed Time: 66.892 seconds (Warm-up)
+#> Chain 2:                48.802 seconds (Sampling)
+#> Chain 2:                115.694 seconds (Total)
+#> Chain 2: 
+#> 
+#> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 3).
+#> Chain 3: 
+#> Chain 3: Gradient evaluation took 0.0007 seconds
+#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7 seconds.
+#> Chain 3: Adjust your expectations accordingly!
+#> Chain 3: 
+#> Chain 3: 
+#> Chain 3: Iteration:   1 / 1000 [  0%]  (Warmup)
+#> Chain 3: Iteration: 100 / 1000 [ 10%]  (Warmup)
+#> Chain 3: Iteration: 200 / 1000 [ 20%]  (Warmup)
+#> Chain 3: Iteration: 300 / 1000 [ 30%]  (Warmup)
+#> Chain 3: Iteration: 400 / 1000 [ 40%]  (Warmup)
+#> Chain 3: Iteration: 500 / 1000 [ 50%]  (Warmup)
+#> Chain 3: Iteration: 501 / 1000 [ 50%]  (Sampling)
+#> Chain 3: Iteration: 600 / 1000 [ 60%]  (Sampling)
+#> Chain 3: Iteration: 700 / 1000 [ 70%]  (Sampling)
+#> Chain 3: Iteration: 800 / 1000 [ 80%]  (Sampling)
+#> Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)
+#> Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)
+#> Chain 3: 
+#> Chain 3:  Elapsed Time: 68.041 seconds (Warm-up)
+#> Chain 3:                48.801 seconds (Sampling)
+#> Chain 3:                116.842 seconds (Total)
+#> Chain 3:
 
 # optionally save model objects
 # save(s4t_m1,s4t_m2,s4t_m3, file = "EF_Potlatch_s4t.RData")
@@ -867,7 +1092,7 @@ s4t_m1
 #> a_delta_I(factor(obs_time))2019  1.33  1622    1
 #> a_delta_Bin_sc                   4.47  1286    1
 #> 
-#> Samples were drawn using NUTS(diag_e) at Sat Jan 24 01:27:05 2026.
+#> Samples were drawn using NUTS(diag_e) at Wed Jan 28 00:53:48 2026.
 #> For each parameter, n_eff is a crude measure of effective sample size,
 #> and Rhat is the potential scale reduction factor on split chains (at 
 #> convergence, Rhat=1).
@@ -897,13 +1122,12 @@ loo_m1 <- loo(extract_log_lik_s4t(s4t_m1))
 loo_m2 <- loo(extract_log_lik_s4t(s4t_m2))
 #> Warning: Some Pareto k diagnostic values are too high. See help('pareto-k-diagnostic') for details.
 loo_m3 <- loo(extract_log_lik_s4t(s4t_m3))
-#> Warning: Some Pareto k diagnostic values are too high. See help('pareto-k-diagnostic') for details.
 
 loo::loo_compare(loo_m1,loo_m2,loo_m3)
 #>        elpd_diff se_diff
-#> model2  0.0       0.0   
-#> model1 -0.7       2.9   
-#> model3 -2.6       2.5
+#> model1  0.0       0.0   
+#> model2  0.0       3.0   
+#> model3 -1.1       3.6
 ```
 
 The best model is the first model, although the first and second are
@@ -1079,12 +1303,12 @@ distributed and that abundance estimates are independent.
 # format of abund argument using fake (simulated) data.
 head(fake_abundance_data)
 #>        j    s a1 abundance abundance_se
-#> 1 EFPTRP 2015  1       503            0
-#> 2 EFPTRP 2015  2       297            0
-#> 3 EFPTRP 2015  3       736            0
-#> 4 EFPTRP 2016  1       775            0
-#> 5 EFPTRP 2016  2       876            0
-#> 6 EFPTRP 2016  3       183            0
+#> 1 EFPTRP 2015  1       471            0
+#> 2 EFPTRP 2015  2       355            0
+#> 3 EFPTRP 2015  3       384            0
+#> 4 EFPTRP 2016  1       157            0
+#> 5 EFPTRP 2016  2       282            0
+#> 6 EFPTRP 2016  3       773            0
 
 # compute cohort specific abundances
 cohort_abundance_at_LGR = abundance_estimates(s4t_m1,abund = fake_abundance_data,type = "None")
@@ -1106,19 +1330,19 @@ head(cohort_abundance_at_LGR)
 #> 5 0.0007153681 0.002263275 0.003951328 0.006510270 0.01592746 1522.7947
 #> 6 0.0392537053 0.120316326 0.180996902 0.268501900 0.49143529 1628.2134
 #>        Rhat abundance abundance_se Index broodyear estimate_se cohort_abund
-#> 1 0.9992650       503            0     1      2014 0.006105359     5.761951
-#> 2 0.9996131       503            0     2      2014 0.021167379    32.490219
-#> 3 1.0001737       503            0     3      2014 0.002675272     2.104412
-#> 4 0.9996430       297            0     4      2013 0.125308017   157.213182
-#> 5 1.0006032       297            0     5      2013 0.004066054     1.495212
-#> 6 0.9991254       736            0     6      2012 0.116737520   150.453039
+#> 1 0.9992650       471            0     1      2014 0.006105359     5.395386
+#> 2 0.9996131       471            0     2      2014 0.021167379    30.423247
+#> 3 1.0001737       471            0     3      2014 0.002675272     1.970533
+#> 4 0.9996430       355            0     4      2013 0.125308017   187.914747
+#> 5 1.0006032       355            0     5      2013 0.004066054     1.787206
+#> 6 0.9991254       384            0     6      2012 0.116737520    78.497238
 #>   cohort_abund_se
-#> 1        3.070996
-#> 2       10.647192
-#> 3        1.345662
-#> 4       37.216481
-#> 5        1.207618
-#> 6       85.918814
+#> 1        2.875624
+#> 2        9.969836
+#> 3        1.260053
+#> 4       44.484346
+#> 5        1.443449
+#> 6       44.827208
 
 # summarize by broodyear, site, and group.
 broodyear_abundance_at_LGR = abundance_estimates(s4t_m1,abund = fake_abundance_data,type = "BroodYear")
@@ -1129,10 +1353,10 @@ head(broodyear_abundance_at_LGR)
 #> # Groups:   broodyear, r, g [3]
 #>   broodyear r          g j      abundance_broodyear abundance_broodyear_se
 #>       <dbl> <chr>  <dbl> <chr>                <dbl>                  <dbl>
-#> 1      2012 EFPTRP     1 EFPTRP                150.                   85.9
-#> 2      2012 EFPTRP     1 GRJ                    NA                     0  
-#> 3      2013 EFPTRP     1 EFPTRP                256.                   51.4
-#> 4      2013 EFPTRP     1 GRJ                    NA                     0  
-#> 5      2014 EFPTRP     1 EFPTRP                900.                  170. 
-#> 6      2014 EFPTRP     1 GRJ                    NA                     0
+#> 1      2012 EFPTRP     1 EFPTRP                78.5                   44.8
+#> 2      2012 EFPTRP     1 GRJ                   NA                      0  
+#> 3      2013 EFPTRP     1 EFPTRP               602.                   157. 
+#> 4      2013 EFPTRP     1 GRJ                   NA                      0  
+#> 5      2014 EFPTRP     1 EFPTRP               600.                   235. 
+#> 6      2014 EFPTRP     1 GRJ                   NA                      0
 ```

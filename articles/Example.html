@@ -602,14 +602,89 @@ reduced formulas where detection probability only depends on time and
 where detection probability depends on time and age at “recapture”.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Allows for parallel computation (reduces overall time)</span></span>
-<span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/rstan_options.html" class="external-link">rstan_options</a></span><span class="op">(</span>auto_write <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>mc.cores <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># rstan::rstan_options(auto_write = TRUE)</span></span>
+<span><span class="co"># options(mc.cores = parallel::detectCores())</span></span>
 <span></span>
 <span><span class="va">s4t_m1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_s4t_cjs_rstan.html">fit_s4t_cjs_rstan</a></span><span class="op">(</span>p_formula <span class="op">=</span> <span class="op">~</span> <span class="va">t</span>,</span>
 <span>                            theta_formula <span class="op">=</span> <span class="op">~</span> <span class="va">a1</span> <span class="op">*</span> <span class="va">a2</span> <span class="op">*</span> <span class="va">s</span> <span class="op">*</span> <span class="va">j</span>,</span>
 <span>                            ageclass_formula <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">obs_time</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="va">Bin_sc</span>,</span>
 <span>                            fixed_age <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                            s4t_ch <span class="op">=</span> <span class="va">efp_s4_ch2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 1).</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000973 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 9.73 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:   1 / 1000 [  0%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 100 / 1000 [ 10%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 200 / 1000 [ 20%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 300 / 1000 [ 30%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 400 / 1000 [ 40%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 500 / 1000 [ 50%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 501 / 1000 [ 50%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 600 / 1000 [ 60%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 700 / 1000 [ 70%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 800 / 1000 [ 80%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 59.044 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                46.3 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                105.344 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 2).</span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; Chain 2: Gradient evaluation took 0.000805 seconds</span></span>
+<span><span class="co">#&gt; Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 8.05 seconds.</span></span>
+<span><span class="co">#&gt; Chain 2: Adjust your expectations accordingly!</span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; Chain 2: Iteration:   1 / 1000 [  0%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 100 / 1000 [ 10%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 200 / 1000 [ 20%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 300 / 1000 [ 30%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 400 / 1000 [ 40%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 500 / 1000 [ 50%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 501 / 1000 [ 50%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 600 / 1000 [ 60%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 700 / 1000 [ 70%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 800 / 1000 [ 80%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; Chain 2:  Elapsed Time: 61.259 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 2:                45.521 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2:                106.78 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 3).</span></span>
+<span><span class="co">#&gt; Chain 3: </span></span>
+<span><span class="co">#&gt; Chain 3: Gradient evaluation took 0.000734 seconds</span></span>
+<span><span class="co">#&gt; Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.34 seconds.</span></span>
+<span><span class="co">#&gt; Chain 3: Adjust your expectations accordingly!</span></span>
+<span><span class="co">#&gt; Chain 3: </span></span>
+<span><span class="co">#&gt; Chain 3: </span></span>
+<span><span class="co">#&gt; Chain 3: Iteration:   1 / 1000 [  0%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 100 / 1000 [ 10%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 200 / 1000 [ 20%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 300 / 1000 [ 30%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 400 / 1000 [ 40%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 500 / 1000 [ 50%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 501 / 1000 [ 50%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 600 / 1000 [ 60%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 700 / 1000 [ 70%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 800 / 1000 [ 80%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: </span></span>
+<span><span class="co">#&gt; Chain 3:  Elapsed Time: 57.894 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 3:                46.899 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3:                104.793 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 3:</span></span>
 <span></span>
 <span></span>
 <span><span class="va">s4t_m2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_s4t_cjs_rstan.html">fit_s4t_cjs_rstan</a></span><span class="op">(</span>p_formula <span class="op">=</span> <span class="op">~</span> <span class="va">t</span> <span class="op">*</span> <span class="va">a2</span>,</span>
@@ -617,6 +692,81 @@ where detection probability depends on time and age at “recapture”.</p>
 <span>                            ageclass_formula <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">obs_time</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="va">Bin_sc</span>,</span>
 <span>                            fixed_age <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                            s4t_ch <span class="op">=</span> <span class="va">efp_s4_ch2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 1).</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000898 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.98 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:   1 / 1000 [  0%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 100 / 1000 [ 10%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 200 / 1000 [ 20%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 300 / 1000 [ 30%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 400 / 1000 [ 40%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 500 / 1000 [ 50%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 501 / 1000 [ 50%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 600 / 1000 [ 60%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 700 / 1000 [ 70%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 800 / 1000 [ 80%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 69.616 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                51.495 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                121.111 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 2).</span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; Chain 2: Gradient evaluation took 0.000727 seconds</span></span>
+<span><span class="co">#&gt; Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.27 seconds.</span></span>
+<span><span class="co">#&gt; Chain 2: Adjust your expectations accordingly!</span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; Chain 2: Iteration:   1 / 1000 [  0%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 100 / 1000 [ 10%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 200 / 1000 [ 20%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 300 / 1000 [ 30%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 400 / 1000 [ 40%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 500 / 1000 [ 50%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 501 / 1000 [ 50%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 600 / 1000 [ 60%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 700 / 1000 [ 70%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 800 / 1000 [ 80%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; Chain 2:  Elapsed Time: 62.647 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 2:                43.467 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2:                106.114 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 3).</span></span>
+<span><span class="co">#&gt; Chain 3: </span></span>
+<span><span class="co">#&gt; Chain 3: Gradient evaluation took 0.000782 seconds</span></span>
+<span><span class="co">#&gt; Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.82 seconds.</span></span>
+<span><span class="co">#&gt; Chain 3: Adjust your expectations accordingly!</span></span>
+<span><span class="co">#&gt; Chain 3: </span></span>
+<span><span class="co">#&gt; Chain 3: </span></span>
+<span><span class="co">#&gt; Chain 3: Iteration:   1 / 1000 [  0%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 100 / 1000 [ 10%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 200 / 1000 [ 20%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 300 / 1000 [ 30%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 400 / 1000 [ 40%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 500 / 1000 [ 50%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 501 / 1000 [ 50%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 600 / 1000 [ 60%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 700 / 1000 [ 70%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 800 / 1000 [ 80%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: </span></span>
+<span><span class="co">#&gt; Chain 3:  Elapsed Time: 67.313 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 3:                44.428 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3:                111.741 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 3:</span></span>
 <span></span>
 <span><span class="co"># full model</span></span>
 <span><span class="va">s4t_m3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_s4t_cjs_rstan.html">fit_s4t_cjs_rstan</a></span><span class="op">(</span>p_formula <span class="op">=</span> <span class="op">~</span> <span class="va">t</span> <span class="op">*</span> <span class="va">a1</span> <span class="op">*</span> <span class="va">a2</span>,</span>
@@ -624,6 +774,81 @@ where detection probability depends on time and age at “recapture”.</p>
 <span>                            ageclass_formula <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">obs_time</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="va">Bin_sc</span>,</span>
 <span>                            fixed_age <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                            s4t_ch <span class="op">=</span> <span class="va">efp_s4_ch2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 1).</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000836 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.36 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:   1 / 1000 [  0%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 100 / 1000 [ 10%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 200 / 1000 [ 20%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 300 / 1000 [ 30%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 400 / 1000 [ 40%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 500 / 1000 [ 50%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 501 / 1000 [ 50%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 600 / 1000 [ 60%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 700 / 1000 [ 70%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 800 / 1000 [ 80%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 65.475 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                46.47 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                111.945 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 2).</span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; Chain 2: Gradient evaluation took 0.000712 seconds</span></span>
+<span><span class="co">#&gt; Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.12 seconds.</span></span>
+<span><span class="co">#&gt; Chain 2: Adjust your expectations accordingly!</span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; Chain 2: Iteration:   1 / 1000 [  0%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 100 / 1000 [ 10%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 200 / 1000 [ 20%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 300 / 1000 [ 30%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 400 / 1000 [ 40%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 500 / 1000 [ 50%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 501 / 1000 [ 50%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 600 / 1000 [ 60%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 700 / 1000 [ 70%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 800 / 1000 [ 80%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; Chain 2:  Elapsed Time: 66.892 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 2:                48.802 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2:                115.694 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 2: </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 3).</span></span>
+<span><span class="co">#&gt; Chain 3: </span></span>
+<span><span class="co">#&gt; Chain 3: Gradient evaluation took 0.0007 seconds</span></span>
+<span><span class="co">#&gt; Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7 seconds.</span></span>
+<span><span class="co">#&gt; Chain 3: Adjust your expectations accordingly!</span></span>
+<span><span class="co">#&gt; Chain 3: </span></span>
+<span><span class="co">#&gt; Chain 3: </span></span>
+<span><span class="co">#&gt; Chain 3: Iteration:   1 / 1000 [  0%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 100 / 1000 [ 10%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 200 / 1000 [ 20%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 300 / 1000 [ 30%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 400 / 1000 [ 40%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 500 / 1000 [ 50%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 501 / 1000 [ 50%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 600 / 1000 [ 60%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 700 / 1000 [ 70%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 800 / 1000 [ 80%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3: </span></span>
+<span><span class="co">#&gt; Chain 3:  Elapsed Time: 68.041 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 3:                48.801 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3:                116.842 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 3:</span></span>
 <span></span>
 <span><span class="co"># optionally save model objects</span></span>
 <span><span class="co"># save(s4t_m1,s4t_m2,s4t_m3, file = "EF_Potlatch_s4t.RData")</span></span></code></pre></div>
@@ -915,7 +1140,7 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; a_delta_I(factor(obs_time))2019  1.33  1622    1</span></span>
 <span><span class="co">#&gt; a_delta_Bin_sc                   4.47  1286    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Jan 24 01:27:05 2026.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Wed Jan 28 00:53:48 2026.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
@@ -938,13 +1163,12 @@ properly mixed:</p>
 <span><span class="va">loo_m2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="fu"><a href="../reference/extract_log_lik_s4t.html">extract_log_lik_s4t</a></span><span class="op">(</span><span class="va">s4t_m2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Some Pareto k diagnostic values are too high. See help('pareto-k-diagnostic') for details.</span></span>
 <span><span class="va">loo_m3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="fu"><a href="../reference/extract_log_lik_s4t.html">extract_log_lik_s4t</a></span><span class="op">(</span><span class="va">s4t_m3</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: Some Pareto k diagnostic values are too high. See help('pareto-k-diagnostic') for details.</span></span>
 <span></span>
 <span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="va">loo_m1</span>,<span class="va">loo_m2</span>,<span class="va">loo_m3</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        elpd_diff se_diff</span></span>
-<span><span class="co">#&gt; model2  0.0       0.0   </span></span>
-<span><span class="co">#&gt; model1 -0.7       2.9   </span></span>
-<span><span class="co">#&gt; model3 -2.6       2.5</span></span></code></pre></div>
+<span><span class="co">#&gt; model1  0.0       0.0   </span></span>
+<span><span class="co">#&gt; model2  0.0       3.0   </span></span>
+<span><span class="co">#&gt; model3 -1.1       3.6</span></span></code></pre></div>
 <p>The best model is the first model, although the first and second are
 similar. The third is also a reasonable model, but it has slightly worse
 fit.</p>
@@ -1095,12 +1319,12 @@ normally distributed and that abundance estimates are independent.</p>
 <code class="sourceCode R"><span><span class="co"># format of abund argument using fake (simulated) data.</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">fake_abundance_data</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        j    s a1 abundance abundance_se</span></span>
-<span><span class="co">#&gt; 1 EFPTRP 2015  1       503            0</span></span>
-<span><span class="co">#&gt; 2 EFPTRP 2015  2       297            0</span></span>
-<span><span class="co">#&gt; 3 EFPTRP 2015  3       736            0</span></span>
-<span><span class="co">#&gt; 4 EFPTRP 2016  1       775            0</span></span>
-<span><span class="co">#&gt; 5 EFPTRP 2016  2       876            0</span></span>
-<span><span class="co">#&gt; 6 EFPTRP 2016  3       183            0</span></span>
+<span><span class="co">#&gt; 1 EFPTRP 2015  1       471            0</span></span>
+<span><span class="co">#&gt; 2 EFPTRP 2015  2       355            0</span></span>
+<span><span class="co">#&gt; 3 EFPTRP 2015  3       384            0</span></span>
+<span><span class="co">#&gt; 4 EFPTRP 2016  1       157            0</span></span>
+<span><span class="co">#&gt; 5 EFPTRP 2016  2       282            0</span></span>
+<span><span class="co">#&gt; 6 EFPTRP 2016  3       773            0</span></span>
 <span></span>
 <span><span class="co"># compute cohort specific abundances</span></span>
 <span><span class="va">cohort_abundance_at_LGR</span> <span class="op">=</span> <span class="fu"><a href="../reference/abundance_estimates.html">abundance_estimates</a></span><span class="op">(</span><span class="va">s4t_m1</span>,abund <span class="op">=</span> <span class="va">fake_abundance_data</span>,type <span class="op">=</span> <span class="st">"None"</span><span class="op">)</span></span>
@@ -1122,19 +1346,19 @@ normally distributed and that abundance estimates are independent.</p>
 <span><span class="co">#&gt; 5 0.0007153681 0.002263275 0.003951328 0.006510270 0.01592746 1522.7947</span></span>
 <span><span class="co">#&gt; 6 0.0392537053 0.120316326 0.180996902 0.268501900 0.49143529 1628.2134</span></span>
 <span><span class="co">#&gt;        Rhat abundance abundance_se Index broodyear estimate_se cohort_abund</span></span>
-<span><span class="co">#&gt; 1 0.9992650       503            0     1      2014 0.006105359     5.761951</span></span>
-<span><span class="co">#&gt; 2 0.9996131       503            0     2      2014 0.021167379    32.490219</span></span>
-<span><span class="co">#&gt; 3 1.0001737       503            0     3      2014 0.002675272     2.104412</span></span>
-<span><span class="co">#&gt; 4 0.9996430       297            0     4      2013 0.125308017   157.213182</span></span>
-<span><span class="co">#&gt; 5 1.0006032       297            0     5      2013 0.004066054     1.495212</span></span>
-<span><span class="co">#&gt; 6 0.9991254       736            0     6      2012 0.116737520   150.453039</span></span>
+<span><span class="co">#&gt; 1 0.9992650       471            0     1      2014 0.006105359     5.395386</span></span>
+<span><span class="co">#&gt; 2 0.9996131       471            0     2      2014 0.021167379    30.423247</span></span>
+<span><span class="co">#&gt; 3 1.0001737       471            0     3      2014 0.002675272     1.970533</span></span>
+<span><span class="co">#&gt; 4 0.9996430       355            0     4      2013 0.125308017   187.914747</span></span>
+<span><span class="co">#&gt; 5 1.0006032       355            0     5      2013 0.004066054     1.787206</span></span>
+<span><span class="co">#&gt; 6 0.9991254       384            0     6      2012 0.116737520    78.497238</span></span>
 <span><span class="co">#&gt;   cohort_abund_se</span></span>
-<span><span class="co">#&gt; 1        3.070996</span></span>
-<span><span class="co">#&gt; 2       10.647192</span></span>
-<span><span class="co">#&gt; 3        1.345662</span></span>
-<span><span class="co">#&gt; 4       37.216481</span></span>
-<span><span class="co">#&gt; 5        1.207618</span></span>
-<span><span class="co">#&gt; 6       85.918814</span></span>
+<span><span class="co">#&gt; 1        2.875624</span></span>
+<span><span class="co">#&gt; 2        9.969836</span></span>
+<span><span class="co">#&gt; 3        1.260053</span></span>
+<span><span class="co">#&gt; 4       44.484346</span></span>
+<span><span class="co">#&gt; 5        1.443449</span></span>
+<span><span class="co">#&gt; 6       44.827208</span></span>
 <span></span>
 <span><span class="co"># summarize by broodyear, site, and group.</span></span>
 <span><span class="va">broodyear_abundance_at_LGR</span> <span class="op">=</span> <span class="fu"><a href="../reference/abundance_estimates.html">abundance_estimates</a></span><span class="op">(</span><span class="va">s4t_m1</span>,abund <span class="op">=</span> <span class="va">fake_abundance_data</span>,type <span class="op">=</span> <span class="st">"BroodYear"</span><span class="op">)</span></span>
@@ -1145,12 +1369,12 @@ normally distributed and that abundance estimates are independent.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># Groups:   broodyear, r, g [3]</span></span></span>
 <span><span class="co">#&gt;   broodyear r          g j      abundance_broodyear abundance_broodyear_se</span></span>
 <span><span class="co">#&gt;       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>      <span style="text-decoration: underline;">2</span>012 EFPTRP     1 EFPTRP                150.                   85.9</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>      <span style="text-decoration: underline;">2</span>012 EFPTRP     1 GRJ                    <span style="color: #BB0000;">NA</span>                     0  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>      <span style="text-decoration: underline;">2</span>013 EFPTRP     1 EFPTRP                256.                   51.4</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>      <span style="text-decoration: underline;">2</span>013 EFPTRP     1 GRJ                    <span style="color: #BB0000;">NA</span>                     0  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>      <span style="text-decoration: underline;">2</span>014 EFPTRP     1 EFPTRP                900.                  170. </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>      <span style="text-decoration: underline;">2</span>014 EFPTRP     1 GRJ                    <span style="color: #BB0000;">NA</span>                     0</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>      <span style="text-decoration: underline;">2</span>012 EFPTRP     1 EFPTRP                78.5                   44.8</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>      <span style="text-decoration: underline;">2</span>012 EFPTRP     1 GRJ                   <span style="color: #BB0000;">NA</span>                      0  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>      <span style="text-decoration: underline;">2</span>013 EFPTRP     1 EFPTRP               602.                   157. </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>      <span style="text-decoration: underline;">2</span>013 EFPTRP     1 GRJ                   <span style="color: #BB0000;">NA</span>                      0  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>      <span style="text-decoration: underline;">2</span>014 EFPTRP     1 EFPTRP               600.                   235. </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>      <span style="text-decoration: underline;">2</span>014 EFPTRP     1 GRJ                   <span style="color: #BB0000;">NA</span>                      0</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
