@@ -1756,6 +1756,7 @@ fit_s4t_cjs_rstan <- function(p_formula,
     input_data[["fixed_ageclass_l"]] <- fixed_ageclass_l
     input_data[["fixed_ageclass_m"]] <- fixed_ageclass_m
     input_data[["setaux_max_a"]] <- s4t_ch$ch_info$observed_relative_min_max$setaux_max_a
+    # input_data[["setaux_max_a"]] <- max_a_overall
 
     res <- rstan::sampling(stanmodels$s4t_cjs_draft7,
                            data=input_data,chains = chains,
