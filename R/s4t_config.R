@@ -208,6 +208,9 @@ s4t_config <- function(sites_names,
                     paste0(sites_to_pool[[i]],collapse = ", ")))
       }
 
+
+      old_site_config <- sites_config
+
       # remove the sites that we are pooling
       using_sites <- setdiff(using_sites,sites_to_pool[[i]])
 
@@ -218,6 +221,19 @@ s4t_config <- function(sites_names,
       keepthesesites <- !(sites_names %in% sites_to_pool[[i]])
       sites_config <- sites_config[keepthesesites,keepthesesites]
       holdover_config <- holdover_config[keepthesesites,keepthesesites]
+
+      # corrects where the sites being combined are not holdover sites and transition
+      #    to another site. Otherwise the tmp_sitename has no connecting site.
+      if (sum(sites_config[tmp_sitename,]) == 0) {
+        potential_sites <- unlist(sapply(sites_to_pool[[i]], \(x) rownames(old_site_config)[which(old_site_config[x,] == 1)]))
+        selected_transition_site <- intersect(rownames(sites_config),potential_sites)
+
+        if (length(selected_transition_site) == 1) {
+          sites_config[tmp_sitename,selected_transition_site] <- 1
+        }
+
+
+      }
 
       sites_names <- using_sites
 
