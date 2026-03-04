@@ -7,8 +7,7 @@
 read_DART_file(
   filepath,
   aux_age_df,
-  DART_config = "https://www.cbr.washington.edu/downloads/paramest/sites_config.txt",
-  ...
+  DART_config = "https://www.cbr.washington.edu/downloads/paramest/sites_config.txt"
 )
 }
 \arguments{
