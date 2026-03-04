@@ -82,7 +82,7 @@ plot.s4t_ageclass_model <- function(x, ...) {
                                             dplyr::mutate(count_predageclass = dplyr::n()) %>%
                                             dplyr::group_by(ageclass,pred_ageclass) %>%
                                             dplyr::summarize(count = dplyr::n(),
-                                                             Proportion.observed = count / first(count_ageclass)) %>%
+                                                             Proportion.observed = count / dplyr::first(count_ageclass)) %>%
                                             ggplot2::ggplot(ggplot2::aes(ageclass,pred_ageclass)) +
                                             ggplot2::geom_raster(ggplot2::aes(fill = Proportion.observed)) +
                                             ggplot2::scale_fill_gradient(name = "Proportion",low = "white",high = "black",
