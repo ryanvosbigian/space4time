@@ -444,8 +444,12 @@ aux_age_df %>%
   dplyr::summarize(mean_FL = mean(FL), # mean FL
             sd_FL = stats::sd(FL),   # sd of FL
             N = dplyr::n())          # number of observations
-#> `summarise()` has grouped output by 'obs_time'. You can override using the
-#> `.groups` argument.
+#> `summarise()` has regrouped the output.
+#> ℹ Summaries were computed grouped by obs_time and ageclass.
+#> ℹ Output is grouped by obs_time.
+#> ℹ Use `summarise(.groups = "drop_last")` to silence this message.
+#> ℹ Use `summarise(.by = c(obs_time, ageclass))` for per-operation grouping
+#>   (`?dplyr::dplyr_by`) instead.
 #> # A tibble: 14 × 5
 #> # Groups:   obs_time [5]
 #>    obs_time ageclass mean_FL sd_FL     N
@@ -564,8 +568,8 @@ s4t_m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.000973 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 9.73 seconds.
+#> Chain 1: Gradient evaluation took 0.000921 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 9.21 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -582,15 +586,15 @@ s4t_m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
 #> Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 59.044 seconds (Warm-up)
-#> Chain 1:                46.3 seconds (Sampling)
-#> Chain 1:                105.344 seconds (Total)
+#> Chain 1:  Elapsed Time: 59.226 seconds (Warm-up)
+#> Chain 1:                46.703 seconds (Sampling)
+#> Chain 1:                105.929 seconds (Total)
 #> Chain 1: 
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 2).
 #> Chain 2: 
-#> Chain 2: Gradient evaluation took 0.000805 seconds
-#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 8.05 seconds.
+#> Chain 2: Gradient evaluation took 0.000736 seconds
+#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.36 seconds.
 #> Chain 2: Adjust your expectations accordingly!
 #> Chain 2: 
 #> Chain 2: 
@@ -607,15 +611,15 @@ s4t_m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
 #> Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)
 #> Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)
 #> Chain 2: 
-#> Chain 2:  Elapsed Time: 61.259 seconds (Warm-up)
-#> Chain 2:                45.521 seconds (Sampling)
-#> Chain 2:                106.78 seconds (Total)
+#> Chain 2:  Elapsed Time: 61.455 seconds (Warm-up)
+#> Chain 2:                45.831 seconds (Sampling)
+#> Chain 2:                107.286 seconds (Total)
 #> Chain 2: 
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 3).
 #> Chain 3: 
-#> Chain 3: Gradient evaluation took 0.000734 seconds
-#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.34 seconds.
+#> Chain 3: Gradient evaluation took 0.000755 seconds
+#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.55 seconds.
 #> Chain 3: Adjust your expectations accordingly!
 #> Chain 3: 
 #> Chain 3: 
@@ -632,9 +636,9 @@ s4t_m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
 #> Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)
 #> Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)
 #> Chain 3: 
-#> Chain 3:  Elapsed Time: 57.894 seconds (Warm-up)
-#> Chain 3:                46.899 seconds (Sampling)
-#> Chain 3:                104.793 seconds (Total)
+#> Chain 3:  Elapsed Time: 58.303 seconds (Warm-up)
+#> Chain 3:                47.477 seconds (Sampling)
+#> Chain 3:                105.78 seconds (Total)
 #> Chain 3:
 
 
@@ -646,8 +650,8 @@ s4t_m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.000898 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.98 seconds.
+#> Chain 1: Gradient evaluation took 0.000869 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.69 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -664,15 +668,15 @@ s4t_m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
 #> Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 69.616 seconds (Warm-up)
-#> Chain 1:                51.495 seconds (Sampling)
-#> Chain 1:                121.111 seconds (Total)
+#> Chain 1:  Elapsed Time: 69.261 seconds (Warm-up)
+#> Chain 1:                51.39 seconds (Sampling)
+#> Chain 1:                120.651 seconds (Total)
 #> Chain 1: 
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 2).
 #> Chain 2: 
-#> Chain 2: Gradient evaluation took 0.000727 seconds
-#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.27 seconds.
+#> Chain 2: Gradient evaluation took 0.000768 seconds
+#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.68 seconds.
 #> Chain 2: Adjust your expectations accordingly!
 #> Chain 2: 
 #> Chain 2: 
@@ -689,15 +693,15 @@ s4t_m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
 #> Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)
 #> Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)
 #> Chain 2: 
-#> Chain 2:  Elapsed Time: 62.647 seconds (Warm-up)
-#> Chain 2:                43.467 seconds (Sampling)
-#> Chain 2:                106.114 seconds (Total)
+#> Chain 2:  Elapsed Time: 64.731 seconds (Warm-up)
+#> Chain 2:                44.612 seconds (Sampling)
+#> Chain 2:                109.343 seconds (Total)
 #> Chain 2: 
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 3).
 #> Chain 3: 
-#> Chain 3: Gradient evaluation took 0.000782 seconds
-#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.82 seconds.
+#> Chain 3: Gradient evaluation took 0.000704 seconds
+#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.04 seconds.
 #> Chain 3: Adjust your expectations accordingly!
 #> Chain 3: 
 #> Chain 3: 
@@ -714,9 +718,9 @@ s4t_m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
 #> Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)
 #> Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)
 #> Chain 3: 
-#> Chain 3:  Elapsed Time: 67.313 seconds (Warm-up)
-#> Chain 3:                44.428 seconds (Sampling)
-#> Chain 3:                111.741 seconds (Total)
+#> Chain 3:  Elapsed Time: 68.942 seconds (Warm-up)
+#> Chain 3:                45.606 seconds (Sampling)
+#> Chain 3:                114.548 seconds (Total)
 #> Chain 3:
 
 # full model
@@ -728,8 +732,8 @@ s4t_m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * a1 * a2,
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.000836 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.36 seconds.
+#> Chain 1: Gradient evaluation took 0.000843 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.43 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -746,15 +750,15 @@ s4t_m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * a1 * a2,
 #> Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 65.475 seconds (Warm-up)
-#> Chain 1:                46.47 seconds (Sampling)
-#> Chain 1:                111.945 seconds (Total)
+#> Chain 1:  Elapsed Time: 67.16 seconds (Warm-up)
+#> Chain 1:                48.147 seconds (Sampling)
+#> Chain 1:                115.307 seconds (Total)
 #> Chain 1: 
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 2).
 #> Chain 2: 
-#> Chain 2: Gradient evaluation took 0.000712 seconds
-#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.12 seconds.
+#> Chain 2: Gradient evaluation took 0.00071 seconds
+#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.1 seconds.
 #> Chain 2: Adjust your expectations accordingly!
 #> Chain 2: 
 #> Chain 2: 
@@ -771,15 +775,15 @@ s4t_m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * a1 * a2,
 #> Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)
 #> Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)
 #> Chain 2: 
-#> Chain 2:  Elapsed Time: 66.892 seconds (Warm-up)
-#> Chain 2:                48.802 seconds (Sampling)
-#> Chain 2:                115.694 seconds (Total)
+#> Chain 2:  Elapsed Time: 69.254 seconds (Warm-up)
+#> Chain 2:                50.155 seconds (Sampling)
+#> Chain 2:                119.409 seconds (Total)
 #> Chain 2: 
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 3).
 #> Chain 3: 
-#> Chain 3: Gradient evaluation took 0.0007 seconds
-#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7 seconds.
+#> Chain 3: Gradient evaluation took 0.000706 seconds
+#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.06 seconds.
 #> Chain 3: Adjust your expectations accordingly!
 #> Chain 3: 
 #> Chain 3: 
@@ -796,9 +800,9 @@ s4t_m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * a1 * a2,
 #> Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)
 #> Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)
 #> Chain 3: 
-#> Chain 3:  Elapsed Time: 68.041 seconds (Warm-up)
-#> Chain 3:                48.801 seconds (Sampling)
-#> Chain 3:                116.842 seconds (Total)
+#> Chain 3:  Elapsed Time: 70.243 seconds (Warm-up)
+#> Chain 3:                50.386 seconds (Sampling)
+#> Chain 3:                120.629 seconds (Total)
 #> Chain 3:
 
 # optionally save model objects
@@ -1092,7 +1096,7 @@ s4t_m1
 #> a_delta_I(factor(obs_time))2019  1.33  1622    1
 #> a_delta_Bin_sc                   4.47  1286    1
 #> 
-#> Samples were drawn using NUTS(diag_e) at Wed Jan 28 00:53:48 2026.
+#> Samples were drawn using NUTS(diag_e) at Thu Mar  5 17:38:02 2026.
 #> For each parameter, n_eff is a crude measure of effective sample size,
 #> and Rhat is the potential scale reduction factor on split chains (at 
 #> convergence, Rhat=1).

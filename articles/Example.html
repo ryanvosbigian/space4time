@@ -217,7 +217,7 @@ only a handful of observations.</p>
 <span></span>
 <span></span>
 <span><span class="va">EFPTRP_age_data</span> <span class="op">&lt;-</span> <span class="va">EFPTRP_age_data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Bin <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span><span class="va">FL</span> <span class="op">&lt;</span> <span class="fl">80</span> <span class="op">~</span> <span class="fl">80</span>, <span class="co"># if FL &lt; 80, return 80</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Bin <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">case_when</a></span><span class="op">(</span><span class="va">FL</span> <span class="op">&lt;</span> <span class="fl">80</span> <span class="op">~</span> <span class="fl">80</span>, <span class="co"># if FL &lt; 80, return 80</span></span>
 <span>                                       <span class="va">FL</span> <span class="op">&gt;</span><span class="fl">180</span> <span class="op">~</span> <span class="fl">180</span>, <span class="co"># if FL greater than 180, return 180</span></span>
 <span>                                       <span class="co"># otherwise, round FL to the nearest 10 mm.</span></span>
 <span>                                       <span class="va">FL</span> <span class="op">&gt;=</span> <span class="fl">80</span> <span class="op">&amp;</span> <span class="va">FL</span> <span class="op">&lt;=</span> <span class="fl">180</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">FL</span>,<span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>, </span>
@@ -508,8 +508,12 @@ summaries of the ageing data.</p>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>mean_FL <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">FL</span><span class="op">)</span>, <span class="co"># mean FL</span></span>
 <span>            sd_FL <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">FL</span><span class="op">)</span>,   <span class="co"># sd of FL</span></span>
 <span>            N <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>          <span class="co"># number of observations</span></span>
-<span><span class="co">#&gt; `summarise()` has grouped output by 'obs_time'. You can override using the</span></span>
-<span><span class="co">#&gt; `.groups` argument.</span></span>
+<span><span class="co">#&gt; `summarise()` has regrouped the output.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Summaries were computed grouped by <span style="color: #0000BB;">obs_time</span> and <span style="color: #0000BB;">ageclass</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is grouped by <span style="color: #0000BB;">obs_time</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.groups = "drop_last")` to silence this message.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.by = c(obs_time, ageclass))` for per-operation grouping</span></span>
+<span><span class="co">#&gt;   (`?dplyr::dplyr_by`) instead.</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 14 × 5</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Groups:   obs_time [5]</span></span></span>
 <span><span class="co">#&gt;    obs_time ageclass mean_FL sd_FL     N</span></span>
@@ -613,8 +617,8 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 1).</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000973 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 9.73 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000921 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 9.21 seconds.</span></span>
 <span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
@@ -631,15 +635,15 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 59.044 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                46.3 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                105.344 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 59.226 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                46.703 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                105.929 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 2).</span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
-<span><span class="co">#&gt; Chain 2: Gradient evaluation took 0.000805 seconds</span></span>
-<span><span class="co">#&gt; Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 8.05 seconds.</span></span>
+<span><span class="co">#&gt; Chain 2: Gradient evaluation took 0.000736 seconds</span></span>
+<span><span class="co">#&gt; Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.36 seconds.</span></span>
 <span><span class="co">#&gt; Chain 2: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
@@ -656,15 +660,15 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
-<span><span class="co">#&gt; Chain 2:  Elapsed Time: 61.259 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 2:                45.521 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 2:                106.78 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 2:  Elapsed Time: 61.455 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 2:                45.831 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2:                107.286 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 3).</span></span>
 <span><span class="co">#&gt; Chain 3: </span></span>
-<span><span class="co">#&gt; Chain 3: Gradient evaluation took 0.000734 seconds</span></span>
-<span><span class="co">#&gt; Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.34 seconds.</span></span>
+<span><span class="co">#&gt; Chain 3: Gradient evaluation took 0.000755 seconds</span></span>
+<span><span class="co">#&gt; Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.55 seconds.</span></span>
 <span><span class="co">#&gt; Chain 3: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 3: </span></span>
 <span><span class="co">#&gt; Chain 3: </span></span>
@@ -681,9 +685,9 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 3: </span></span>
-<span><span class="co">#&gt; Chain 3:  Elapsed Time: 57.894 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 3:                46.899 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 3:                104.793 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 3:  Elapsed Time: 58.303 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 3:                47.477 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3:                105.78 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 3:</span></span>
 <span></span>
 <span></span>
@@ -695,8 +699,8 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 1).</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000898 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.98 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000869 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.69 seconds.</span></span>
 <span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
@@ -713,15 +717,15 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 69.616 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                51.495 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                121.111 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 69.261 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                51.39 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                120.651 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 2).</span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
-<span><span class="co">#&gt; Chain 2: Gradient evaluation took 0.000727 seconds</span></span>
-<span><span class="co">#&gt; Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.27 seconds.</span></span>
+<span><span class="co">#&gt; Chain 2: Gradient evaluation took 0.000768 seconds</span></span>
+<span><span class="co">#&gt; Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.68 seconds.</span></span>
 <span><span class="co">#&gt; Chain 2: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
@@ -738,15 +742,15 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
-<span><span class="co">#&gt; Chain 2:  Elapsed Time: 62.647 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 2:                43.467 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 2:                106.114 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 2:  Elapsed Time: 64.731 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 2:                44.612 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2:                109.343 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 3).</span></span>
 <span><span class="co">#&gt; Chain 3: </span></span>
-<span><span class="co">#&gt; Chain 3: Gradient evaluation took 0.000782 seconds</span></span>
-<span><span class="co">#&gt; Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.82 seconds.</span></span>
+<span><span class="co">#&gt; Chain 3: Gradient evaluation took 0.000704 seconds</span></span>
+<span><span class="co">#&gt; Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.04 seconds.</span></span>
 <span><span class="co">#&gt; Chain 3: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 3: </span></span>
 <span><span class="co">#&gt; Chain 3: </span></span>
@@ -763,9 +767,9 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 3: </span></span>
-<span><span class="co">#&gt; Chain 3:  Elapsed Time: 67.313 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 3:                44.428 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 3:                111.741 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 3:  Elapsed Time: 68.942 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 3:                45.606 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3:                114.548 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 3:</span></span>
 <span></span>
 <span><span class="co"># full model</span></span>
@@ -777,8 +781,8 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 1).</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000836 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.36 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000843 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.43 seconds.</span></span>
 <span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
@@ -795,15 +799,15 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 65.475 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                46.47 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                111.945 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 67.16 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                48.147 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                115.307 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 2).</span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
-<span><span class="co">#&gt; Chain 2: Gradient evaluation took 0.000712 seconds</span></span>
-<span><span class="co">#&gt; Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.12 seconds.</span></span>
+<span><span class="co">#&gt; Chain 2: Gradient evaluation took 0.00071 seconds</span></span>
+<span><span class="co">#&gt; Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.1 seconds.</span></span>
 <span><span class="co">#&gt; Chain 2: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
@@ -820,15 +824,15 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
-<span><span class="co">#&gt; Chain 2:  Elapsed Time: 66.892 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 2:                48.802 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 2:                115.694 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 2:  Elapsed Time: 69.254 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 2:                50.155 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 2:                119.409 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 2: </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 's4t_cjs_draft7' NOW (CHAIN 3).</span></span>
 <span><span class="co">#&gt; Chain 3: </span></span>
-<span><span class="co">#&gt; Chain 3: Gradient evaluation took 0.0007 seconds</span></span>
-<span><span class="co">#&gt; Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7 seconds.</span></span>
+<span><span class="co">#&gt; Chain 3: Gradient evaluation took 0.000706 seconds</span></span>
+<span><span class="co">#&gt; Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 7.06 seconds.</span></span>
 <span><span class="co">#&gt; Chain 3: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 3: </span></span>
 <span><span class="co">#&gt; Chain 3: </span></span>
@@ -845,9 +849,9 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; Chain 3: Iteration: 900 / 1000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 3: Iteration: 1000 / 1000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 3: </span></span>
-<span><span class="co">#&gt; Chain 3:  Elapsed Time: 68.041 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 3:                48.801 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 3:                116.842 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 3:  Elapsed Time: 70.243 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 3:                50.386 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 3:                120.629 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 3:</span></span>
 <span></span>
 <span><span class="co"># optionally save model objects</span></span>
@@ -1140,7 +1144,7 @@ where detection probability depends on time and age at “recapture”.</p>
 <span><span class="co">#&gt; a_delta_I(factor(obs_time))2019  1.33  1622    1</span></span>
 <span><span class="co">#&gt; a_delta_Bin_sc                   4.47  1286    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Wed Jan 28 00:53:48 2026.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Mar  5 17:38:02 2026.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
