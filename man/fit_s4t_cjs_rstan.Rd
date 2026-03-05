@@ -13,7 +13,7 @@ fit_s4t_cjs_rstan(
   chains = 3,
   warmup = 500,
   iter = 1000,
-  fixed_age = TRUE,
+  fixed_age = FALSE,
   ...
 )
 }
