@@ -325,7 +325,7 @@ identify_barged_fish <- function(capture_data,parsed_df) {
 #' @export
 #'
 #'
-read_DART_file <- function(filepath,aux_age_df,DART_config = "https://www.cbr.washington.edu/downloads/paramest/sites_config.txt", ...) {
+read_DART_file <- function(filepath,aux_age_df,DART_config = "https://www.cbr.washington.edu/downloads/paramest/sites_config.txt") {
 
   if (is(filepath,"list")) {
     files = filepath
