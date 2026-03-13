@@ -479,10 +479,10 @@ static constexpr std::array<const char*, 720> locations_array__ =
   " (in 'string', line 269, column 24 to line 288, column 3)",
   " (in 'string', line 269, column 2 to line 288, column 3)",
   " (in 'string', line 289, column 8 to column 25)",
-  " (in 'string', line 289, column 26 to column 55)",
+  " (in 'string', line 289, column 26 to column 39)",
   " (in 'string', line 289, column 1 to line 292, column 102)",
   " (in 'string', line 293, column 8 to column 25)",
-  " (in 'string', line 293, column 26 to column 55)",
+  " (in 'string', line 293, column 26 to column 39)",
   " (in 'string', line 293, column 1 to line 296, column 102)",
   " (in 'string', line 300, column 9 to column 12)",
   " (in 'string', line 300, column 2 to column 24)",
@@ -3504,13 +3504,12 @@ public:
         stan::math::validate_non_negative_index("pi_L", "rows(mod_mat_a_L)",
           stan::math::rows(mod_mat_a_L));
         current_statement__ = 451;
-        stan::math::validate_non_negative_index("pi_L",
-          "num_elements(alk_par_alpha) + 1",
-          (stan::math::num_elements(alk_par_alpha) + 1));
+        stan::math::validate_non_negative_index("pi_L", "max_a_overall",
+          max_a_overall);
         Eigen::Matrix<local_scalar_t__,-1,-1> pi_L =
           Eigen::Matrix<local_scalar_t__,-1,-1>::Constant(stan::math::rows(
                                                             mod_mat_a_L),
-            (stan::math::num_elements(alk_par_alpha) + 1), DUMMY_VAR__);
+            max_a_overall, DUMMY_VAR__);
         current_statement__ = 452;
         stan::model::assign(pi_L,
           predict_ordered_logistic(alk_par_delta, alk_par_alpha, mod_mat_a_L,
@@ -3519,13 +3518,12 @@ public:
         stan::math::validate_non_negative_index("pi_M", "rows(mod_mat_a_M)",
           stan::math::rows(mod_mat_a_M));
         current_statement__ = 454;
-        stan::math::validate_non_negative_index("pi_M",
-          "num_elements(alk_par_alpha) + 1",
-          (stan::math::num_elements(alk_par_alpha) + 1));
+        stan::math::validate_non_negative_index("pi_M", "max_a_overall",
+          max_a_overall);
         Eigen::Matrix<local_scalar_t__,-1,-1> pi_M =
           Eigen::Matrix<local_scalar_t__,-1,-1>::Constant(stan::math::rows(
                                                             mod_mat_a_M),
-            (stan::math::num_elements(alk_par_alpha) + 1), DUMMY_VAR__);
+            max_a_overall, DUMMY_VAR__);
         current_statement__ = 455;
         stan::model::assign(pi_M,
           predict_ordered_logistic(alk_par_delta, alk_par_alpha, mod_mat_a_M,
