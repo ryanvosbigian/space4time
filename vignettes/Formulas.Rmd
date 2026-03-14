@@ -47,7 +47,7 @@ When there are only two recapture sites, detection probabilities are only estima
 An example site configuration is:
 
 ```{r}
-linear_s4t_config(site_names = c("A","B","C"),
+linear_s4t_config(sites_names = c("A","B","C"),
                   holdover_sites = "A",
                   min_a = c("A" = 0,"B" = 1,"C" = 1),
                   max_a = c("A" = 3,"B" = 4,"C" = 4))
@@ -87,7 +87,7 @@ m3 <- fit_s4t_cjs_rstan(p_formula = ~ t,
 An example site configuration is:
 
 ```{r}
-linear_s4t_config(site_names = c("A","B","C","D"),
+linear_s4t_config(sites_names = c("A","B","C","D"),
                   holdover_sites = "A",
                   min_a = c("A" = 0,"B" = 1,"C" = 1,"D" = 1),
                   max_a = c("A" = 3,"B" = 4,"C" = 4,"D" = 4))
@@ -125,7 +125,7 @@ m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * k,
 An example site configuration is:
 
 ```{r}
-simplebranch_s4t_config(site_names = c("A","B","C","D"),
+simplebranch_s4t_config(sites_names = c("A","B","C","D"),
                         branch_sites = c("A","B"),
                         holdover_sites = c("A","B"),
                         min_a = c("A" = 0,"B" = 1,"C" = 1,"D" = 1),
@@ -187,7 +187,7 @@ m6 <- fit_s4t_cjs_rstan(p_formula = ~ t,
 An example site configuration is:
 
 ```{r}
-simplebranch_s4t_config(site_names = c("A","B","C","D","E"),
+simplebranch_s4t_config(sites_names = c("A","B","C","D","E"),
                         branch_sites = c("A","B"),
                         holdover_sites = c("A","B"),
                         min_a = c("A" = 0,"B" = 1,"C" = 1,"D" = 1,"E" = 1),

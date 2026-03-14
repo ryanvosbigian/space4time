@@ -52,12 +52,12 @@ posterior_predict_knownage_s4t <- function(mod) {
 
     ordered <- matrix(NA,nrow = nrow(eta),ncol = ALPHA_col)
 
-    ordered[,1] <- 1 - plogis(eta - alphas[1])
+    ordered[,1] <- 1 - stats::plogis(eta - alphas[1])
 
     for (i in 2:(ALPHA_col - 1)) {
-      ordered[,i] <- plogis(eta - alphas[i-1]) - plogis(eta - alphas[i])
+      ordered[,i] <- stats::plogis(eta - alphas[i-1]) - stats::plogis(eta - alphas[i])
     }
-    ordered[,ALPHA_col] <- plogis(eta - alphas[i-1])
+    ordered[,ALPHA_col] <- stats::plogis(eta - alphas[i-1])
 
   })
 
