@@ -1,0 +1,270 @@
+---
+title: "Formulas"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Formulas}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(space4time)
+```
+
+
+
+The space-for-time mark-recapture model is parameterized using formulas for $\theta$ and $p$. Some variables are automatically made available (see table below). This vignette describes recommended formulas for $\theta$ and $p$ given specific study designs. If including additional covariates is of interest, the *covariates* vignette contains details on including these. The standard variables available for formulas are shown in the table below.
+
+
+| Variable | Description | 
+|:---------|:--------:|
+| j | Release site |
+| k | Recapture site |
+| s | Release time |
+| t | Recapture time |
+| r | Initial release group |
+| g | Group (individual covariates) |
+| a1 | Age during time s ("release") |
+| a2 | Age during time t ("recapture") |
+
+
+I recommend always fitting the fully saturated model for $\theta$, but testing different parameterizations (formulas) for $p$.
+
+
+## Study designs with two recapture sites
+
+When there are only two recapture sites, detection probabilities are only estimated for the first recapture site. Thus, the transition probabilities from the second to last to last site not actually the transition probabilities, they are the transition and detection probabilities. This means that we shouldn't make any inferences on the cohort transition rates or apparent survival rates for transitions to the last site even though they are provided by the model. 
+
+### Study designs with one initial release site and two recapture sites
+
+An example site configuration is:
+
+```{r}
+linear_s4t_config(site_names = c("A","B","C"),
+                  holdover_sites = "A",
+                  min_a = c("A" = 0,"B" = 1,"C" = 1),
+                  max_a = c("A" = 3,"B" = 4,"C" = 4))
+```
+
+Fully saturated model for theta is `a1*a2*j*s`, which allows for different transition probabilities for each age at release, age at recapture, site, and release time. The fully saturated model for p is `t * a1 * a2`, which allows for different transition probabilities for each age at release, age at recapture, and recapture time. Because there is no estimated detection probability for the last site, we don't need to include site in the formula for p, there is only one site (B) where we estimate detection probability.
+
+Recommended models for this scenario are:
+
+```{r eval = FALSE}
+# fully saturated
+
+m1 <- fit_s4t_cjs_rstan(p_formula = ~ t * a1 * a2,
+                        theta_formula = ~ a1*a2*j*s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time and age at recapture
+
+m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
+                        theta_formula = ~ a1*a2*j*s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time only
+
+m3 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+                        theta_formula = ~ a1*a2*j*s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+```
+
+
+### Study designs with one initial release site and three or more recapture sites
+
+
+An example site configuration is:
+
+```{r}
+linear_s4t_config(site_names = c("A","B","C","D"),
+                  holdover_sites = "A",
+                  min_a = c("A" = 0,"B" = 1,"C" = 1,"D" = 1),
+                  max_a = c("A" = 3,"B" = 4,"C" = 4,"D" = 4))
+```
+
+Fully saturated model for theta is `a1*a2*j*s`, which allows for different transition probabilities for each age at release, age at recapture, site, and release time. The fully saturated model for p is `t * k * a1 * a2`, which allows for different transition probabilities for each age at release, age at recapture, recapture site, and recapture time. There is no estimated detection probability for the last site, but because there are now two sites where we estimate detection probability we include it in the model.
+
+Recommended models for this scenario are:
+
+```{r eval = FALSE}
+# fully saturated
+
+m1 <- fit_s4t_cjs_rstan(p_formula = ~ t * k * a1 * a2,
+                        theta_formula = ~ a1*a2*j*s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time, site, and age at recapture
+
+m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * k * a2,
+                        theta_formula = ~ a1*a2*j*s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time and site only
+
+m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * k,
+                        theta_formula = ~ a1*a2*j*s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+```
+
+### Study designs with two or more initial release sites and two recapture sites
+
+An example site configuration is:
+
+```{r}
+simplebranch_s4t_config(site_names = c("A","B","C","D"),
+                        branch_sites = c("A","B"),
+                        holdover_sites = c("A","B"),
+                        min_a = c("A" = 0,"B" = 1,"C" = 1,"D" = 1),
+                        max_a = c("A" = 3,"B" = 4,"C" = 4,"D" = 4))
+```
+
+
+Fully saturated model for theta is `a1*a2*j*r*s`, which allows for different transition probabilities for each age at release, age at recapture, site, initial release site, and release time. The fully saturated model for p is `t * r * a1 * a2`, which allows for different transition probabilities for each age at release, age at recapture, initial release site, and recapture time. We only estimate detection probability at one site (C). There is no estimated detection probability for the last site. However, now that we have more than one initial release site, we account for different detection probabilities of these different groups.
+
+Recommended models for this scenario are:
+
+```{r eval = FALSE}
+# fully saturated
+
+m1 <- fit_s4t_cjs_rstan(p_formula = ~ t * r * a1 * a2,
+                        theta_formula = ~ a1 * a2 * j * r * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time, initial release site, and age at recapture
+
+m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * r * a1 * a2,
+                        theta_formula = ~ a1 * a2 * j * r * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time, nitial release site, and age at recapture
+
+m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * r * a2,
+                        theta_formula = ~ a1 * a2 * j * r * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time and initial release site
+
+m4 <- fit_s4t_cjs_rstan(p_formula = ~ t * r,
+                        theta_formula = ~ a1 * a2 * j * r * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time and age at recapture
+
+m5 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
+                        theta_formula = ~ a1 * a2 * j * r * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time only
+
+m6 <- fit_s4t_cjs_rstan(p_formula = ~ t,
+                        theta_formula = ~ a1 * a2 * j * r * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+```
+
+### Study designs with two or more initial release sites and three or more recapture sites
+
+
+An example site configuration is:
+
+```{r}
+simplebranch_s4t_config(site_names = c("A","B","C","D","E"),
+                        branch_sites = c("A","B"),
+                        holdover_sites = c("A","B"),
+                        min_a = c("A" = 0,"B" = 1,"C" = 1,"D" = 1,"E" = 1),
+                        max_a = c("A" = 3,"B" = 4,"C" = 4,"D" = 4,"E" = 4))
+```
+
+
+
+Fully saturated model for theta is `a1*a2*j*r*s`, which allows for different transition probabilities for each age at release, age at recapture, site, initial release site, and release time. The fully saturated model for p is `t * r * k * a1 * a2`, which allows for different transition probabilities for each age at release, age at recapture, initial release site, recapture site, and recapture time. We estimate detection probability at two sites (C and D) but not at the last site (E). 
+
+Recommended models for this scenario are:
+
+```{r eval = FALSE}
+# fully saturated
+
+m1 <- fit_s4t_cjs_rstan(p_formula = ~ t * r * k * a1 * a2,
+                        theta_formula = ~ a1 * a2 * j * r * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time, initial release site, recapture site, and age at recapture
+
+m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * r * k * a1 * a2,
+                        theta_formula = ~ a1 * a2 * j * r * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time, initial release site, recapture site, and age at recapture
+
+m3 <- fit_s4t_cjs_rstan(p_formula = ~ t * r * k * a2,
+                        theta_formula = ~ a1 * a2 * j * r * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time, recapture site and initial release site
+
+m4 <- fit_s4t_cjs_rstan(p_formula = ~ t * r * k,
+                        theta_formula = ~ a1 * a2 * j * r * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time, recapture site and age at recapture
+
+m5 <- fit_s4t_cjs_rstan(p_formula = ~ t * k * a2,
+                        theta_formula = ~ a1 * a2 * j * r * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+
+# p depends on time and recapture site
+
+m6 <- fit_s4t_cjs_rstan(p_formula = ~ t * k,
+                        theta_formula = ~ a1 * a2 * j * r * s,
+                        ageclass_formula =  ~ FL,
+                        s4t_ch = s4t_ch2)
+```
+
+
+### Model comparison
+
+Compare models using LOO-PSIS
+
+```{r eval = FALSE}
+# library(loo)
+
+# conduct LOO-PSIS for each model
+
+loo_m1 <- loo::loo(extract_log_lik_s4t(m1))
+
+loo_m2 <- loo::loo(extract_log_lik_s4t(m2))
+
+loo_m3 <- loo::loo(extract_log_lik_s4t(m3))
+
+# compare models using LOO-PSIS
+
+loo::loo_compare(loo_m1,
+                 loo_m2,
+                 loo_m3)
+
+```
+
