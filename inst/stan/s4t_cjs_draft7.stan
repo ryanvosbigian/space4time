@@ -940,12 +940,12 @@ generated quantities {
 
 
 
- matrix[rows(mod_mat_a_L),num_elements(alk_par_alpha)+1] pi_L = predict_ordered_logistic(alk_par_delta,
+ matrix[rows(mod_mat_a_L),max_a_overall] pi_L = predict_ordered_logistic(alk_par_delta,
                                                                                        alk_par_alpha,
                                                                                        mod_mat_a_L,
                                                                                        max_a_overall);
 
- matrix[rows(mod_mat_a_M),num_elements(alk_par_alpha)+1] pi_M = predict_ordered_logistic(alk_par_delta,
+ matrix[rows(mod_mat_a_M),max_a_overall] pi_M = predict_ordered_logistic(alk_par_delta,
                                                                                        alk_par_alpha,
                                                                                        mod_mat_a_M,
                                                                                        max_a_overall);
