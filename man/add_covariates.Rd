@@ -17,10 +17,14 @@ a \code{s4t_ch} object with covariates added
 }
 \description{
 Add covariates to a space4time capture history object. If the covariate has
-missing levels from the indices (\verb{a1,a2,j,k,s,t,r,g}), an indicator
-variable is added that is named \code{"OFF_"} appended to the covariate name.
+missing levels from the indices (\verb{a1,a2,j,k,s,t,r,g}), then two indicator
+variables are added. The first is named \code{"ON_"} appended to the covariate
+name, and it is 1 if the covariate has a value for that level, and 0 otherwise.
+The second is named \code{"OFF_"} appended to the covariate name, and it is
+0 when the covariate has a value for that level, and 1 otherwise. The
+covariate is set to 0 for al values it is missing.
 }
 \details{
 To show how covariates are added or what levels are required for the indices,
-use extract_covariates.
+use \code{extract_covariates()}.
 }
