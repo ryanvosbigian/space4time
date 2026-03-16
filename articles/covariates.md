@@ -36,30 +36,72 @@ function).
 
 Incorporating covariates into space-for-time mark-recapture models is
 made straightforward by the helper function
-[`add_covariates()`](https://ryanvosbigian.github.io/space4time/reference/add_covariates.md).
+[`add_covariates()`](https://ryanvosbigian.github.io/space4time/reference/add_covariates.md),
+which can be used to add one covariate at a time. The function,
+[`extract_covariates()`](https://ryanvosbigian.github.io/space4time/reference/extract_covariates.md),
+can be used to see how these covariates are added.
 
-### 
+If the covariate has missing levels from the indices
+(`a1,a2,j,k,s,t,r,g`), then two indicator variables are added. The first
+is named `"ON_"` appended to the covariate name, and it is 1 if the
+covariate has a value for that level, and 0 otherwise. The second is
+named `"OFF_"` appended to the covariate name, and it is 0 when the
+covariate has a value for that level, and 1 otherwise. The covariate is
+set to 0 for al values it is missing. These two indicator variables can
+be used to include temporal covariates for particular sites but not
+include them for the other sites. So, using these we can have transition
+probabilities from one site vary across a covariate, but for all other
+sites use the fully saturated model for transition probabilities.
+
+We take advantage of a trick in using formulas, where we can turn on and
+off different variables.
+
+### Additional note
+
+When specifying formulas for theta and p, all aliased parameters are
+removed from the model matrix prior to fitting the model. This is a
+technical detail that ensures that fitted models contain only
+identifiable parameters. A quirk of this is that a parameter included
+using the formulas can be removed and won’t be included in the fitted
+model shown when printing the fitted model.
 
 ### Examples
 
 #### Adding temporal covariate
 
+**Example with site configuration with one initial release site**
+
 In this example, we want to incorporate an annual covariate for
 temperature on the transition rates. In this case, we have mean annual
-temperatures for both of our release sites (the last site does not count
-as a release site).
+temperatures for the first release site.
 
 ``` r
 set.seed(1)
 sim.dat <- sim_simple_s4t_ch()
 s4t_ch <- sim.dat$s4t_ch
 
-temperature_data <- data.frame(s =    c(1, 2, 3, 4,
-                                        1, 2, 3, 4),
-                               j =    c(1, 1, 1, 1,
-                                        2, 2, 2, 2),
-                               temp = c(12.1,13.4,11.3,15.3,
-                                        18.4,19.2,17.8,20.3)
+print(s4t_ch)
+#> Capture history object
+#> 
+#> There are N = 3 with N = 1 sites with holdovers
+#> 
+#> Sites: 1, 2, 3
+#> 
+#> Sites with holdovers: 1
+#> 
+#> Site -> site:
+#> 1 -> 2
+#> 2 -> 3
+#> 3 -> 
+#> 
+#> Age range per site:
+#> 1: 1-3
+#> 2: 1-3
+#> 3: 1-3
+
+temperature_data <- data.frame(s =    c(1, 2, 3, 4),
+                               j =    c(1, 1, 1, 1),
+                               temp = c(12.1,13.4,11.3,15.3)
                                )
 
 # center and scale data
@@ -72,39 +114,159 @@ Next, we can add the data to the `s4t_ch` object.
 s4t_ch2 <- add_covariates(cov_df = temperature_data,
                           s4t_ch = s4t_ch)
 #> Joining with `by = join_by(s, j)`
+#> Following levels are missing from index j when joining covariate(s) temp:
+#> Level(s):2
 #> Joining with `by = join_by(s, j)`
+#> Some levels from covariate(s) temp were missing. Added columns to cov_theta to
+#> split observations between observed and unobserved values: OFF_temp; ON_temp
+#> Missing levels:
+#>   s j
+#> 1 1 2
+#> 2 2 2
+#> 3 3 2
+#> 4 4 2
+
+extract_covariates(s4t_ch2)
+#> Indices (and covariates) for state transitions:
+#>    a1 a2 s t j k r g       temp OFF_temp ON_temp
+#> 1   1  1 1 1 1 2 1 1 -0.5297258        0       1
+#> 2   1  2 1 2 1 2 1 1 -0.5297258        0       1
+#> 3   1  3 1 3 1 2 1 1 -0.5297258        0       1
+#> 4   2  2 1 1 1 2 1 1 -0.5297258        0       1
+#> 5   2  3 1 2 1 2 1 1 -0.5297258        0       1
+#> 6   3  3 1 1 1 2 1 1 -0.5297258        0       1
+#> 7   1  1 2 2 1 2 1 1  0.2147537        0       1
+#> 8   1  2 2 3 1 2 1 1  0.2147537        0       1
+#> 9   1  3 2 4 1 2 1 1  0.2147537        0       1
+#> 10  2  2 2 2 1 2 1 1  0.2147537        0       1
+#> 11  2  3 2 3 1 2 1 1  0.2147537        0       1
+#> 12  3  3 2 2 1 2 1 1  0.2147537        0       1
+#> 13  1  1 1 1 2 3 1 1  0.0000000        1       0
+#> 14  2  2 1 1 2 3 1 1  0.0000000        1       0
+#> 15  3  3 1 1 2 3 1 1  0.0000000        1       0
+#> 16  1  1 2 2 2 3 1 1  0.0000000        1       0
+#> 17  2  2 2 2 2 3 1 1  0.0000000        1       0
+#> 18  3  3 2 2 2 3 1 1  0.0000000        1       0
+#> 19  2  2 3 3 2 3 1 1  0.0000000        1       0
+#> 20  3  3 3 3 2 3 1 1  0.0000000        1       0
+#> 21  3  3 4 4 2 3 1 1  0.0000000        1       0
+#> 
+#> Indices (and covariates) for detection probability:
+#>    a1 a2 s t j k r g       temp
+#> 1   1  1 1 1 1 2 1 1 -0.5297258
+#> 2   1  2 1 2 1 2 1 1 -0.5297258
+#> 3   1  3 1 3 1 2 1 1 -0.5297258
+#> 4   2  2 1 1 1 2 1 1 -0.5297258
+#> 5   2  3 1 2 1 2 1 1 -0.5297258
+#> 6   3  3 1 1 1 2 1 1 -0.5297258
+#> 7   1  1 2 2 1 2 1 1  0.2147537
+#> 8   1  2 2 3 1 2 1 1  0.2147537
+#> 9   1  3 2 4 1 2 1 1  0.2147537
+#> 10  2  2 2 2 1 2 1 1  0.2147537
+#> 11  2  3 2 3 1 2 1 1  0.2147537
+#> 12  3  3 2 2 1 2 1 1  0.2147537
 ```
 
-The fully saturated formula for theta is $\theta \sim a1*a2*j*s$ Some
-different examples of how we could include this covariate are:
+The fully saturated formula for theta is $\theta \sim a1*a2*j*s$ (see
+vignette on formulas). Two different examples of how I recommend to
+include covariates are shown below. The formulas are slightly different
+and result in almost identical models.
+
+The both of these models allow for temperature to explain the variation
+in transition rates for the first site, but not for the second or third
+site. This is accomplished by using `:` to multiply the variables for
+`ON_temp` and `OFF_temp` by the other variables (if we used a `*`
+instead the formula would include an intercept for `ON_temp` and
+`OFF_temp`, which wouldn’t make sense).
+
+The first line for the theta_formula (`OFF_temp:a1*a2*j*s`) is only for
+the transition rates of the second and third site, because `OFF_temp` is
+1 for the second and third sites. This allows for the saturated model
+that to be fit for the sites where we are not modeling these covariates.
+
+The second line of the formula (`ON_temp:temp:a1*a2` or
+`ON_temp:temp*a1*a2`) for theta specifies how the effects of temperature
+are modeled for the first site. We allow for temperature to effect
+transition rates and for this to vary depending on the age of fish at
+that site and how long they take to transition to the next site.
+
+The third line (`ON_temp:a1:a2` or `ON_temp:a1*a2`) specifies for the
+first site how transition rates vary by age and how long they take to
+transition to the next site. I think of this third line as acting as an
+intercept for how transition rates typically vary across age, and the
+second line describes how this varies by year as a function of
+temperature.
+
+My preference is for the parameterization shown in model `m1` over `m2`.
+However, the estimates of cohort transitions and apparent survival
+should always be compared to the fully saturated model (`m0` below) to
+ensure that the covariate fit well. Then, LOO-PSIS can be used to
+compare models.
 
 ``` r
-m1 <- fit_s4t_cjs_rstan(p_formula = ~ t,
-                        theta_formula = ~ a1 * a2 * temp * j,
+m1 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
+                        theta_formula = ~ OFF_temp:a1*a2*j*s +
+                                ON_temp:temp:a1*a2  + 
+                                ON_temp:a1:a2,
                         ageclass_formula =  ~ FL,
-                        s4t_ch = s4t_ch2,
-                        fixed_age = TRUE)
+                        s4t_ch = s4t_ch2)
 
-m2 <- fit_s4t_cjs_rstan(p_formula = ~ t,
-                        theta_formula = ~ a1 : a2 : temp + j + a1 * a2 * s,
+m2 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
+                        theta_formula = ~ OFF_temp:a1*a2*j*s +
+                                ON_temp:temp*a1*a2  + 
+                                ON_temp:a1*a2,
                         ageclass_formula =  ~ FL,
-                        s4t_ch = s4t_ch2,
-                        fixed_age = TRUE)
+                        s4t_ch = s4t_ch2)
 
 
-m3 <- fit_s4t_cjs_rstan(p_formula = ~ t,
-                        theta_formula = ~ a1 : a2 : temp * j+ a1 * a2 * j,
+m0 <- fit_s4t_cjs_rstan(p_formula = ~ t * a2,
+                        theta_formula = ~ a1*a2*j*s,
                         ageclass_formula =  ~ FL,
-                        s4t_ch = s4t_ch2,
-                        fixed_age = TRUE)
-
-m2 <- fit_s4t_cjs_rstan(p_formula = ~ t,
-                        theta_formula = ~ temp + a1 * a2 * j,
-                        ageclass_formula =  ~ FL,
-                        s4t_ch = s4t_ch2,
-                        fixed_age = TRUE)
+                        s4t_ch = s4t_ch2)
 ```
 
-#### Adding temporal covariate for first sites
+**Example with site configuration with two or more initial release
+sites**
+
+The formulas from above change if there are more than one initial
+release site. In this example, there are two (or more) initial release
+site. For instance, three rotary screw traps where we have temperature
+data that varies by site and year.
+
+Again, the first line in the formula (`OFF_temp:a1*a2*j*s*r`) indicates
+fully saturated transition rates for the sites without temperature data,
+which are all the recapture sites.
+
+The second line (`ON_temp:temp:j` or `ON_temp:temp*j`), allows for the
+effect of temperature to depend on the site (initial release site).
+
+The third line (`ON_temp:temp:a1*a2` or `ON_temp:temp*a1*a2`) allows for
+the effect of temperature to vary across age (age at the rotary screw
+traps and then how long they take to transition to the next site).
+
+The fourth line (`ON_temp:j:a1:a2` or `ON_temp:j*a1*a2`) allows for each
+site how transition rates vary across age (age at the initial release
+site and then how long they take to transition to the next site). Note
+that temperature is not included in this fourth line.
+
+``` r
+m3 <- fit_s4t_cjs_rstan(p_formula = ~ a2 * r * t,
+                        theta_formula =  ~ OFF_temp:a1*a2*j*s*r +
+                                ON_temp:temp:j + 
+                                ON_temp:temp:a1*a2  + 
+                                ON_temp:j:a1:a2,
+                              ageclass_formula = ~ FL,
+                              s4t_ch =s4t_ch2)
+
+m4 <- fit_s4t_cjs_rstan(p_formula = ~ a2 * r * t,
+                        theta_formula =  ~ OFF_temp:a1*a2*j*s*r +
+                                ON_temp:temp*j + 
+                                ON_temp:temp*a1*a2  + 
+                                ON_temp:j*a1*a2,
+                              ageclass_formula = ~ FL,
+                              s4t_ch =s4t_ch2)
+```
 
 ## Specifying individual grouping covariates
+
+In progress…

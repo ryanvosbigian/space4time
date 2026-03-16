@@ -22,6 +22,7 @@ flexible threshold parameters."></head><body>
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/covariates.html">covariates</a></li>
     <li><a class="dropdown-item" href="../articles/Example.html">Example using PTAGIS queries</a></li>
+    <li><a class="dropdown-item" href="../articles/Formulas.html">Formulas</a></li>
     <li><a class="dropdown-item" href="../articles/introduction.html">Introduction to fitting age-specific space-for-time mark-recapture models</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -81,12 +82,12 @@ another variable for time can be included in auxiliary data.</p>
 <span class="r-in"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu">fit_ageclass</span><span class="op">(</span><span class="va">ageclass</span> <span class="op">~</span> <span class="va">FL</span> <span class="op">+</span> <span class="va">obs_time</span>,s4t_ch <span class="op">=</span> <span class="va">sim.dat</span><span class="op">$</span><span class="va">s4t_ch</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                       parameter estimate std_error z_value   lcl95   ucl95</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> a_alpha_1             a_alpha_1  -2.7915    0.6746  -4.138 -4.1137 -1.4694</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> a_alpha_2             a_alpha_2   4.1830    0.5366   7.796  3.1313  5.2346</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> a_beta_FL             a_beta_FL   1.2206    0.1230   9.922  0.9795  1.4617</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> a_beta_obs_time a_beta_obs_time  -0.4791    0.3669  -1.306 -1.1981  0.2399</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> a_alpha_1             a_alpha_1   -3.604    0.6641  -5.427 -4.9056 -2.3022</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> a_alpha_2             a_alpha_2    4.198    0.5031   8.345  3.2121  5.1843</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> a_beta_FL             a_beta_FL    1.136    0.1095  10.377  0.9214  1.3505</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> a_beta_obs_time a_beta_obs_time   -1.050    0.3588  -2.926 -1.7529 -0.3465</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      AIC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 112.92</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 122.81</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

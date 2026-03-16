@@ -1,8 +1,13 @@
 # Add covariates to a space4time capture history object
 
 Add covariates to a space4time capture history object. If the covariate
-has missing levels from the indices (`a1,a2,j,k,s,t,r,g`), an indicator
-variable is added that is named `"OFF_"` appended to the covariate name.
+has missing levels from the indices (`a1,a2,j,k,s,t,r,g`), then two
+indicator variables are added. The first is named `"ON_"` appended to
+the covariate name, and it is 1 if the covariate has a value for that
+level, and 0 otherwise. The second is named `"OFF_"` appended to the
+covariate name, and it is 0 when the covariate has a value for that
+level, and 1 otherwise. The covariate is set to 0 for al values it is
+missing.
 
 ## Usage
 
@@ -28,4 +33,5 @@ a `s4t_ch` object with covariates added
 ## Details
 
 To show how covariates are added or what levels are required for the
-indices, use extract_covariates.
+indices, use
+[`extract_covariates()`](https://ryanvosbigian.github.io/space4time/reference/extract_covariates.md).

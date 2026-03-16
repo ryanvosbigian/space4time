@@ -298,8 +298,8 @@ m1 <- fit_s4t_cjs_rstan(
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.000829 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.29 seconds.
+#> Chain 1: Gradient evaluation took 0.000861 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 8.61 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -316,15 +316,15 @@ m1 <- fit_s4t_cjs_rstan(
 #> Chain 1: Iteration: 560 / 600 [ 93%]  (Sampling)
 #> Chain 1: Iteration: 600 / 600 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 16.757 seconds (Warm-up)
-#> Chain 1:                30.101 seconds (Sampling)
-#> Chain 1:                46.858 seconds (Total)
+#> Chain 1:  Elapsed Time: 16.243 seconds (Warm-up)
+#> Chain 1:                28.902 seconds (Sampling)
+#> Chain 1:                45.145 seconds (Total)
 #> Chain 1: 
 #> 
 #> SAMPLING FOR MODEL 's4t_cjs_fixedage_draft7' NOW (CHAIN 2).
 #> Chain 2: 
-#> Chain 2: Gradient evaluation took 0.000752 seconds
-#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.52 seconds.
+#> Chain 2: Gradient evaluation took 0.000739 seconds
+#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 7.39 seconds.
 #> Chain 2: Adjust your expectations accordingly!
 #> Chain 2: 
 #> Chain 2: 
@@ -341,9 +341,9 @@ m1 <- fit_s4t_cjs_rstan(
 #> Chain 2: Iteration: 560 / 600 [ 93%]  (Sampling)
 #> Chain 2: Iteration: 600 / 600 [100%]  (Sampling)
 #> Chain 2: 
-#> Chain 2:  Elapsed Time: 19.22 seconds (Warm-up)
-#> Chain 2:                30.331 seconds (Sampling)
-#> Chain 2:                49.551 seconds (Total)
+#> Chain 2:  Elapsed Time: 18.523 seconds (Warm-up)
+#> Chain 2:                29.275 seconds (Sampling)
+#> Chain 2:                47.798 seconds (Total)
 #> Chain 2:
 ```
 
@@ -419,7 +419,7 @@ print(m1)
 #> cohort_surv[20]    0.35    0.00 0.05  0.26  0.31  0.34  0.38  0.44   978 1.00
 #> cohort_surv[21]    0.16    0.00 0.07  0.06  0.12  0.15  0.20  0.31   917 1.00
 #> 
-#> Samples were drawn using NUTS(diag_e) at Thu Mar  5 17:52:04 2026.
+#> Samples were drawn using NUTS(diag_e) at Mon Mar 16 17:00:57 2026.
 #> For each parameter, n_eff is a crude measure of effective sample size,
 #> and Rhat is the potential scale reduction factor on split chains (at 
 #> convergence, Rhat=1).

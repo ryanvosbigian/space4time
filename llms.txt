@@ -340,5 +340,6 @@ plotSurvival(m1)
 - [covariates](https://ryanvosbigian.github.io/space4time/articles/covariates.md):
 - [Example using PTAGIS
   queries](https://ryanvosbigian.github.io/space4time/articles/Example.md):
+- [Formulas](https://ryanvosbigian.github.io/space4time/articles/Formulas.md):
 - [Introduction to fitting age-specific space-for-time mark-recapture
   models](https://ryanvosbigian.github.io/space4time/articles/introduction.md):
